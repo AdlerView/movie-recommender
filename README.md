@@ -29,6 +29,26 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ---
 
+## Features
+
+### Discover
+
+Browse trending movies one at a time in a card-based flow (poster, genres, rating, overview). Each movie can be added to the watchlist or dismissed. Dismissed and watchlisted movies are automatically skipped.
+
+### Watchlist
+
+View all saved movies with posters, titles, and TMDB ratings.
+
+### Statistics
+
+Dashboard with KPI metrics: number of watchlisted, rated, and dismissed movies.
+
+### TMDB Integration
+
+Live data from TMDB API v3 with cached responses (genres 1h, trending 30m). Error handling for API failures with user-facing messages.
+
+---
+
 ## Deadlines
 
 | Date       | Milestone | Status |
@@ -108,5 +128,5 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 # Edit .streamlit/secrets.toml and replace with the shared TMDB API key (see group chat)
 
 # Run the app
-streamlit run streamlit_app.py
+streamlit run app/streamlit_app.py
 ```
