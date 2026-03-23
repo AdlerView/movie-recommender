@@ -1,7 +1,7 @@
 # Open Issues
 
 > Conceptual gaps, ambiguities, and pending decisions.
-> Last updated: 2026-03-18
+> Last updated: 2026-03-23
 
 ## Legend
 
@@ -26,9 +26,11 @@
   - Context: "Implements machine learning" is a project requirement. The concept defers this to "after the ML class." Content-based filtering (user preference vector from rated films → cosine similarity against candidates) is achievable and demonstrable. Collaborative filtering requires multi-user data the app won't have.
   - Found: 2026-03-18
 
-- [ ] `#003` **[issue]** — Custom tags don't match TMDB genres
+- [x] `#003` **[issue]** — Custom tags don't match TMDB genres
   - Context: The wireframe proposes tags like "funny", "sad", "independent", "for kids". TMDB has 19 fixed genres (Action, Comedy, Horror, Family, etc.). "Sad" and "independent" have no genre equivalent. "Funny" and "comedy" overlap. Either use TMDB genre names directly, define an explicit mapping table, or use TMDB keywords (`/search/keyword` + `/discover/movie?with_keywords=`) for finer-grained tags.
+  - **Decision:** Use the 19 official TMDB genres directly. No custom tags, no mapping table. Simpler, consistent with the API, avoids ambiguity. See [TMDB_API.md](../TMDB_API.md#genre-list) for the full list.
   - Found: 2026-03-18
+  - Resolved: 2026-03-23
 
 - [ ] `#004` **[decision]** — Movies only or movies + TV series
   - Options: Movies only (single API surface: `/discover/movie`, `/movie/{id}`) vs. movies + TV (doubles integration work: separate endpoints, different response fields like `title` vs `name`, `release_date` vs `first_air_date`). The wireframe shows both — TV series in the "based on your stream" section, movies in the recommendation flow.
@@ -78,5 +80,5 @@
 
 ## Resolved
 
-*No resolved issues yet.*
+- [x] `#003` **[issue]** — Use 19 official TMDB genres directly (2026-03-23)
 

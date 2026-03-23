@@ -103,8 +103,10 @@ conda activate ./.conda
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the app
-streamlit run app.py
-```
+# Configure API key
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+# Edit .streamlit/secrets.toml and replace with the shared TMDB API key (see group chat)
 
-> Setup instructions will be updated once the project structure is finalized.
+# Run the app
+streamlit run streamlit_app.py
+```
