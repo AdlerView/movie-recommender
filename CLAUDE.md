@@ -103,9 +103,11 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Discover (genre pills → card browsing, no rating) and Watched (search + poster grid → rate)
 - Discover: Two-phase flow (genre selection → movie browsing), card-based one at a time, watchlist/dismiss only
-- Watched: TMDB text search + Netflix-style clickable poster grid + trending + integrated "Your ratings" with re-rating
+- Watched: TMDB text search + Netflix-style clickable poster grid + trending + integrated "Your ratings" with color-coded badges and edit button
 - Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Watched
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
+- Your Ratings: color-coded badges (red ≤3.33, orange ≤6.66, green >6.66) + tertiary edit button → reuses Phase 2 rating view
+- Movie details: Eagerly cached in normalized SQLite tables on every rating save + backfill on startup
 - Navigation: 4 pages — Discover, Watched, Watchlist, Statistics
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 
@@ -117,7 +119,7 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 |---|------------|--------|
 | 1 | Problem statement | Defined |
 | 2 | Data via API | TMDB + SQLite integrated |
-| 3 | Data visualization | Planned |
+| 3 | Data visualization | Implemented (KPIs, genre chart, top directors) |
 | 4 | User interaction | Implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | Open (weeks 10-11) |
 | 6 | Code documentation | In progress |

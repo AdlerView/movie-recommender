@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import save_rating
+from utils.db import save_movie_details, save_rating
 from utils.tmdb import (
     get_genre_map,
     get_movie_details,
@@ -205,8 +205,7 @@ if st.session_state.watched_selected is None:
     if not current_query and ratings:
         st.subheader("Your ratings", divider="blue")
 
-        # Build lookup: watchlist movies have metadata cached in session state.
-        # Rated movies NOT in the watchlist need a TMDB API call for title/poster.
+        # Build lookup from watchlist as initial seed (basic metadata).
         watchlist_lookup: dict[int, dict] = {
             m["id"]: m for m in st.session_state.get("watchlist", [])
         }
@@ -215,25 +214,24 @@ if st.session_state.watched_selected is None:
         rated_items = list(ratings.items())
         visible_items = rated_items[:st.session_state._rated_show_count]
 
-        # Fetch metadata for visible rated movies not in the watchlist (cached 1h)
+        # Fetch full details for all visible rated movies (cached 1h).
+        # Always use get_movie_details() to get runtime, genres, credits.
         for movie_id, _ in visible_items:
-            if movie_id not in watchlist_lookup:
-                try:
-                    # GET /movie/{id} — retrieves title, poster, rating for display
-                    watchlist_lookup[movie_id] = get_movie_details(movie_id)
-                except requests.RequestException:
-                    # Graceful fallback — show movie ID if API call fails
+            try:
+                watchlist_lookup[movie_id] = get_movie_details(movie_id)
+            except requests.RequestException:
+                if movie_id not in watchlist_lookup:
                     watchlist_lookup[movie_id] = {
                         "id": movie_id, "title": f"Movie #{movie_id}",
                     }
 
-        # Render rated movie cards with re-rating sliders
+        # Render rated movie cards with rating badge + edit button
         for movie_id, current_rating in visible_items:
             rated_movie = watchlist_lookup[movie_id]
 
             with st.container(border=True):
-                # 2-column layout: compact poster, wide info area
-                col_poster, col_info = st.columns([1, 3])
+                # 3-column layout: poster, info, edit button (top-right)
+                col_poster, col_info, col_edit = st.columns([1, 3, 0.5])
                 with col_poster:
                     st.image(
                         poster_url(rated_movie.get("poster_path"), size="w185"),
@@ -244,24 +242,34 @@ if st.session_state.watched_selected is None:
                         rated_movie.get("title", f"Movie #{movie_id}")
                     )
                     st.caption(
-                        f"TMDB rating: "
-                        f"{rated_movie.get('vote_average', 'N/A')} / 10"
+                        f"TMDB: {rated_movie.get('vote_average', 'N/A')} / 10"
                     )
-
-                # Re-rating slider — auto-saves on change (same scale: 0.00-10.00)
-                new_rating = st.slider(
-                    "Your rating",
-                    min_value=0.00,
-                    max_value=10.00,
-                    value=current_rating if current_rating is not None else 0.00,
-                    step=0.01,
-                    format="%.2f/10",
-                    key=f"rated_{movie_id}",
-                )
-                # Save only when the rating actually changes (avoids redundant writes)
-                if new_rating != current_rating:
-                    st.session_state.ratings[movie_id] = new_rating
-                    save_rating(movie_id, new_rating)
+                    # Runtime on its own line with clock icon
+                    runtime = rated_movie.get("runtime")
+                    if runtime:
+                        hours, mins = divmod(runtime, 60)
+                        if hours:
+                            st.caption(f":material/schedule: {hours}h {mins}min")
+                        else:
+                            st.caption(f":material/schedule: {mins} min")
+                    # Color-coded rating badge
+                    if current_rating <= 3.33:
+                        badge = f":red-badge[{current_rating:.2f} / 10]"
+                    elif current_rating <= 6.66:
+                        badge = f":orange-badge[{current_rating:.2f} / 10]"
+                    else:
+                        badge = f":green-badge[{current_rating:.2f} / 10]"
+                    st.markdown(f"Your rating: {badge}")
+                with col_edit:
+                    # Small edit button top-right → opens Phase 2 rating view
+                    st.button(
+                        "",
+                        icon=":material/edit:",
+                        key=f"edit_{movie_id}",
+                        on_click=_select_movie,
+                        args=(rated_movie,),
+                        type="tertiary",
+                    )
 
         # Load more rated movies
         if len(rated_items) > st.session_state._rated_show_count:
@@ -358,7 +366,13 @@ st.markdown(
 # Save button — persists rating and returns to search/browse view
 if st.button("Save rating", type="primary", icon=":material/save:"):
     st.session_state.ratings[movie["id"]] = new_rating  # Update runtime state
-    save_rating(movie["id"], new_rating)  # Persist to SQLite
+    save_rating(movie["id"], new_rating)  # Persist rating to SQLite
+    # Eager fetch: cache full TMDB details for Statistics dashboard
+    try:
+        details = get_movie_details(movie["id"])
+        save_movie_details(movie["id"], details)
+    except requests.RequestException:
+        pass  # Non-critical — details can be backfilled later
     # Store toast message for display after rerun (toast before rerun is lost)
     st.session_state["_watched_toast"] = f"Rated **{movie['title']}**: {new_rating:.2f}/10"
     st.session_state.watched_selected = None  # Return to search/browse phase

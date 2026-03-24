@@ -1,12 +1,21 @@
 """Movie Recommender — Main entry point.
 
 Configures the Streamlit app, initializes the database, loads persisted data
-into session state, and sets up multi-page navigation with top positioning.
+into session state, backfills missing movie details, and sets up multi-page
+navigation with top positioning.
 """
 from __future__ import annotations
 
 import streamlit as st
-from utils.db import init_db, load_dismissed, load_ratings, load_watchlist
+from utils.db import (
+    get_ratings_without_details,
+    init_db,
+    load_dismissed,
+    load_ratings,
+    load_watchlist,
+    save_movie_details,
+)
+from utils.tmdb import get_movie_details
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -28,6 +37,21 @@ if "db_loaded" not in st.session_state:
     st.session_state.watchlist = load_watchlist()    # [movie_dict, ...]
     st.session_state.dismissed = load_dismissed()    # {movie_id, ...}
     st.session_state.db_loaded = True
+
+# --- Backfill movie details ---
+# Fetch TMDB details for ratings that were saved before the movie_details
+# table existed. Runs once per session; skips on subsequent reruns.
+if "details_backfilled" not in st.session_state:
+    missing_ids = get_ratings_without_details()
+    if missing_ids:
+        with st.spinner(f"Loading details for {len(missing_ids)} rated movies..."):
+            for movie_id in missing_ids:
+                try:
+                    details = get_movie_details(movie_id)
+                    save_movie_details(movie_id, details)
+                except Exception:
+                    pass  # Skip failed fetches — will retry next session
+    st.session_state.details_backfilled = True
 
 # --- Navigation ---
 # Top navigation for 4 pages: discover new → rate watched → saved → stats

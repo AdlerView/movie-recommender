@@ -25,7 +25,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Frontend    | [Streamlit](https://streamlit.io) (mandatory) |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema-versioned) |
+| Persistence | SQLite (WAL mode, schema v3, normalized detail tables) |
 | ML          | TBD (content-based filtering planned) |
 
 ---
@@ -38,7 +38,7 @@ Two-phase flow matching the wireframe prototype. First, select genre tags (19 TM
 
 ### Watched
 
-Search and rate movies you've already seen. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies as quick entry points — posters are clickable via CSS overlay. Selecting a movie opens a detail card with a 0.00-10.00 color-coded rating slider and Save button. Below the trending section, a "Your ratings" list shows all previously rated movies with re-rating sliders (initial 5, paginated via Load more). Search results also paginate with Load more.
+Search and rate movies you've already seen. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies as quick entry points — posters are clickable via CSS overlay. Selecting a movie opens a detail card with a 0.00-10.00 color-coded rating slider and Save button. Below the trending section, a "Your ratings" list shows all previously rated movies with color-coded rating badges (red ≤3.33, orange ≤6.66, green >6.66), runtime, and an edit button that opens the full rating view. Initial 5, paginated via Load more. Search results also paginate with Load more.
 
 ### Watchlist
 
@@ -46,7 +46,7 @@ View all saved movies with posters, titles, TMDB ratings, and flatrate streaming
 
 ### Statistics
 
-Dashboard with KPI metrics: number of watchlisted, rated, and dismissed movies, plus average rating.
+Dashboard powered by normalized SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Genre distribution bar chart and top 5 favorite directors ranking. All movie details (runtime, genres, credits, countries) are eagerly cached on every rating save and backfilled on startup.
 
 ### Persistence
 
@@ -80,7 +80,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 |---|-------------|--------|
 | 1 | Problem clearly stated | defined |
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
-| 3 | Data visualization | planned |
+| 3 | Data visualization | implemented (KPIs, genre chart, directors) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | open |
 | 6 | Code documentation | in progress |
