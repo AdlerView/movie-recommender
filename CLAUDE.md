@@ -84,7 +84,8 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Imports relative to `app/`: `from utils.tmdb import get_genres`
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
-- UX pattern: Card-based flow (one movie at a time) for discover/recommend
+- UX pattern: Two-phase discover flow (genre selection → movie browsing), card-based (one at a time)
+- Pagination: Automatic page advancement when all movies on a page are exhausted (up to 10 pages)
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale)
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 

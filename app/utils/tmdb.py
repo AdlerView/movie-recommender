@@ -15,13 +15,17 @@ BASE_URL = "https://api.themoviedb.org/3"
 IMAGE_BASE = "https://image.tmdb.org/t/p"
 
 
-def _get(path: str, **params: str | int) -> dict:
+def _get(
+    path: str, extra: dict[str, str | int] | None = None, **params: str | int,
+) -> dict:
     """Send a GET request to the TMDB API.
 
     Injects the API key automatically and raises on HTTP errors.
 
     Args:
         path: API endpoint path (e.g., "/genre/movie/list").
+        extra: Additional query parameters with keys that are not valid Python
+            identifiers (e.g., "vote_count.gte").
         **params: Query parameters forwarded to the request.
 
     Returns:
@@ -31,6 +35,8 @@ def _get(path: str, **params: str | int) -> dict:
         requests.HTTPError: If the API returns a non-2xx status code.
         requests.ConnectionError: If the connection to TMDB fails.
     """
+    if extra:
+        params.update(extra)
     params["api_key"] = API_KEY
     response = requests.get(f"{BASE_URL}{path}", params=params, timeout=10)
     response.raise_for_status()
@@ -78,17 +84,44 @@ def get_genre_map() -> dict[int, str]:
 
 
 @st.cache_data(ttl="30m", show_spinner="Loading trending movies...")
-def get_trending(time_window: str = "week") -> list[dict]:
+def get_trending(time_window: str = "week", page: int = 1) -> list[dict]:
     """Fetch trending movies from TMDB.
 
     Args:
         time_window: "day" or "week".
+        page: Result page (1-500, 20 movies per page).
 
     Returns:
         List of movie dicts from the trending endpoint.
     """
     # GET /trending/movie/{time_window} — movies trending this day/week
-    return _get(f"/trending/movie/{time_window}", language="en-US")["results"]
+    return _get(f"/trending/movie/{time_window}", language="en-US", page=page)["results"]
+
+
+@st.cache_data(ttl="30m", show_spinner="Discovering movies...")
+def discover_movies(genre_ids: tuple[int, ...], page: int = 1) -> list[dict]:
+    """Fetch movies filtered by genres via the TMDB discover endpoint.
+
+    Uses AND logic for genres so movies must match all selected genres.
+    Results are sorted by rating with a minimum vote count to filter obscure films.
+
+    Args:
+        genre_ids: TMDB genre IDs to filter by (AND logic).
+        page: Result page (1-500).
+
+    Returns:
+        List of movie dicts matching all selected genres.
+    """
+    # GET /discover/movie — genre-filtered discovery, AND logic via comma separator
+    genres_param = ",".join(str(gid) for gid in genre_ids)
+    return _get(
+        "/discover/movie",
+        extra={"vote_count.gte": 100},
+        with_genres=genres_param,
+        sort_by="vote_average.desc",
+        language="en-US",
+        page=page,
+    )["results"]
 
 
 @st.cache_data(ttl="1h", show_spinner=False)

@@ -1,23 +1,25 @@
-"""Discover page — Browse and rate movies one at a time.
+"""Discover page — Browse and rate movies by genre.
 
-Presents a card-based flow where users see one trending movie at a time.
-Rate on a 0.00-10.00 scale (matching TMDB), add to watchlist, or dismiss.
-Rating and watchlist are independent actions.
+Two-phase flow: first select genre tags, then browse filtered movies one at a
+time in a card-based flow. Rate on a 0.00-10.00 scale (matching TMDB), add to
+watchlist, or dismiss. When no genres are selected, trending movies are shown.
 """
 from __future__ import annotations
 
 import requests
 import streamlit as st
 from utils.db import save_dismissed, save_rating, save_to_watchlist
-from utils.tmdb import get_genre_map, get_trending, poster_url
+from utils.tmdb import discover_movies, get_genre_map, get_trending, poster_url
 
-st.header("Discover movies", divider="blue")
+# Header changes based on phase: genre selection vs. movie browsing
+if st.session_state.get("discover_phase", "select") == "select":
+    st.header("Which movie will you watch?", divider="blue")
+else:
+    st.header("Discover movies", divider="blue")
 
-# --- Load movie data ---
-# Fetch trending movies as initial discovery content.
-# Error handling at the UI layer, not inside cached functions.
+# --- Load genre data for tag selection ---
+# Genre map is needed for pills UI and resolving genre IDs on movie cards.
 try:
-    movies = get_trending()
     genre_map = get_genre_map()
 except requests.HTTPError as e:
     if e.response is not None and e.response.status_code == 401:
@@ -35,25 +37,107 @@ except requests.ConnectionError:
     )
     st.stop()
 
-# --- Filter out already-seen movies ---
-# Skip movies the user has already dismissed or added to watchlist
-dismissed = st.session_state.dismissed
-watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
-available = [
-    m for m in movies
-    if m["id"] not in dismissed and m["id"] not in watchlisted_ids
-]
+# --- Phase management ---
+# Two phases: "select" (genre tags) → "browse" (movie cards)
+st.session_state.setdefault("discover_phase", "select")
+st.session_state.setdefault("discover_index", 0)
 
-if not available:
-    st.info(
-        "You have seen all trending movies! Check back later for new ones.",
-        icon=":material/celebration:",
+
+def _start_browsing() -> None:
+    """Transition from genre selection to movie browsing."""
+    # Read current pill selection from widget state
+    selected = st.session_state.get("genre_pills", [])
+    st.session_state["_discover_genres"] = tuple(sorted(
+        gid for gid, name in genre_map.items() if name in (selected or [])
+    ))
+    st.session_state.discover_phase = "browse"
+    st.session_state.discover_index = 0
+
+
+def _back_to_genres() -> None:
+    """Return to genre selection phase."""
+    st.session_state.discover_phase = "select"
+
+
+# === PHASE 1: Genre Selection ===
+if st.session_state.discover_phase == "select":
+    # Pills for tag-like genre filtering (matches wireframe prototype)
+    selected_genres = st.pills(
+        "I want to watch something",
+        options=list(genre_map.values()),
+        selection_mode="multi",
+        key="genre_pills",
+    )
+
+    st.button(
+        "Search" if selected_genres else "Show trending",
+        icon=":material/search:",
+        on_click=_start_browsing,
+        type="primary",
     )
     st.stop()
 
+# === PHASE 2: Movie Browsing ===
+selected_ids = st.session_state.get("_discover_genres", ())
+
+# Back button to return to genre selection
+st.button("Change genres", icon=":material/arrow_back:", on_click=_back_to_genres)
+
+# --- Load movies with automatic pagination ---
+# Fetches pages until available (unseen) movies are found, up to 10 pages.
+# Each page is cached individually, so revisiting exhausted pages is instant.
+dismissed = st.session_state.dismissed
+watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
+available: list[dict] = []
+
+try:
+    for page in range(1, 11):
+        if selected_ids:
+            movies = discover_movies(selected_ids, page=page)
+        else:
+            movies = get_trending(page=page)
+
+        if not movies:
+            break  # No more results from API
+
+        # Filter out dismissed and watchlisted movies
+        available.extend(
+            m for m in movies
+            if m["id"] not in dismissed and m["id"] not in watchlisted_ids
+        )
+
+        if available:
+            break  # Found movies to show
+except requests.HTTPError as e:
+    if e.response is not None and e.response.status_code == 401:
+        st.error(
+            "Invalid TMDB API key. Check `.streamlit/secrets.toml`.",
+            icon=":material/key_off:",
+        )
+    else:
+        st.error("TMDB API error. Please try again later.", icon=":material/error:")
+    st.stop()
+except requests.ConnectionError:
+    st.error(
+        "Could not connect to TMDB. Check your internet connection.",
+        icon=":material/wifi_off:",
+    )
+    st.stop()
+
+if not available:
+    if selected_ids:
+        st.info(
+            "No movies found for these genres. Try selecting fewer tags!",
+            icon=":material/search_off:",
+        )
+    else:
+        st.info(
+            "You have seen all trending movies! Check back later for new ones.",
+            icon=":material/celebration:",
+        )
+    st.stop()
+
 # --- Current movie card ---
-# Track which movie the user is viewing with a bounded index
-st.session_state.setdefault("discover_index", 0)
 index = st.session_state.discover_index % len(available)
 movie = available[index]
 
@@ -119,4 +203,3 @@ with st.container(horizontal=True):
         on_click=_add_to_watchlist, type="primary",
     )
 
-st.caption(f"Movie {index + 1} of {len(available)} available")

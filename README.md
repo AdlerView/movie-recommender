@@ -34,7 +34,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Browse trending movies one at a time in a card-based flow (poster, genres, rating, overview). Rate movies on a 0.00-10.00 decimal slider (0.01 steps, matching TMDB scale). Each movie can be added to the watchlist or dismissed. Rating and watchlist are independent actions. Dismissed and watchlisted movies are automatically skipped.
+Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres as pills) and click Search — or skip to browse trending movies. Movies must match **all** selected genres (AND logic). Then browse filtered movies one at a time in a card-based flow (poster, genres, rating, overview). Rate movies on a 0.00-10.00 decimal slider (0.01 steps, matching TMDB scale). Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 200 movies).
 
 ### Watchlist
 
@@ -54,7 +54,7 @@ All ratings, watchlist entries, and dismissals are persisted in a local SQLite d
 
 ### TMDB Integration
 
-Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, movie details 1h). Error handling for API failures with user-facing messages.
+Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, discover 30m, movie details 1h). Genre-based filtering via `/discover/movie`, trending via `/trending/movie/week`. Error handling for API failures with user-facing messages.
 
 ---
 

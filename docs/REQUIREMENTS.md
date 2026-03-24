@@ -33,7 +33,7 @@
 
 > The application uses some data that is loaded via an API and/or provided via a database.
 
-**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/trending/movie/{time_window}` (trending movies), `/movie/{id}` (details), `/genre/movie/list` (genre catalog). Local SQLite database persists ratings (REAL 0.00-10.00), watchlist (JSON movie data), and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
+**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/discover/movie` (genre-filtered results), `/trending/movie/{time_window}` (trending), `/movie/{id}` (details), `/genre/movie/list` (genre catalog). Local SQLite database persists ratings (REAL 0.00-10.00), watchlist (JSON movie data), and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
 
 **Status:** implemented
 
@@ -53,7 +53,7 @@
 
 > The application allows for some user interaction, e.g., adding additional data, selecting certain data, running certain data analyses.
 
-**Our approach:** Card-based discover flow: one trending movie at a time with a 0.00-10.00 decimal slider for rating, "Add to watchlist" and "Not interested" buttons. Rating and watchlist are independent actions. Separate Rated page for re-rating all rated movies. Watchlist page shows saved movies with read-only ratings. All actions persist to SQLite immediately.
+**Our approach:** Two-phase discover flow: genre tag selection (19 TMDB genres as pills) → card-based movie browsing. One movie at a time with a 0.00-10.00 decimal slider for rating, "Add to watchlist" and "Not interested" buttons. Rating and watchlist are independent actions. Automatic pagination (up to 10 pages). Separate Rated page for re-rating all rated movies. Watchlist page shows saved movies with read-only ratings. All actions persist to SQLite immediately.
 
 **Status:** implemented
 
