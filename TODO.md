@@ -6,7 +6,8 @@
 ## In Progress
 
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
-- [ ] TMDB keyword extraction — bulk extraction via `tmdb-keyword-extract.py` into `data/keywords.db` (~50k movies, running)
+- [x] TMDB keyword extraction — `data/keywords.db` (~50k movies) complete
+- [ ] Mood super-category ML pipeline — two-phase: (1) spaCy labeling, (2) sklearn KNN classifier (Req 5)
 
 ## Upcoming
 
@@ -14,14 +15,19 @@
 
 ### Week 07 — 2026-04-16 (Coaching: 13.04)
 
-- [ ] Discover keyword scoring — integrate `keywords.db` into Discover page (genre AND filter + keyword relevance ranking)
-- [ ] Curate keyword pill list — select top keywords from frequency data, filter out mood/meta tags
-- [ ] Keyword badges on movie cards — show all keywords, highlight matched ones (brown=matched, gray=other)
+- [x] Discover keyword scoring — `keywords.db` integrated (genre AND filter + keyword/mood relevance ranking)
+- [x] Keyword badges on movie cards — three sections (Genre gray, Mood primary, Keywords gray) on all pages
+- [x] Centered headers on all pages (Discover, Rate, Watchlist, Statistics)
+- [x] Curate mood keyword list — 165 keywords in 10 categories, verified against keywords.db, saved as `data/seed_keywords.json`
+- [ ] Mood super-categories in UI — replace individual mood pills with 10 umbrella categories in Discover
 - [ ] Statistics dashboard iteration — layout improvements, additional KPIs, chart refinements
 
 ### Week 08 — 2026-04-23 (Coaching: 20.04)
 
 - [ ] Optional: MVP presentation II
+- [ ] mood-classify.py script — Phase 1: spaCy word vectors + cosine similarity for keyword labeling
+- [ ] mood-classify.py script — Phase 2: sklearn KNN classifier with train/test split + evaluation metrics
+- [ ] Integrate ML results — populate MOOD_CATEGORIES in db.py from classifier output
 
 ### Week 09 — 2026-04-30 (Coaching: 27.04)
 
@@ -29,7 +35,7 @@
 
 ### Week 10 — 2026-05-07 (Coaching: 04.05)
 
-- [ ] Machine learning — content-based filtering from rated films (Req 5, Open Issue #002)
+- [ ] Content-based movie recommendations from rated films (if time permits)
 - [ ] Decide: use "not interested" as negative ML signal? (Open Issue #010)
 
 ### Week 11 — 2026-05-14 (Upload Deadline, Coaching: 11.05)
@@ -48,7 +54,7 @@
 - [x] Project documentation — REQUIREMENTS.md, CONTRIBUTION.md, OPEN_ISSUES.md (2026-03-18)
 - [x] TMDB API integration — genres, trending, discover, movie details, watch providers (2026-03-23)
 - [x] SQLite persistence — ratings, watchlist, dismissed with WAL mode (2026-03-23)
-- [x] Multi-page app — Discover, Watchlist, Rated, Statistics with top nav (2026-03-23)
+- [x] Multi-page app — Discover, Rate, Watchlist, Statistics with top nav (2026-03-23)
 - [x] Page restructuring — separate Discover (browse) and Watched (rate) pages, merge Rated into Watched (2026-03-24)
 - [x] Watched page — TMDB search, Netflix-style poster grid, integrated Your Ratings section (2026-03-24)
 - [x] Rating system — decimal slider 0.00-10.00, color-coded track (2026-03-23)
@@ -62,7 +68,11 @@
 - [x] Clickable poster grid — CSS overlay pattern on Rate + Watchlist pages (2026-03-24)
 - [x] Dialog-based rating — @st.dialog overlay replaces full-page rating view (2026-03-24)
 - [x] Rating slider UX — dot tick marks, sentiment labels, color-coded track (2026-03-24)
-- [x] Tab restructuring — Watched → Rate (pure action), ratings table moved to Statistics (2026-03-24)
+- [x] Tab restructuring — Watched -> Rate (pure action), ratings table moved to Statistics (2026-03-24)
 - [x] Statistics PoC — KPIs, 6 Altair charts (genre, decade, language, rating distribution, rating history, user vs TMDB), top directors + actors, rated movies table (2026-03-24)
 - [x] TMDB keywords infrastructure — separate endpoint, movie_keywords table (schema v4), eager fetch + backfill (2026-03-24)
 - [x] Cinema Gold theme — dark base, #D4A574 accent, Poppins font, toolbarMode minimal (2026-03-24)
+- [x] Keyword scoring on Discover — genre AND + keyword/mood relevance ranking via keywords.db (2026-03-24)
+- [x] Mood badges + keyword sections — Genre/Mood/Keywords badges on Discover, Rate, and Watchlist (2026-03-24)
+- [x] Centered headers on all pages (2026-03-24)
+- [x] Curated mood keywords — 165 keywords in 10 categories, verified against keywords.db, `data/seed_keywords.json` + `MOOD_KEYWORD_NAMES` in db.py (2026-03-24)

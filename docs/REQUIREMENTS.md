@@ -63,9 +63,9 @@
 
 > The application implements some machine learning.
 
-**Our approach:** TBD. Content-based filtering is the most feasible option: build a user preference vector from rated films (weighted genres, directors, actors), compute similarity against candidates. ML lectures are in weeks 10–11 (07.05–15.05).
+**Our approach:** Mood classification pipeline for the Discover page. Two phases: (1) spaCy `en_core_web_md` word vectors + cosine similarity to label ~15k TMDB keywords into 10 mood super-categories using seed keywords (semi-automatic labeling step), (2) scikit-learn KNeighborsClassifier trained on the labeled data with train/test split and evaluation metrics (demonstrable ML step). Output populates `MOOD_CATEGORIES` in the app, enabling mood-based movie scoring on the Discover page.
 
-**Status:** open — see [OPEN_ISSUES.md #002](concept/OPEN_ISSUES.md)
+**Status:** planned — design confirmed, implementation pending
 
 ---
 

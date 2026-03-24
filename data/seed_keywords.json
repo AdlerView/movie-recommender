@@ -1,0 +1,847 @@
+{
+  "Happy / Feel-Good": [
+    {
+      "id": 281585,
+      "name": "inspirational",
+      "frequency": 207
+    },
+    {
+      "id": 259376,
+      "name": "playful",
+      "frequency": 204
+    },
+    {
+      "id": 324713,
+      "name": "whimsical",
+      "frequency": 167
+    },
+    {
+      "id": 325824,
+      "name": "hopeful",
+      "frequency": 166
+    },
+    {
+      "id": 325782,
+      "name": "cheerful",
+      "frequency": 156
+    },
+    {
+      "id": 325856,
+      "name": "vibrant",
+      "frequency": 154
+    },
+    {
+      "id": 325784,
+      "name": "comforting",
+      "frequency": 135
+    },
+    {
+      "id": 288816,
+      "name": "lighthearted",
+      "frequency": 121
+    },
+    {
+      "id": 325832,
+      "name": "joyful",
+      "frequency": 111
+    },
+    {
+      "id": 325781,
+      "name": "celebratory",
+      "frequency": 97
+    },
+    {
+      "id": 325809,
+      "name": "enthusiastic",
+      "frequency": 83
+    },
+    {
+      "id": 325804,
+      "name": "earnest",
+      "frequency": 80
+    },
+    {
+      "id": 325813,
+      "name": "exuberant",
+      "frequency": 78
+    },
+    {
+      "id": 325807,
+      "name": "enchant",
+      "frequency": 77
+    },
+    {
+      "id": 325840,
+      "name": "optimistic",
+      "frequency": 60
+    },
+    {
+      "id": 325849,
+      "name": "sincere",
+      "frequency": 54
+    },
+    {
+      "id": 325810,
+      "name": "euphoric",
+      "frequency": 51
+    },
+    {
+      "id": 325820,
+      "name": "gentle",
+      "frequency": 51
+    },
+    {
+      "id": 303310,
+      "name": "joyous",
+      "frequency": 44
+    }
+  ],
+  "Romantic / Warm": [
+    {
+      "id": 6054,
+      "name": "friendship",
+      "frequency": 859
+    },
+    {
+      "id": 9673,
+      "name": "love",
+      "frequency": 850
+    },
+    {
+      "id": 10683,
+      "name": "coming of age",
+      "frequency": 708
+    },
+    {
+      "id": 325761,
+      "name": "admiring",
+      "frequency": 295
+    },
+    {
+      "id": 325762,
+      "name": "adoring",
+      "frequency": 218
+    },
+    {
+      "id": 324429,
+      "name": "romantic",
+      "frequency": 210
+    },
+    {
+      "id": 3182,
+      "name": "seduction",
+      "frequency": 146
+    },
+    {
+      "id": 325769,
+      "name": "appreciative",
+      "frequency": 134
+    },
+    {
+      "id": 3691,
+      "name": "forbidden love",
+      "frequency": 126
+    },
+    {
+      "id": 319319,
+      "name": "sentimental",
+      "frequency": 118
+    },
+    {
+      "id": 325786,
+      "name": "compassionate",
+      "frequency": 116
+    },
+    {
+      "id": 325806,
+      "name": "empathetic",
+      "frequency": 112
+    },
+    {
+      "id": 325853,
+      "name": "sympathetic",
+      "frequency": 111
+    },
+    {
+      "id": 1605,
+      "name": "new love",
+      "frequency": 103
+    },
+    {
+      "id": 292593,
+      "name": "intimate",
+      "frequency": 99
+    },
+    {
+      "id": 157303,
+      "name": "first love",
+      "frequency": 91
+    }
+  ],
+  "Funny / Comedic": [
+    {
+      "id": 10123,
+      "name": "dark comedy",
+      "frequency": 477
+    },
+    {
+      "id": 325765,
+      "name": "amused",
+      "frequency": 424
+    },
+    {
+      "id": 309974,
+      "name": "absurd",
+      "frequency": 399
+    },
+    {
+      "id": 9799,
+      "name": "romcom",
+      "frequency": 336
+    },
+    {
+      "id": 8201,
+      "name": "satire",
+      "frequency": 314
+    },
+    {
+      "id": 320420,
+      "name": "hilarious",
+      "frequency": 263
+    },
+    {
+      "id": 319397,
+      "name": "witty",
+      "frequency": 105
+    },
+    {
+      "id": 325844,
+      "name": "ridiculous",
+      "frequency": 84
+    },
+    {
+      "id": 225012,
+      "name": "satirical",
+      "frequency": 78
+    },
+    {
+      "id": 33424,
+      "name": "cynical",
+      "frequency": 67
+    },
+    {
+      "id": 325815,
+      "name": "farcical",
+      "frequency": 59
+    },
+    {
+      "id": 4553,
+      "name": "black humor",
+      "frequency": 55
+    },
+    {
+      "id": 276775,
+      "name": "irreverent",
+      "frequency": 43
+    },
+    {
+      "id": 325845,
+      "name": "sarcastic",
+      "frequency": 35
+    },
+    {
+      "id": 325857,
+      "name": "wry",
+      "frequency": 31
+    },
+    {
+      "id": 325846,
+      "name": "sardonic",
+      "frequency": 21
+    }
+  ],
+  "Exciting / Thrilling": [
+    {
+      "id": 10349,
+      "name": "survival",
+      "frequency": 361
+    },
+    {
+      "id": 10685,
+      "name": "escape",
+      "frequency": 315
+    },
+    {
+      "id": 314730,
+      "name": "suspenseful",
+      "frequency": 290
+    },
+    {
+      "id": 321464,
+      "name": "intense",
+      "frequency": 256
+    },
+    {
+      "id": 325811,
+      "name": "excited",
+      "frequency": 225
+    },
+    {
+      "id": 325775,
+      "name": "awestruck",
+      "frequency": 170
+    },
+    {
+      "id": 325778,
+      "name": "bold",
+      "frequency": 163
+    },
+    {
+      "id": 288394,
+      "name": "suspense",
+      "frequency": 145
+    },
+    {
+      "id": 316832,
+      "name": "tense",
+      "frequency": 112
+    },
+    {
+      "id": 322942,
+      "name": "adventure",
+      "frequency": 103
+    },
+    {
+      "id": 325812,
+      "name": "exhilarated",
+      "frequency": 94
+    },
+    {
+      "id": 208156,
+      "name": "frantic",
+      "frequency": 68
+    }
+  ],
+  "Dark / Brooding": [
+    {
+      "id": 9748,
+      "name": "revenge",
+      "frequency": 1292
+    },
+    {
+      "id": 931,
+      "name": "jealousy",
+      "frequency": 306
+    },
+    {
+      "id": 10085,
+      "name": "betrayal",
+      "frequency": 245
+    },
+    {
+      "id": 202371,
+      "name": "aggressive",
+      "frequency": 239
+    },
+    {
+      "id": 1523,
+      "name": "obsession",
+      "frequency": 208
+    },
+    {
+      "id": 2340,
+      "name": "paranoia",
+      "frequency": 160
+    },
+    {
+      "id": 9957,
+      "name": "loneliness",
+      "frequency": 156
+    },
+    {
+      "id": 312898,
+      "name": "violence",
+      "frequency": 148
+    },
+    {
+      "id": 9758,
+      "name": "deception",
+      "frequency": 142
+    },
+    {
+      "id": 200918,
+      "name": "angry",
+      "frequency": 139
+    },
+    {
+      "id": 325766,
+      "name": "antagonistic",
+      "frequency": 123
+    },
+    {
+      "id": 6255,
+      "name": "insanity",
+      "frequency": 96
+    },
+    {
+      "id": 162810,
+      "name": "macabre",
+      "frequency": 80
+    },
+    {
+      "id": 33720,
+      "name": "guilt",
+      "frequency": 80
+    },
+    {
+      "id": 210162,
+      "name": "grim",
+      "frequency": 76
+    },
+    {
+      "id": 41410,
+      "name": "madness",
+      "frequency": 61
+    },
+    {
+      "id": 325780,
+      "name": "callous",
+      "frequency": 60
+    },
+    {
+      "id": 14794,
+      "name": "lust",
+      "frequency": 60
+    },
+    {
+      "id": 324886,
+      "name": "bitter",
+      "frequency": 56
+    },
+    {
+      "id": 325790,
+      "name": "cruel",
+      "frequency": 53
+    },
+    {
+      "id": 322255,
+      "name": "sinister",
+      "frequency": 50
+    },
+    {
+      "id": 33513,
+      "name": "desire",
+      "frequency": 45
+    },
+    {
+      "id": 325834,
+      "name": "mean spirited",
+      "frequency": 31
+    }
+  ],
+  "Sad / Heavy": [
+    {
+      "id": 34079,
+      "name": "death",
+      "frequency": 490
+    },
+    {
+      "id": 697,
+      "name": "loss of loved one",
+      "frequency": 359
+    },
+    {
+      "id": 9872,
+      "name": "grief",
+      "frequency": 214
+    },
+    {
+      "id": 41329,
+      "name": "mental illness",
+      "frequency": 179
+    },
+    {
+      "id": 10614,
+      "name": "tragedy",
+      "frequency": 172
+    },
+    {
+      "id": 325854,
+      "name": "tragic",
+      "frequency": 153
+    },
+    {
+      "id": 894,
+      "name": "depression",
+      "frequency": 145
+    },
+    {
+      "id": 447,
+      "name": "post-traumatic stress disorder (ptsd)",
+      "frequency": 137
+    },
+    {
+      "id": 4232,
+      "name": "melancholy",
+      "frequency": 131
+    },
+    {
+      "id": 2754,
+      "name": "trauma",
+      "frequency": 131
+    },
+    {
+      "id": 13073,
+      "name": "fear",
+      "frequency": 110
+    },
+    {
+      "id": 323809,
+      "name": "depressing",
+      "frequency": 105
+    },
+    {
+      "id": 325835,
+      "name": "melodramatic",
+      "frequency": 100
+    },
+    {
+      "id": 211659,
+      "name": "somber",
+      "frequency": 78
+    },
+    {
+      "id": 325801,
+      "name": "distressing",
+      "frequency": 76
+    },
+    {
+      "id": 281659,
+      "name": "wistful",
+      "frequency": 57
+    },
+    {
+      "id": 325799,
+      "name": "disheartening",
+      "frequency": 56
+    },
+    {
+      "id": 1647,
+      "name": "sadness",
+      "frequency": 51
+    },
+    {
+      "id": 34265,
+      "name": "heartbreak",
+      "frequency": 41
+    },
+    {
+      "id": 202760,
+      "name": "hopeless",
+      "frequency": 36
+    },
+    {
+      "id": 2300,
+      "name": "despair",
+      "frequency": 26
+    }
+  ],
+  "Eerie / Atmospheric": [
+    {
+      "id": 9887,
+      "name": "surrealism",
+      "frequency": 349
+    },
+    {
+      "id": 315058,
+      "name": "horror",
+      "frequency": 287
+    },
+    {
+      "id": 3030,
+      "name": "nightmare",
+      "frequency": 188
+    },
+    {
+      "id": 197582,
+      "name": "mysterious",
+      "frequency": 127
+    },
+    {
+      "id": 3307,
+      "name": "surreal",
+      "frequency": 123
+    },
+    {
+      "id": 3298,
+      "name": "hallucination",
+      "frequency": 122
+    },
+    {
+      "id": 10224,
+      "name": "haunting",
+      "frequency": 105
+    },
+    {
+      "id": 325818,
+      "name": "frightened",
+      "frequency": 87
+    },
+    {
+      "id": 325825,
+      "name": "horrified",
+      "frequency": 82
+    },
+    {
+      "id": 270308,
+      "name": "terror",
+      "frequency": 81
+    },
+    {
+      "id": 261264,
+      "name": "dreary",
+      "frequency": 73
+    },
+    {
+      "id": 325839,
+      "name": "ominous",
+      "frequency": 58
+    },
+    {
+      "id": 325817,
+      "name": "foreboding",
+      "frequency": 57
+    },
+    {
+      "id": 325822,
+      "name": "gloomy",
+      "frequency": 43
+    },
+    {
+      "id": 325821,
+      "name": "ghoulish",
+      "frequency": 39
+    },
+    {
+      "id": 325798,
+      "name": "disgusted",
+      "frequency": 39
+    },
+    {
+      "id": 155800,
+      "name": "atmospheric",
+      "frequency": 21
+    },
+    {
+      "id": 277551,
+      "name": "slow burn",
+      "frequency": 21
+    },
+    {
+      "id": 210458,
+      "name": "creepy",
+      "frequency": 20
+    }
+  ],
+  "Nostalgic / Seasonal": [
+    {
+      "id": 207317,
+      "name": "christmas",
+      "frequency": 1232
+    },
+    {
+      "id": 65,
+      "name": "holiday",
+      "frequency": 594
+    },
+    {
+      "id": 3205,
+      "name": "fairy tale",
+      "frequency": 282
+    },
+    {
+      "id": 3335,
+      "name": "halloween",
+      "frequency": 232
+    },
+    {
+      "id": 164246,
+      "name": "nostalgic",
+      "frequency": 184
+    },
+    {
+      "id": 9914,
+      "name": "slice of life",
+      "frequency": 184
+    },
+    {
+      "id": 13088,
+      "name": "summer",
+      "frequency": 155
+    },
+    {
+      "id": 1442,
+      "name": "winter",
+      "frequency": 148
+    },
+    {
+      "id": 325814,
+      "name": "familiar",
+      "frequency": 84
+    },
+    {
+      "id": 5609,
+      "name": "nostalgia",
+      "frequency": 63
+    }
+  ],
+  "Contemplative": [
+    {
+      "id": 325763,
+      "name": "ambiguous",
+      "frequency": 187
+    },
+    {
+      "id": 4375,
+      "name": "transformation",
+      "frequency": 171
+    },
+    {
+      "id": 210434,
+      "name": "thoughtful",
+      "frequency": 114
+    },
+    {
+      "id": 212737,
+      "name": "philosophical",
+      "frequency": 112
+    },
+    {
+      "id": 266753,
+      "name": "cautionary",
+      "frequency": 112
+    },
+    {
+      "id": 11436,
+      "name": "redemption",
+      "frequency": 105
+    },
+    {
+      "id": 325764,
+      "name": "ambivalent",
+      "frequency": 101
+    },
+    {
+      "id": 189092,
+      "name": "journey",
+      "frequency": 100
+    },
+    {
+      "id": 225219,
+      "name": "reflective",
+      "frequency": 95
+    },
+    {
+      "id": 269808,
+      "name": "introspective",
+      "frequency": 79
+    },
+    {
+      "id": 181324,
+      "name": "existentialism",
+      "frequency": 59
+    },
+    {
+      "id": 3446,
+      "name": "forgiveness",
+      "frequency": 53
+    },
+    {
+      "id": 197056,
+      "name": "meditative",
+      "frequency": 50
+    },
+    {
+      "id": 2796,
+      "name": "self-discovery",
+      "frequency": 50
+    },
+    {
+      "id": 10855,
+      "name": "fate",
+      "frequency": 49
+    },
+    {
+      "id": 1541,
+      "name": "nihilism",
+      "frequency": 35
+    },
+    {
+      "id": 40850,
+      "name": "destiny",
+      "frequency": 35
+    },
+    {
+      "id": 802,
+      "name": "regret",
+      "frequency": 33
+    },
+    {
+      "id": 18256,
+      "name": "spiritual",
+      "frequency": 21
+    }
+  ],
+  "Provocative / Bold": [
+    {
+      "id": 325773,
+      "name": "audacious",
+      "frequency": 169
+    },
+    {
+      "id": 200234,
+      "name": "shocking",
+      "frequency": 133
+    },
+    {
+      "id": 239797,
+      "name": "complex",
+      "frequency": 124
+    },
+    {
+      "id": 325791,
+      "name": "defiant",
+      "frequency": 109
+    },
+    {
+      "id": 209792,
+      "name": "candid",
+      "frequency": 109
+    },
+    {
+      "id": 293649,
+      "name": "provocative",
+      "frequency": 108
+    },
+    {
+      "id": 325787,
+      "name": "complicated",
+      "frequency": 106
+    },
+    {
+      "id": 199524,
+      "name": "disturbed",
+      "frequency": 86
+    },
+    {
+      "id": 325779,
+      "name": "brisk",
+      "frequency": 36
+    },
+    {
+      "id": 41260,
+      "name": "sensuality",
+      "frequency": 20
+    }
+  ]
+}

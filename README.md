@@ -27,7 +27,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
 | Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) + `keywords.db` (read-only keyword index) |
-| ML          | TBD (content-based filtering planned) |
+| ML          | spaCy word vectors + scikit-learn KNN (mood classification pipeline, planned) |
 
 ---
 
@@ -83,7 +83,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
 | 3 | Data visualization | in progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | open |
+| 5 | Machine learning | planned (mood classification: spaCy + sklearn KNN) |
 | 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |
 | 8 | 4-min video + demo | not started |
@@ -120,6 +120,54 @@ Using AI (ChatGPT, Claude, etc.) to **learn concepts** does not require citation
 - [TMDB API reference](https://developer.themoviedb.org/reference/)
 
 Optional extension (not graded, but improves the result): deploy publicly via [Streamlit Community Cloud](https://streamlit.io/cloud).
+
+---
+
+## Movie Recommender Status (as of 2026-03-24)
+
+Last commit: `d39fae4` — "Add keyword scoring, mood badges, and centered headers to Discover"
+
+### What's Done
+- Full Streamlit app: Discover, Rate, Watchlist, Statistics pages
+- TMDB API integration with caching
+- SQLite persistence (ratings, watchlist, dismissed)
+- keywords.db extraction complete (~50k movies, read-only keyword index)
+- Keyword scoring integrated into Discover (genre AND filter + keyword/mood relevance ranking)
+- Three badge sections (Genre gray, Mood primary, Keywords gray) on all movie cards/dialogs
+- Cinema Gold theme, centered headers, clickable poster grids, rating slider UX
+- Statistics PoC (KPIs, 6 Altair charts, rankings, rated movies table)
+
+### Current Task: Mood Super-Categories in UI + ML Pipeline
+
+**Seed keywords: DONE.** 165 curated mood keywords in 10 categories, verified against `keywords.db`, stored in `data/seed_keywords.json`. Each entry has TMDB `id`, `name`, and `frequency`. `MOOD_KEYWORD_NAMES` frozenset in `db.py` is synced (165 names).
+
+**10 Mood Categories (165 keywords total):**
+
+| Category | Count | Top keywords |
+|----------|-------|-------------|
+| Happy / Feel-Good | 19 | inspirational, playful, whimsical, hopeful, cheerful |
+| Romantic / Warm | 16 | friendship, love, coming of age, admiring, romantic |
+| Funny / Comedic | 16 | dark comedy, amused, absurd, romcom, satire |
+| Exciting / Thrilling | 12 | survival, escape, suspenseful, intense, excited |
+| Dark / Brooding | 23 | revenge, jealousy, betrayal, aggressive, obsession |
+| Sad / Heavy | 21 | death, loss of loved one, grief, mental illness, tragedy |
+| Eerie / Atmospheric | 19 | surrealism, horror, nightmare, surreal, mysterious |
+| Nostalgic / Seasonal | 10 | christmas, holiday, fairy tale, halloween, nostalgic |
+| Contemplative | 19 | ambiguous, transformation, thoughtful, philosophical, cautionary |
+| Provocative / Bold | 10 | audacious, shocking, defiant, provocative, complex |
+
+**Next: ML Pipeline (two phases):**
+- **Phase 1 (Labeling, NOT ML):** spaCy `en_core_web_md` word vectors + cosine similarity. Use the 165 seed keywords as labeled anchors → compute centroid vectors per category → assign remaining ~34k keywords to nearest mood (with threshold for "no mood"). Semi-automatic labeling.
+- **Phase 2 (ML, for grading Req 5):** sklearn KNeighborsClassifier trained on Phase 1 labels. Train/test split, evaluation metrics. Uses spaCy vectors as feature input. This is the demonstrable ML step.
+
+**Script location:** `mood-classify.py`
+**Input:** `data/keywords.db` (all unique keywords) + `data/seed_keywords.json` (165 labeled seeds)
+**Output:** JSON mapping or dict for `MOOD_CATEGORIES` in db.py
+
+**Next steps for UI:**
+- Discover mood pills: show 10 category names instead of individual keywords
+- On selection: expand category to all member keyword IDs for scoring
+- Badge display: show category name on movie cards instead of raw keyword names
 
 ---
 

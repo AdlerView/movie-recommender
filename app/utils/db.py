@@ -27,20 +27,57 @@ _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 DB_PATH = _DATA_DIR / "movies.db"
 KEYWORDS_DB_PATH = _DATA_DIR / "keywords.db"
 
-# Curated mood keyword names — used across pages for badge coloring.
-# Moods get :primary-badge (Cinema Gold), regular keywords get :orange-badge.
-# TODO: Finalize list once keyword extraction data is available.
+# Curated mood keyword names (165 keywords, 10 categories) — used across pages
+# for badge coloring. Moods get :primary-badge (Cinema Gold), regular keywords
+# get :orange-badge. Source: data/seed_keywords.json (verified against keywords.db).
 MOOD_KEYWORD_NAMES: frozenset[str] = frozenset({
-    "funny",
-    "romantic",
-    "suspenseful",
-    "dark",
-    "feel-good",
-    "intense",
-    "absurd",
-    "psychological",
-    "heartwarming",
-    "nostalgic",
+    # Happy / Feel-Good (19)
+    "cheerful", "comforting", "earnest", "enchant", "enthusiastic",
+    "euphoric", "exuberant", "gentle", "hopeful", "inspirational",
+    "joyful", "joyous", "lighthearted", "optimistic", "playful",
+    "sincere", "vibrant", "whimsical", "celebratory",
+    # Romantic / Warm (16)
+    "admiring", "adoring", "appreciative", "coming of age",
+    "compassionate", "empathetic", "first love", "forbidden love",
+    "friendship", "intimate", "love", "new love", "romantic",
+    "seduction", "sentimental", "sympathetic",
+    # Funny / Comedic (16)
+    "absurd", "amused", "black humor", "cynical", "dark comedy",
+    "farcical", "hilarious", "irreverent", "ridiculous", "romcom",
+    "sarcastic", "sardonic", "satire", "satirical", "witty", "wry",
+    # Exciting / Thrilling (12)
+    "adventure", "awestruck", "bold", "escape", "excited",
+    "exhilarated", "frantic", "intense", "survival", "suspense",
+    "suspenseful", "tense",
+    # Dark / Brooding (23)
+    "aggressive", "angry", "antagonistic", "betrayal", "bitter",
+    "callous", "cruel", "deception", "desire", "grim", "guilt",
+    "insanity", "jealousy", "loneliness", "lust", "macabre",
+    "madness", "mean spirited", "obsession", "paranoia", "revenge",
+    "sinister", "violence",
+    # Sad / Heavy (21)
+    "death", "depressing", "depression", "despair", "disheartening",
+    "distressing", "fear", "grief", "heartbreak", "hopeless",
+    "loss of loved one", "melancholy", "melodramatic", "mental illness",
+    "post-traumatic stress disorder (ptsd)", "sadness", "somber",
+    "tragic", "tragedy", "trauma", "wistful",
+    # Eerie / Atmospheric (19)
+    "atmospheric", "creepy", "disgusted", "dreary", "foreboding",
+    "frightened", "ghoulish", "gloomy", "hallucination", "haunting",
+    "horrified", "horror", "mysterious", "nightmare", "ominous",
+    "slow burn", "surreal", "surrealism", "terror",
+    # Nostalgic / Seasonal (10)
+    "christmas", "fairy tale", "familiar", "halloween", "holiday",
+    "nostalgia", "nostalgic", "slice of life", "summer", "winter",
+    # Contemplative (19)
+    "ambiguous", "ambivalent", "cautionary", "destiny",
+    "existentialism", "fate", "forgiveness", "introspective",
+    "journey", "meditative", "nihilism", "philosophical",
+    "redemption", "reflective", "regret", "self-discovery",
+    "spiritual", "thoughtful", "transformation",
+    # Provocative / Bold (10)
+    "audacious", "brisk", "candid", "complex", "complicated",
+    "defiant", "disturbed", "provocative", "sensuality", "shocking",
 })
 
 

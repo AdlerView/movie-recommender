@@ -18,9 +18,10 @@
 
 ### High
 
-- [ ] `#002` **[gap]** — ML approach unspecified
-  - Context: "Implements machine learning" is a project requirement. The concept defers this to "after the ML class." Content-based filtering (user preference vector from rated films → cosine similarity against candidates) is achievable and demonstrable. Collaborative filtering requires multi-user data the app won't have.
-  - Found: 2026-03-18
+- [x] `#002` **[gap]** — ML approach unspecified
+  - Context: "Implements machine learning" is a project requirement. The concept deferred this to "after the ML class."
+  - Decision: Mood classification pipeline. Phase 1: spaCy `en_core_web_md` word vectors + cosine similarity assigns ~15k TMDB keywords to 10 mood super-categories using ~100 seed keywords (labeling, not ML). Phase 2: sklearn KNeighborsClassifier trained on labeled data with train/test split + evaluation metrics (demonstrable ML step). Output populates `MOOD_CATEGORIES` dict in `db.py` for Discover mood scoring.
+  - Found: 2026-03-18 | Resolved: 2026-03-24
 
 ### Medium
 

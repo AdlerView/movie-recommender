@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-25
+**Updated:** 2026-03-24
 
 
 
@@ -40,7 +40,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 - **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
 - **Database:** SQLite (WAL mode, schema v4 via `PRAGMA user_version`) + `data/keywords.db` (read-only keyword index, ~50k movies)
-- **ML:** scikit-learn (content-based filtering, planned for weeks 10-11)
+- **ML:** spaCy `en_core_web_md` (word vectors for labeling) + scikit-learn KNN (mood classification)
 - **Python:** 3.11 (conda environment in `.conda/`)
 
 ---
@@ -61,8 +61,9 @@ movie-recommender/
 │   │   ├── db.py                 # SQLite persistence layer
 │   │   └── tmdb.py
 │   └── static/                   # Poppins font files (18 TTFs + OFL license)
-├── data/                            # Generated data (gitignored except .gitkeep)
+├── data/                            # Generated data (gitignored except .gitkeep + seed_keywords.json)
 │   ├── keywords.db              # Pre-populated keyword index (~50k movies, read-only)
+│   ├── seed_keywords.json       # 165 curated mood keywords (10 categories, with TMDB IDs + frequencies)
 │   └── .gitkeep
 ├── docs/                         # Project documentation
 │   ├── CONTRIBUTION.md
@@ -139,7 +140,7 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 - Headers: All page headers use `text_alignment="center"`. Section headers use `st.subheader` with `label_visibility="collapsed"` on the associated widget.
-- Movie detail badges: Three labeled sections on all movie cards/dialogs (Discover, Rate, Watchlist). Genre = `:gray-badge`, Mood = `:primary-badge` (Cinema Gold), Keywords = `:gray-badge`. Section headers via `st.caption("**Genre**")` etc. Moods identified by `MOOD_KEYWORD_NAMES` frozenset in `db.py`. Sections only shown when data exists.
+- Movie detail badges: Three labeled sections on all movie cards/dialogs (Discover, Rate, Watchlist). Genre = `:gray-badge`, Mood = `:primary-badge` (Cinema Gold), Keywords = `:gray-badge`. Section headers via `st.caption("**Genre**")` etc. Moods identified by `MOOD_KEYWORD_NAMES` frozenset (165 keywords, 10 categories) in `db.py`, sourced from `data/seed_keywords.json`. Sections only shown when data exists.
 - Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, genre badges use `:gray-badge[...]`, mood badges use `:primary-badge[...]` (Cinema Gold accent). Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
 - Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `app/static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
 
@@ -222,7 +223,7 @@ Key gotchas:
 | 2 | Data via API | TMDB + SQLite integrated |
 | 3 | Data visualization | In progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | Implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | Open (weeks 10-11) |
+| 5 | Machine learning | Planned (mood classification: spaCy vectors + sklearn KNN) |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |
 | 8 | 4-min video | Not started |
