@@ -108,8 +108,38 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
 - Your Ratings: color-coded badges (red ≤3.33, orange ≤6.66, green >6.66) + tertiary edit button → reuses Phase 2 rating view
 - Movie details: Eagerly cached in normalized SQLite tables on every rating save + backfill on startup
-- Navigation: 4 pages — Discover, Watched, Watchlist, Statistics
+- Navigation: 4 pages — Discover, Watched, Watchlist (left-aligned), Statistics (right-aligned via CSS)
+- Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
+
+---
+
+## Streamlit DOM Structure (CSS Targeting)
+
+Streamlit does NOT use semantic HTML (`ul/li`, `nav`) for its top navigation. The actual structure:
+
+```
+header [data-testid="stHeader"]
+  └── div [data-testid="stToolbar"]
+        └── div
+              └── div (empty spacer)
+              └── div.rc-overflow  ← flex container for nav items
+                    ├── div.rc-overflow-item (order: 0)  ← Discover
+                    ├── div.rc-overflow-item (order: 1)  ← Watched
+                    ├── div.rc-overflow-item (order: 2)  ← Watchlist
+                    ├── div.rc-overflow-item (order: 3)  ← Statistics
+                    └── div.rc-overflow-item-rest (hidden)
+```
+
+Each nav item contains `[data-testid="stTopNavLinkContainer"]` → `a[data-testid="stTopNavLink"]`.
+
+Key selectors:
+- Nav container: `[data-testid="stToolbar"] .rc-overflow`
+- Nav items: `.rc-overflow > .rc-overflow-item`
+- Specific tab: `.rc-overflow > .rc-overflow-item:nth-child(N)`
+- Link element: `[data-testid="stTopNavLink"]`
+
+Standard `[data-testid="stNavigation"]` and `ul/li` selectors do NOT work.
 
 ---
 

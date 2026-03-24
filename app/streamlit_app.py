@@ -53,6 +53,21 @@ if "details_backfilled" not in st.session_state:
                     pass  # Skip failed fetches — will retry next session
     st.session_state.details_backfilled = True
 
+# --- Push Statistics tab to the far right of the nav bar ---
+# The first 3 tabs (Discover, Watched, Watchlist) stay left-aligned;
+# the 4th tab (Statistics) gets margin-left:auto to fill remaining space.
+# Streamlit renders nav items as div.rc-overflow-item inside div.rc-overflow.
+st.markdown("""<style>
+    /* Make the nav overflow container span full toolbar width */
+    [data-testid="stToolbar"] .rc-overflow {
+        width: 100% !important;
+    }
+    /* Push 4th nav item (Statistics) to the far right */
+    [data-testid="stToolbar"] .rc-overflow > .rc-overflow-item:nth-child(4) {
+        margin-left: auto !important;
+    }
+</style>""", unsafe_allow_html=True)
+
 # --- Navigation ---
 # Top navigation for 4 pages: discover new → rate watched → saved → stats
 page = st.navigation(
