@@ -113,12 +113,13 @@ def discover_movies(genre_ids: tuple[int, ...], page: int = 1) -> list[dict]:
         List of movie dicts matching all selected genres.
     """
     # GET /discover/movie — genre-filtered discovery, AND logic via comma separator
+    # Sorted by popularity (composite of votes, views, watchlist adds, trending)
     genres_param = ",".join(str(gid) for gid in genre_ids)
     return _get(
         "/discover/movie",
         extra={"vote_count.gte": 100},
         with_genres=genres_param,
-        sort_by="vote_average.desc",
+        sort_by="popularity.desc",
         language="en-US",
         page=page,
     )["results"]

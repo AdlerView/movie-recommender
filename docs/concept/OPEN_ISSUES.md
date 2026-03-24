@@ -52,5 +52,5 @@
 - [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Watchlist, Rated, Statistics), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23)
 - [x] `#015` **[decision]** — Card-based UX flow: one movie at a time with rate/dismiss buttons, matching wireframe prototype (2026-03-23)
 - [x] `#016` **[decision]** — TMDB API key injected via `_get()` helper in `app/utils/tmdb.py` (2026-03-23)
-- [x] `#006` **[decision]** — Sort by `vote_average.desc` with `vote_count.gte=100` floor, AND logic for genres, automatic pagination up to 10 pages (2026-03-24)
+- [x] `#006` **[decision]** — Sort by `popularity.desc` with `vote_count.gte=100` floor, AND logic for genres, automatic pagination up to 10 pages (2026-03-24)
 - [x] `#012` **[gap]** — "No movies found — try selecting fewer tags" message + back button to genre selection (2026-03-24)
