@@ -173,6 +173,38 @@ new_rating = st.slider(
     key=f"rate_{movie['id']}",
 )
 
+# Dynamic slider color: gray (0), red (≤3.33), orange (≤6.66), green (>6.66)
+if new_rating == 0.00:
+    _slider_color = "#d3d3d3"
+elif new_rating <= 3.33:
+    _slider_color = "#ff4b4b"
+elif new_rating <= 6.66:
+    _slider_color = "#ffa421"
+else:
+    _slider_color = "#21c354"
+
+st.markdown(
+    f"""<style>
+    .stSlider > div > div > div > div {{
+        background: {_slider_color} !important;
+    }}
+    .stSlider [role="slider"] {{
+        background-color: #000 !important;
+        border-color: #000 !important;
+    }}
+    .stSlider [role="slider"]:focus,
+    .stSlider [role="slider"]:active {{
+        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.2) !important;
+        outline: none !important;
+    }}
+    .stSlider [data-testid="stThumbValue"],
+    .stSlider [role="slider"] div {{
+        color: #000 !important;
+    }}
+    </style>""",
+    unsafe_allow_html=True,
+)
+
 # Save only when the user actually changes the rating
 if new_rating != current_rating:
     st.session_state.ratings[movie["id"]] = new_rating

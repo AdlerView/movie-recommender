@@ -86,7 +86,7 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Two-phase discover flow (genre selection → movie browsing), card-based (one at a time)
 - Pagination: Automatic page advancement when all movies on a page are exhausted (up to 10 pages)
-- Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale)
+- Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 
 ---
