@@ -63,9 +63,9 @@
 
 > The application implements some machine learning.
 
-**Our approach:** Mood classification pipeline for the Discover page (`scripts/mood_classify.py`). Two phases: (1) Google EmbeddingGemma-300M embeddings (256d Matryoshka truncation) + cosine similarity to label ~34k TMDB keywords into 10 mood super-categories using 165 curated seed keywords (centroid-based labeling, 31,941 keywords assigned), (2) scikit-learn KNeighborsClassifier (k=7, cosine metric) trained on Phase 1 labels with 80/20 stratified split (accuracy 0.622, weighted F1 0.620, 1,361 newly classified). Total: 33,302 keywords stored in `keyword_moods` table in `keywords.db`. Output enables mood-based movie scoring on the Discover page.
+**Our approach:** Mood classification pipeline for the Discover page (`scripts/mood_classify.py`). Two phases: (1) Google EmbeddingGemma-300M embeddings (256d Matryoshka truncation) + cosine similarity to label ~34k TMDB keywords into 10 mood super-categories using 170 curated seed keywords (centroid-based labeling, 909 keywords assigned to `keyword_moods` table in `keywords.db`), (2) scikit-learn KNeighborsClassifier (k=7, cosine metric) trained on Phase 1 labels with 80/20 stratified split for demonstrable ML metrics (train/test evaluation, classification report). UI integration: 10 mood pills on Discover page, top 3 mood badges on all movie cards via relative scoring.
 
-**Status:** implemented — pipeline complete, UI integration pending
+**Status:** implemented
 
 ---
 

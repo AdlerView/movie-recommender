@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Mood classification pipeline for TMDB keywords.
 
-Two-phase pipeline that assigns ~34k TMDB keywords to 10 mood categories:
+Two-phase pipeline that classifies ~34k TMDB keywords into 10 mood categories
+(909 keywords assigned via centroid labeling from 170 curated seed keywords):
 
 Phase 1 (Labeling — NOT ML):
     Embeds all keywords using Google EmbeddingGemma-300M via sentence-transformers

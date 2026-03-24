@@ -12,8 +12,8 @@ re-fetching from TMDB.
 Database files (both gitignored):
 - data/movies.db: App runtime database (ratings, watchlist, dismissed, details).
   Schema version: 4 (managed via PRAGMA user_version).
-- data/keywords.db: Pre-populated keyword index (~100k movies) + keyword_moods
-  table (33k keywords classified into 10 mood categories by mood_classify.py).
+- data/keywords.db: Pre-populated keyword index (~63k movies) + keyword_moods
+  table (909 keywords classified into 10 mood categories by mood_classify.py).
 """
 from __future__ import annotations
 
@@ -766,7 +766,7 @@ def _keywords_connection():
 
     keywords.db is a separate SQLite file pre-populated by the extraction
     script (tmdb-keyword-extract.py). It contains movie-to-keyword mappings
-    for ~50k movies, used for Discover keyword scoring without API calls.
+    for ~63k movies, used for Discover keyword scoring without API calls.
 
     Yields:
         sqlite3.Connection with Row factory for dict-like access.

@@ -80,7 +80,7 @@ if keywords_db_available():
     _popular_keywords = get_popular_keywords(limit=30)
     _keyword_name_to_id = {kw["keyword_name"]: kw["keyword_id"] for kw in _popular_keywords}
     _keyword_options = [kw["keyword_name"] for kw in _popular_keywords]
-    # Load mood categories from keyword_moods table (10 categories, 33k keywords)
+    # Load mood categories from keyword_moods table (10 categories, 909 keywords)
     _mood_categories = load_mood_categories()
 
 # --- Extra keywords added via search popover ---

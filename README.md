@@ -83,7 +83,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
 | 3 | Data visualization | in progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | implemented (mood classification: EmbeddingGemma-300M + sklearn KNN) |
+| 5 | Machine learning | implemented (mood classification: EmbeddingGemma-300M + sklearn KNN, 909 keywords, UI integrated) |
 | 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |
 | 8 | 4-min video + demo | not started |
@@ -120,46 +120,6 @@ Using AI (ChatGPT, Claude, etc.) to **learn concepts** does not require citation
 - [TMDB API reference](https://developer.themoviedb.org/reference/)
 
 Optional extension (not graded, but improves the result): deploy publicly via [Streamlit Community Cloud](https://streamlit.io/cloud).
-
----
-
-## Movie Recommender Status (as of 2026-03-24)
-
-Last commit: `d39fae4` — "Add keyword scoring, mood badges, and centered headers to Discover"
-
-### What's Done
-- Full Streamlit app: Discover, Rate, Watchlist, Statistics pages
-- TMDB API integration with caching
-- SQLite persistence (ratings, watchlist, dismissed)
-- keywords.db extraction complete (~63k movies, read-only keyword index)
-- Keyword scoring integrated into Discover (genre AND filter + keyword/mood hard filtering)
-- Keyword search popover on Discover (search all ~34k keywords in keywords.db)
-- Mood classification pipeline complete (909 keywords in 10 categories, threshold 0.85)
-- 10 mood category pills on Discover, top 3 mood badges on all movie cards (relative scoring)
-- Three badge sections (Genre gray, Mood primary, Keywords gray) on all movie cards/dialogs
-- Cinema Gold theme, centered headers, clickable poster grids, rating slider UX
-- Statistics PoC (KPIs, 6 Altair charts, rankings, rated movies table)
-
-### ML: Mood Classification
-
-Two-phase mood classification via `scripts/mood_classify.py`. 150 curated seed keywords in 10 categories (`data/seed_keywords.json`) used as labeled anchors. EmbeddingGemma-300M (256d Matryoshka truncation) for keyword embeddings. Phase 1: centroid-based cosine similarity labeling (threshold 0.85) → 909 high-quality mood keywords in `keyword_moods` table in `keywords.db`. Phase 2: sklearn KNN classifier for grading metrics only (accuracy 0.758, F1 0.762).
-
-**10 Mood Categories (909 classified keywords):**
-
-| Category | Count | Example seeds |
-|----------|-------|---------------|
-| Dark | 181 | revenge, jealousy, betrayal, obsession |
-| Eerie | 111 | surrealism, horror, nightmare, mysterious |
-| Romantic | 98 | friendship, love, coming of age, romantic |
-| Funny | 94 | dark comedy, absurd, romcom, satire |
-| Provocative | 93 | audacious, shocking, taboo, social commentary |
-| Heavy | 80 | death, grief, mental illness, tragedy |
-| Tense | 78 | survival, escape, suspenseful, intense |
-| Nostalgic | 69 | christmas, holiday, fairy tale, nostalgic |
-| Contemplative | 58 | ambiguous, philosophical, cautionary |
-| Joyful | 47 | inspirational, whimsical, hopeful, cheerful |
-
-Fully integrated into UI: Discover shows 10 mood pills, movie cards display top 3 mood badges (relative scoring), keyword search popover for all ~34k keywords.
 
 ---
 

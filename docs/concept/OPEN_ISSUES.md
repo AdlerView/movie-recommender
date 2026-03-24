@@ -20,7 +20,7 @@
 
 - [x] `#002` **[gap]** — ML approach unspecified
   - Context: "Implements machine learning" is a project requirement. The concept deferred this to "after the ML class."
-  - Decision: Mood classification pipeline (`scripts/mood_classify.py`). Phase 1: Google EmbeddingGemma-300M embeddings (256d) + cosine similarity (threshold 0.85) assigns 909 TMDB keywords to 10 mood categories using 150 curated seed keywords (centroid labeling). Phase 2: sklearn KNeighborsClassifier (k=7, cosine, acc 0.758, F1 0.762) for grading metrics only. Results in `keyword_moods` table in `keywords.db`. Integrated into UI: 10 mood pills on Discover, top 3 mood badges on movie cards via relative scoring.
+  - Decision: Mood classification pipeline (`scripts/mood_classify.py`). Phase 1: Google EmbeddingGemma-300M embeddings (256d) + cosine similarity assigns 909 TMDB keywords to 10 mood categories using 170 curated seed keywords (centroid labeling). Phase 2: sklearn KNeighborsClassifier (k=7, cosine) trained on Phase 1 labels for demonstrable ML metrics. Results in `keyword_moods` table in `keywords.db`. Integrated into UI: 10 mood pills on Discover, top 3 mood badges on movie cards via relative scoring.
   - Found: 2026-03-18 | Resolved: 2026-03-24
 
 ### Medium

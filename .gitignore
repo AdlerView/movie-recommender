@@ -72,6 +72,10 @@ Thumbs.db
 
 # Data (large files)
 data/*.csv
+data/*.json
 data/*.sqlite
 data/*.db
+data/*.db-shm
+data/*.db-wal
 !data/.gitkeep
+!data/seed_keywords.json
