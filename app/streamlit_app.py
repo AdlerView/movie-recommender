@@ -30,12 +30,12 @@ if "db_loaded" not in st.session_state:
     st.session_state.db_loaded = True
 
 # --- Navigation ---
-# Top navigation for 4 pages
+# Top navigation for 4 pages: discover new → rate watched → saved → stats
 page = st.navigation(
     [
         st.Page("app_pages/discover.py", title="Discover", icon=":material/explore:"),
+        st.Page("app_pages/watched.py", title="Watched", icon=":material/visibility:"),
         st.Page("app_pages/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
-        st.Page("app_pages/rated.py", title="Rated", icon=":material/star:"),
         st.Page("app_pages/statistics.py", title="Statistics", icon=":material/bar_chart:"),
     ],
     position="top",

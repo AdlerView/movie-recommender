@@ -34,15 +34,15 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres as pills) and click Search — or skip to browse trending movies. Movies must match **all** selected genres (AND logic). Then browse filtered movies one at a time in a card-based flow (poster, genres, rating, overview). Rate movies on a 0.00-10.00 decimal slider (0.01 steps, matching TMDB scale). Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 200 movies).
+Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres as pills) and click Search — or skip to browse trending movies. Movies must match **all** selected genres (AND logic). Then browse filtered movies one at a time in a card-based flow (poster, genres, TMDB rating, overview). Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 200 movies). No rating on this page — rating happens on the Watched page after you've seen the movie.
+
+### Watched
+
+Search and rate movies you've already seen. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies as quick entry points — posters are clickable via CSS overlay. Selecting a movie opens a detail card with a 0.00-10.00 color-coded rating slider and Save button. Below the trending section, a "Your ratings" list shows all previously rated movies with re-rating sliders (initial 5, paginated via Load more). Search results also paginate with Load more.
 
 ### Watchlist
 
-View all saved movies with posters, titles, TMDB ratings, and your rating (read-only display). To re-rate, use the Rated page.
-
-### Rated
-
-View and re-rate all movies you have rated, regardless of watchlist status. Each movie shows a slider to adjust your rating. Movies not in the watchlist have their metadata fetched from TMDB.
+View all saved movies with posters, titles, TMDB ratings, and flatrate streaming provider badges for Switzerland (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.).
 
 ### Statistics
 
@@ -81,7 +81,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 | 1 | Problem clearly stated | defined |
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
 | 3 | Data visualization | planned |
-| 4 | User interaction | implemented (rate/dismiss/watchlist) |
+| 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | open |
 | 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |

@@ -1,8 +1,8 @@
-"""Watchlist page — View saved movies with their ratings and streaming providers.
+"""Watchlist page — View saved movies with streaming providers.
 
-Displays movies the user has added from the Discover page. Ratings are
-shown as read-only values. To re-rate, use the Rated page. Each movie
-shows flatrate streaming providers available in Switzerland.
+Displays movies the user has added from the Discover page. These are movies
+the user wants to watch but hasn't seen yet. Each movie shows flatrate
+streaming providers available in Switzerland.
 """
 from __future__ import annotations
 
@@ -24,7 +24,6 @@ st.header("Your watchlist", divider="blue")
 
 # Read shared state — loaded from SQLite on app start, updated on every action
 watchlist = st.session_state.get("watchlist", [])
-ratings = st.session_state.get("ratings", {})
 
 # --- Empty state ---
 if not watchlist:
@@ -34,14 +33,11 @@ if not watchlist:
     )
     st.stop()
 
-# --- Movie list with read-only ratings ---
+# --- Movie list ---
 for movie in watchlist:
-    # Look up the user's rating for this movie (None if unrated)
-    current_rating = ratings.get(movie["id"])
-
     with st.container(border=True):
-        # 3-column layout: small poster, wide info area, compact rating display
-        col_poster, col_info, col_rating = st.columns([1, 3, 1])
+        # 2-column layout: compact poster, wide info area with providers
+        col_poster, col_info = st.columns([1, 3])
         with col_poster:
             # w185 poster size for compact list items
             st.image(poster_url(movie.get("poster_path"), size="w185"), width=100)
@@ -60,13 +56,6 @@ for movie in watchlist:
                     f":{_PROVIDER_COLORS.get(p['provider_name'], _DEFAULT_PROVIDER_COLOR)}-badge[{p['provider_name']}]"
                     for p in providers
                 ))
-        with col_rating:
-            # Read-only display of the user's rating
-            st.caption("Your rating")
-            if current_rating is not None:
-                st.markdown(f"**{current_rating:.2f} / 10**")
-            else:
-                st.markdown("**— / 10**")
 
 # Footer: total count with correct singular/plural
 st.caption(

@@ -1,14 +1,14 @@
-"""Discover page — Browse and rate movies by genre.
+"""Discover page — Browse and discover new movies by genre.
 
 Two-phase flow: first select genre tags, then browse filtered movies one at a
-time in a card-based flow. Rate on a 0.00-10.00 scale (matching TMDB), add to
-watchlist, or dismiss. When no genres are selected, trending movies are shown.
+time in a card-based flow. Add to watchlist or dismiss. When no genres are
+selected, trending movies are shown. Rating happens on the Watched page.
 """
 from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import save_dismissed, save_rating, save_to_watchlist
+from utils.db import save_dismissed, save_to_watchlist
 from utils.tmdb import discover_movies, get_genre_map, get_trending, poster_url
 
 # Header changes based on phase: genre selection vs. movie browsing
@@ -163,63 +163,6 @@ with st.container(border=True):
             st.markdown(" ".join(f":blue-badge[{g}]" for g in genre_names))
         st.caption(f"TMDB rating: {movie.get('vote_average', 'N/A')} / 10")
         st.write(movie.get("overview", "No description available."))
-
-# --- Rating slider ---
-# Decimal rating 0.00-10.00 in 0.01 steps, matching the TMDB scale.
-# Slider allows setting the value in one drag. Independent of watchlist.
-current_rating = st.session_state.ratings.get(movie["id"])
-
-new_rating = st.slider(
-    "Your rating",
-    min_value=0.00,
-    max_value=10.00,
-    value=current_rating if current_rating is not None else 0.00,
-    step=0.01,
-    format="%.2f/10",
-    key=f"rate_{movie['id']}",
-)
-
-# Dynamic slider color: gray (0), red (≤3.33), orange (≤6.66), green (>6.66)
-if new_rating == 0.00:
-    _slider_color = "#d3d3d3"
-elif new_rating <= 3.33:
-    _slider_color = "#ff4b4b"
-elif new_rating <= 6.66:
-    _slider_color = "#ffa421"
-else:
-    _slider_color = "#21c354"
-
-# Inject CSS to override Streamlit's default slider styling
-st.markdown(
-    f"""<style>
-    /* Track fill color — changes with rating value */
-    .stSlider > div > div > div > div {{
-        background: {_slider_color} !important;
-    }}
-    /* Thumb (draggable dot) — always black */
-    .stSlider [role="slider"] {{
-        background-color: #000 !important;
-        border-color: #000 !important;
-    }}
-    /* Focus ring on drag — black instead of Streamlit's default red */
-    .stSlider [role="slider"]:focus,
-    .stSlider [role="slider"]:active {{
-        box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.2) !important;
-        outline: none !important;
-    }}
-    /* Score text above thumb — always black */
-    .stSlider [data-testid="stThumbValue"],
-    .stSlider [role="slider"] div {{
-        color: #000 !important;
-    }}
-    </style>""",
-    unsafe_allow_html=True,
-)
-
-# Save only when the user actually changes the rating (avoids redundant DB writes)
-if new_rating != current_rating:
-    st.session_state.ratings[movie["id"]] = new_rating  # Update runtime state
-    save_rating(movie["id"], new_rating)  # Persist to SQLite
 
 # --- Action buttons ---
 # Watchlist and dismiss are separate actions that advance to the next movie.

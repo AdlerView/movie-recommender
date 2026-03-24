@@ -30,9 +30,9 @@ movie-recommender/
 ├── app/
 │   ├── streamlit_app.py          # Entry point (router)
 │   ├── app_pages/                # Page modules
-│   │   ├── discover.py
-│   │   ├── watchlist.py
-│   │   ├── rated.py
+│   │   ├── discover.py           # Genre selection → movie browsing (no rating)
+│   │   ├── watched.py            # Search/rate movies, poster grid, your ratings
+│   │   ├── watchlist.py          # Saved movies with streaming providers
 │   │   └── statistics.py
 │   └── utils/                    # Business logic & helpers
 │       ├── __init__.py
@@ -84,9 +84,12 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Imports relative to `app/`: `from utils.tmdb import get_genres`
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
-- UX pattern: Two-phase discover flow (genre selection → movie browsing), card-based (one at a time)
-- Pagination: Automatic page advancement when all movies on a page are exhausted (up to 10 pages)
+- UX pattern: Discover (genre pills → card browsing, no rating) and Watched (search + poster grid → rate)
+- Discover: Two-phase flow (genre selection → movie browsing), card-based one at a time, watchlist/dismiss only
+- Watched: TMDB text search + Netflix-style clickable poster grid + trending + integrated "Your ratings" with re-rating
+- Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Watched
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
+- Navigation: 4 pages — Discover, Watched, Watchlist, Statistics
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 
 ---
@@ -98,7 +101,7 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 | 1 | Problem statement | Defined |
 | 2 | Data via API | TMDB + SQLite integrated |
 | 3 | Data visualization | Planned |
-| 4 | User interaction | Implemented (rate/dismiss/watchlist) |
+| 4 | User interaction | Implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | Open (weeks 10-11) |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |

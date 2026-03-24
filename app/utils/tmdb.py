@@ -127,6 +127,24 @@ def discover_movies(genre_ids: tuple[int, ...], page: int = 1) -> list[dict]:
     )["results"]
 
 
+@st.cache_data(ttl="5m", show_spinner=False)
+def search_movies(query: str, page: int = 1) -> list[dict]:
+    """Search for movies by title via TMDB.
+
+    Searches against title, original title, and alternative titles.
+    Used on the Watched page for finding movies the user has already seen.
+
+    Args:
+        query: Search text (min 1 character).
+        page: Result page (1-500, 20 movies per page).
+
+    Returns:
+        List of movie dicts matching the search query.
+    """
+    # GET /search/movie — text-based title search
+    return _get("/search/movie", query=query, language="en-US", page=page)["results"]
+
+
 @st.cache_data(ttl="1h", show_spinner=False)
 def get_movie_details(movie_id: int) -> dict:
     """Fetch details for a single movie by ID.

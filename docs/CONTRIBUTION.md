@@ -14,6 +14,7 @@
 | Concept / Wireframe    |            |                   |           |                |
 | TMDB API Integration   |     ■      |                   |           |                |
 | Genre Selection UI     |     ■      |                   |           |                |
+| Watched Page / Search  |     ■      |                   |           |                |
 | Recommendation Engine  |            |                   |           |                |
 | Rating System          |     ■      |                   |           |                |
 | Statistics Dashboard   |            |                   |           |                |
