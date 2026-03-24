@@ -13,9 +13,9 @@ from utils.tmdb import discover_movies, get_genre_map, get_trending, poster_url
 
 # Header changes based on phase: genre selection vs. movie browsing
 if st.session_state.get("discover_phase", "select") == "select":
-    st.header("Which movie will you watch?", divider="blue")
+    st.header("Which movie will you watch?", divider="gray")
 else:
-    st.header("Discover movies", divider="blue")
+    st.header("Discover movies", divider="gray")
 
 # --- Load genre data for tag selection ---
 # Genre map is needed for pills UI and resolving genre IDs on movie cards.
@@ -160,7 +160,7 @@ with st.container(border=True):
         st.subheader(movie["title"])
         # Genre badges for quick visual scanning
         if genre_names:
-            st.markdown(" ".join(f":blue-badge[{g}]" for g in genre_names))
+            st.markdown(" ".join(f":gray-badge[{g}]" for g in genre_names))
         st.caption(f"TMDB rating: {movie.get('vote_average', 'N/A')} / 10")
         st.write(movie.get("overview", "No description available."))
 

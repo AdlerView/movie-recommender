@@ -17,6 +17,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 ## Tech Stack
 
 - **Framework:** Streamlit (>=1.53.0)
+- **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
 - **Database:** SQLite (WAL mode, schema versioned via `PRAGMA user_version`)
 - **ML:** scikit-learn (content-based filtering, planned for weeks 10-11)
@@ -32,13 +33,14 @@ movie-recommender/
 │   ├── streamlit_app.py          # Entry point (router)
 │   ├── app_pages/                # Page modules
 │   │   ├── discover.py           # Genre selection → movie browsing (no rating)
-│   │   ├── watched.py            # Rate tab: search/browse → click poster → rate dialog
+│   │   ├── rate.py               # Rate tab: search/browse → click poster → rate dialog
 │   │   ├── watchlist.py          # Poster grid → detail dialog with streaming + actions
 │   │   └── statistics.py         # KPIs, charts, rated movies table
-│   └── utils/                    # Business logic & helpers
-│       ├── __init__.py
-│       ├── db.py                 # SQLite persistence layer
-│       └── tmdb.py
+│   ├── utils/                    # Business logic & helpers
+│   │   ├── __init__.py
+│   │   ├── db.py                 # SQLite persistence layer
+│   │   └── tmdb.py
+│   └── static/                   # Poppins font files (18 TTFs + OFL license)
 ├── docs/                         # Project documentation
 │   ├── CONTRIBUTION.md
 │   ├── REQUIREMENTS.md
@@ -46,7 +48,7 @@ movie-recommender/
 │   ├── concept/
 │   └── references/
 ├── .streamlit/
-│   ├── config.toml
+│   ├── config.toml               # Cinema Gold theme + fontFaces + server config
 │   ├── secrets.toml              # API keys (gitignored)
 │   └── secrets.toml.example
 ├── CLAUDE.md
@@ -113,6 +115,8 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Navigation: 4 pages — Discover, Rate, Watchlist (left-aligned), Statistics (right-aligned via CSS)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
+- Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, genre badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
+- Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `app/static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
 
 ---
 

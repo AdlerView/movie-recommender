@@ -17,7 +17,7 @@ from utils.tmdb import (
     search_movies,
 )
 
-st.header("Rate a movie", divider="blue")
+st.header("Rate a movie", divider="gray")
 
 # --- Deferred toast ---
 # Shown after rerun following a save (st.toast before st.rerun is lost)
@@ -77,7 +77,7 @@ def _show_rating_dialog(movie_id: int) -> None:
         # Genre badges
         genres = details.get("genres", [])
         if genres:
-            st.markdown(" ".join(f":blue-badge[{g['name']}]" for g in genres))
+            st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
         # TMDB rating
         st.caption(f"TMDB rating: {details.get('vote_average', 'N/A')} / 10")
         # Runtime
@@ -196,10 +196,12 @@ try:
         if not page_movies:
             has_more = False
             break
-        # Filter per page: remove poster-less and already-rated movies
+        # Filter per page: remove poster-less, already-rated, and duplicate movies
+        seen_ids = {m["id"] for m in movies}
         page_movies = [
             m for m in page_movies
             if m.get("poster_path") and m["id"] not in rated_ids
+            and m["id"] not in seen_ids
         ]
         movies.extend(page_movies)
         # TMDB returns 20 per page; fewer means we've reached the last page

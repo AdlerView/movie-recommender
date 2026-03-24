@@ -24,7 +24,7 @@ _DEFAULT_PROVIDER_COLOR = "violet"
 # Number of columns in the poster grid (matches Watched page)
 _GRID_COLS = 5
 
-st.header("Your watchlist", divider="blue")
+st.header("Your watchlist", divider="gray")
 
 # --- Deferred toast ---
 if "_watchlist_toast" in st.session_state:
@@ -79,7 +79,7 @@ def _show_detail(movie_id: int) -> None:
         genres = details.get("genres", [])
         if genres:
             st.markdown(" ".join(
-                f":blue-badge[{g['name']}]" for g in genres
+                f":gray-badge[{g['name']}]" for g in genres
             ))
         # TMDB rating
         st.caption(f"TMDB rating: {details.get('vote_average', 'N/A')} / 10")

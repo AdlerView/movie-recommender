@@ -74,7 +74,7 @@ st.markdown("""<style>
 page = st.navigation(
     [
         st.Page("app_pages/discover.py", title="Discover", icon=":material/explore:"),
-        st.Page("app_pages/watched.py", title="Rate", icon=":material/star:"),
+        st.Page("app_pages/rate.py", title="Rate", icon=":material/star:"),
         st.Page("app_pages/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
         st.Page("app_pages/statistics.py", title="Statistics", icon=":material/bar_chart:"),
     ],

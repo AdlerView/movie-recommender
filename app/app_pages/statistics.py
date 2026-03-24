@@ -18,7 +18,7 @@ from utils.db import (
 )
 from utils.tmdb import poster_url
 
-st.header("Your statistics", divider="blue")
+st.header("Your statistics", divider="gray")
 
 # --- Load aggregated data from SQLite ---
 stats = load_stats_summary()
@@ -61,7 +61,7 @@ with st.container(horizontal=True):
 genre_data = load_genre_distribution()
 
 if genre_data:
-    st.subheader("Genre distribution", divider="blue")
+    st.subheader("Genre distribution", divider="gray")
     # Build DataFrame for st.bar_chart (index = genre name, column = count)
     genre_df = pd.DataFrame(genre_data, columns=["Genre", "Movies"])
     st.bar_chart(genre_df, x="Genre", y="Movies", horizontal=True)
@@ -70,7 +70,7 @@ if genre_data:
 directors = load_top_directors()
 
 if directors:
-    st.subheader("Favorite directors", divider="blue")
+    st.subheader("Favorite directors", divider="gray")
     for rank, (name, count) in enumerate(directors, start=1):
         # Display as numbered list with movie count
         suffix = "movie" if count == 1 else "movies"
@@ -81,7 +81,7 @@ if directors:
 rated_rows = load_rated_movies_table()
 
 if rated_rows:
-    st.subheader("Your ratings", divider="blue")
+    st.subheader("Your ratings", divider="gray")
 
     # Build DataFrame with display-ready columns
     table_data = []

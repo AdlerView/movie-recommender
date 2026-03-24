@@ -23,6 +23,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Component   | Technology |
 |-------------|------------|
 | Frontend    | [Streamlit](https://streamlit.io) (mandatory) |
+| Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
 | Persistence | SQLite (WAL mode, schema v3, normalized detail tables) |
