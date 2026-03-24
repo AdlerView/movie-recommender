@@ -141,6 +141,24 @@ Key selectors:
 
 Standard `[data-testid="stNavigation"]` and `ul/li` selectors do NOT work.
 
+### Poster Grid (Watched Page)
+
+Clickable posters use an invisible `st.button` overlaid on `st.image` via CSS. Scoped to `.st-key-poster_grid` (via `st.container(key="poster_grid")`).
+
+```
+div[data-testid="stColumn"]           ← position: relative
+  ├── div[data-testid="stElementContainer"]  ← image
+  │     └── div.stImage → img
+  └── div[data-testid="stElementContainer"]  ← button (position: absolute, 100%×100%)
+        └── div.stButton → button (opacity: 0)
+```
+
+Key gotchas:
+- Column testid is `stColumn` (NOT `column`)
+- `stElementContainer` may have `width="fit-content"` attribute — must override with explicit `width: 100% !important`
+- Use `width/height: 100%` instead of `left: 0; right: 0` for the overlay — the latter doesn't override `fit-content`
+- `max-width: 100%` and `padding: 0` needed on the button to prevent Streamlit defaults from shrinking it
+
 ---
 
 ## Grading Requirements

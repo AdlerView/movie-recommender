@@ -153,50 +153,58 @@ if st.session_state.watched_selected is None:
 
     # --- Poster grid (Netflix-style: clickable poster images) ---
     # CSS overlays a transparent button on each poster for click interaction.
-    # No JavaScript needed — pure CSS positioning makes the button cover the poster.
+    # Scoped to .st-key-poster_grid to avoid affecting other columns on the page.
+    # Targets stElementContainer:has(.stButton) to overlay the button's wrapper
+    # on top of the image — no visible button, just a clickable poster.
     st.markdown("""<style>
-        /* Enable absolute positioning within grid columns */
-        [data-testid="column"] {
+        /* Each column in the poster grid is a positioning context */
+        .st-key-poster_grid [data-testid="stColumn"] {
             position: relative !important;
+            cursor: pointer !important;
         }
-        /* Overlay button container over the entire column area */
-        [data-testid="column"] .stButton {
+        /* Overlay the button's element container over the entire column */
+        .st-key-poster_grid [data-testid="stColumn"] [data-testid="stElementContainer"]:has(.stButton) {
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            z-index: 10 !important;
-        }
-        /* Transparent full-size button — invisible but captures clicks */
-        [data-testid="column"] .stButton button {
             width: 100% !important;
             height: 100% !important;
+            z-index: 10 !important;
+        }
+        /* Transparent full-size button — every element in the chain must stretch */
+        .st-key-poster_grid [data-testid="stElementContainer"]:has(.stButton) .stButton,
+        .st-key-poster_grid [data-testid="stElementContainer"]:has(.stButton) .stButton button {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
             opacity: 0 !important;
             cursor: pointer !important;
             border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
         }
-        /* Hover: slight dim on poster columns only (those with a button overlay) */
-        [data-testid="column"]:has(.stButton):hover {
+        /* Hover: slight dim on poster for visual feedback */
+        .st-key-poster_grid [data-testid="stColumn"]:hover {
             opacity: 0.85;
             transition: opacity 0.2s;
         }
     </style>""", unsafe_allow_html=True)
 
-    for row_start in range(0, len(movies), _GRID_COLS):
-        row_movies = movies[row_start:row_start + _GRID_COLS]
-        cols = st.columns(_GRID_COLS)
-        for col, movie in zip(cols, row_movies):
-            with col:
-                # Poster image (w342 for sharp display in 5-column grid)
-                st.image(poster_url(movie.get("poster_path"), size="w342"))
-                # Transparent button overlay — covers the poster for click target
-                st.button(
-                    movie["title"],
-                    key=f"watched_sel_{movie['id']}",
-                    on_click=_select_movie,
-                    args=(movie,),
-                )
+    with st.container(key="poster_grid"):
+        for row_start in range(0, len(movies), _GRID_COLS):
+            row_movies = movies[row_start:row_start + _GRID_COLS]
+            cols = st.columns(_GRID_COLS)
+            for col, movie in zip(cols, row_movies):
+                with col:
+                    # Poster image (w342 for sharp display in 5-column grid)
+                    st.image(poster_url(movie.get("poster_path"), size="w342"))
+                    # Invisible button overlay — captures clicks on the poster
+                    st.button(
+                        "Rate",
+                        key=f"watched_sel_{movie['id']}",
+                        on_click=_select_movie,
+                        args=(movie,),
+                    )
 
     # --- Load more button ---
     # Shown when TMDB has more pages of results available
