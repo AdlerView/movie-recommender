@@ -103,12 +103,19 @@ if st.session_state.watched_selected is None:
         st.caption("Movies you might have already seen")
 
     # --- Fetch movies with pagination ---
-    # Loads pages 1 through _watched_pages; each page is individually cached.
+    # Loads pages until we have enough unrated movies to fill the grid.
+    # Rated movies are excluded (they appear in "Your ratings" below),
+    # so we may need extra pages to compensate for filtered-out entries.
+    rated_ids = st.session_state.get("ratings", {})
+    target_count = st.session_state._watched_pages * _TMDB_PAGE_SIZE
     movies: list[dict] = []
     has_more = True  # Whether more pages are available from TMDB
+    _max_pages = 10  # Safety cap to avoid excessive API calls
 
     try:
-        for p in range(1, st.session_state._watched_pages + 1):
+        p = 0
+        while len(movies) < target_count and has_more and p < _max_pages:
+            p += 1
             if current_query:
                 page_movies = search_movies(current_query, page=p)
             else:
@@ -116,11 +123,17 @@ if st.session_state.watched_selected is None:
             if not page_movies:
                 has_more = False
                 break
+            # Filter per page: remove poster-less and already-rated movies
+            page_movies = [
+                m for m in page_movies
+                if m.get("poster_path") and m["id"] not in rated_ids
+            ]
             movies.extend(page_movies)
             # TMDB returns 20 per page; fewer means we've reached the last page
             if len(page_movies) < _TMDB_PAGE_SIZE:
-                has_more = False
-                break
+                has_more = p < _max_pages
+        # Trim to exact target count
+        movies = movies[:target_count]
     except requests.HTTPError:
         st.error("TMDB API error. Please try again later.", icon=":material/error:")
         st.stop()
@@ -130,9 +143,6 @@ if st.session_state.watched_selected is None:
             icon=":material/wifi_off:",
         )
         st.stop()
-
-    # Filter out movies without poster artwork (keeps the grid visually consistent)
-    movies = [m for m in movies if m.get("poster_path")]
 
     if not movies:
         st.info(
