@@ -5,8 +5,6 @@
 
 ## In Progress
 
-- [ ] Code documentation — add inline comments to all pages and utils (Req 6) — @AdlerView
-
 ## Upcoming
 
 ### Week 06 — 2026-03-26 (Coaching: 23.03)
@@ -56,3 +54,4 @@
 - [x] Discover sorting — popularity.desc with vote_count.gte=100 floor (2026-03-24)
 - [x] Watch providers — flatrate streaming badges (CH) on Watchlist with brand colors (2026-03-24)
 - [x] Rated page — view and re-rate all rated movies with TMDB metadata fetch (2026-03-23)
+- [x] Code documentation — inline comments on all pages and utils (Req 6) (2026-03-24)

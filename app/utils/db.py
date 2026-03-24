@@ -60,20 +60,23 @@ def init_db() -> None:
             conn.execute("PRAGMA user_version = 2")
 
         conn.executescript("""
+            -- Watchlist: saved movies with TMDB metadata for offline display
             CREATE TABLE IF NOT EXISTS watchlist (
                 movie_id     INTEGER PRIMARY KEY,
                 title        TEXT NOT NULL,
                 poster_path  TEXT,
                 vote_average REAL,
                 overview     TEXT,
-                genre_ids    TEXT,
+                genre_ids    TEXT,    -- JSON array of TMDB genre IDs
                 added_at     TEXT DEFAULT (datetime('now'))
             );
+            -- Ratings: decimal 0.00-10.00 matching the TMDB scale
             CREATE TABLE IF NOT EXISTS ratings (
                 movie_id INTEGER PRIMARY KEY,
                 rating   REAL NOT NULL CHECK (rating >= 0.0 AND rating <= 10.0),
                 rated_at TEXT DEFAULT (datetime('now'))
             );
+            -- Dismissed: movies skipped via "Not interested" button
             CREATE TABLE IF NOT EXISTS dismissed (
                 movie_id     INTEGER PRIMARY KEY,
                 dismissed_at TEXT DEFAULT (datetime('now'))
@@ -98,10 +101,10 @@ def load_watchlist() -> list[dict]:
         rows = conn.execute(
             "SELECT * FROM watchlist ORDER BY added_at DESC"
         ).fetchall()
-    # Convert rows to TMDB-compatible dicts
+    # Convert sqlite3.Row objects to TMDB-compatible dicts for Streamlit display
     movies = []
     for row in rows:
-        movie = {
+        movie = {  # Reconstruct the same dict shape as TMDB API responses
             "id": row["movie_id"],
             "title": row["title"],
             "poster_path": row["poster_path"],

@@ -22,6 +22,7 @@ _DEFAULT_PROVIDER_COLOR = "violet"
 
 st.header("Your watchlist", divider="blue")
 
+# Read shared state — loaded from SQLite on app start, updated on every action
 watchlist = st.session_state.get("watchlist", [])
 ratings = st.session_state.get("ratings", {})
 
@@ -35,9 +36,11 @@ if not watchlist:
 
 # --- Movie list with read-only ratings ---
 for movie in watchlist:
+    # Look up the user's rating for this movie (None if unrated)
     current_rating = ratings.get(movie["id"])
 
     with st.container(border=True):
+        # 3-column layout: small poster, wide info area, compact rating display
         col_poster, col_info, col_rating = st.columns([1, 3, 1])
         with col_poster:
             # w185 poster size for compact list items
@@ -45,12 +48,14 @@ for movie in watchlist:
         with col_info:
             st.subheader(movie["title"])
             st.caption(f"TMDB rating: {movie.get('vote_average', 'N/A')} / 10")
-            # Show flatrate streaming providers for Switzerland
+            # Fetch flatrate streaming providers for Switzerland (cached 1h)
+            # Graceful fallback: show nothing if the API call fails
             try:
                 providers = get_watch_providers(movie["id"])
             except requests.RequestException:
                 providers = []
             if providers:
+                # Render provider names as colored badges (brand colors from _PROVIDER_COLORS)
                 st.markdown(" ".join(
                     f":{_PROVIDER_COLORS.get(p['provider_name'], _DEFAULT_PROVIDER_COLOR)}-badge[{p['provider_name']}]"
                     for p in providers
@@ -63,6 +68,7 @@ for movie in watchlist:
             else:
                 st.markdown("**— / 10**")
 
+# Footer: total count with correct singular/plural
 st.caption(
     f"{len(watchlist)} movie{'s' if len(watchlist) != 1 else ''} in your watchlist"
 )

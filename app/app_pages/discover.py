@@ -45,11 +45,13 @@ st.session_state.setdefault("discover_index", 0)
 
 def _start_browsing() -> None:
     """Transition from genre selection to movie browsing."""
-    # Read current pill selection from widget state
+    # Read current pill selection from widget state (st.pills stores its value here)
     selected = st.session_state.get("genre_pills", [])
+    # Reverse-lookup: resolve genre names back to TMDB genre IDs for the API call
     st.session_state["_discover_genres"] = tuple(sorted(
         gid for gid, name in genre_map.items() if name in (selected or [])
     ))
+    # Switch to browse phase and reset movie position to the first result
     st.session_state.discover_phase = "browse"
     st.session_state.discover_index = 0
 
@@ -69,15 +71,17 @@ if st.session_state.discover_phase == "select":
         key="genre_pills",
     )
 
+    # Button label adapts: "Search" with genres selected, "Show trending" without
     st.button(
         "Search" if selected_genres else "Show trending",
         icon=":material/search:",
         on_click=_start_browsing,
         type="primary",
     )
-    st.stop()
+    st.stop()  # Halt rendering — only genre selection is shown in this phase
 
 # === PHASE 2: Movie Browsing ===
+# Retrieve genre IDs stored by _start_browsing callback; empty tuple = trending
 selected_ids = st.session_state.get("_discover_genres", ())
 
 # Back button to return to genre selection
@@ -86,9 +90,10 @@ st.button("Change genres", icon=":material/arrow_back:", on_click=_back_to_genre
 # --- Load movies with automatic pagination ---
 # Fetches pages until available (unseen) movies are found, up to 10 pages.
 # Each page is cached individually, so revisiting exhausted pages is instant.
+# Build sets of already-seen movie IDs for fast lookup during filtering
 dismissed = st.session_state.dismissed
 watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
-available: list[dict] = []
+available: list[dict] = []  # Accumulates unseen movies across pages
 
 try:
     for page in range(1, 11):
@@ -138,6 +143,7 @@ if not available:
     st.stop()
 
 # --- Current movie card ---
+# Modulo wraps the index to stay within bounds when the list shrinks
 index = st.session_state.discover_index % len(available)
 movie = available[index]
 
@@ -183,20 +189,25 @@ elif new_rating <= 6.66:
 else:
     _slider_color = "#21c354"
 
+# Inject CSS to override Streamlit's default slider styling
 st.markdown(
     f"""<style>
+    /* Track fill color — changes with rating value */
     .stSlider > div > div > div > div {{
         background: {_slider_color} !important;
     }}
+    /* Thumb (draggable dot) — always black */
     .stSlider [role="slider"] {{
         background-color: #000 !important;
         border-color: #000 !important;
     }}
+    /* Focus ring on drag — black instead of Streamlit's default red */
     .stSlider [role="slider"]:focus,
     .stSlider [role="slider"]:active {{
         box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.2) !important;
         outline: none !important;
     }}
+    /* Score text above thumb — always black */
     .stSlider [data-testid="stThumbValue"],
     .stSlider [role="slider"] div {{
         color: #000 !important;
@@ -205,10 +216,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Save only when the user actually changes the rating
+# Save only when the user actually changes the rating (avoids redundant DB writes)
 if new_rating != current_rating:
-    st.session_state.ratings[movie["id"]] = new_rating
-    save_rating(movie["id"], new_rating)
+    st.session_state.ratings[movie["id"]] = new_rating  # Update runtime state
+    save_rating(movie["id"], new_rating)  # Persist to SQLite
 
 # --- Action buttons ---
 # Watchlist and dismiss are separate actions that advance to the next movie.
@@ -216,16 +227,16 @@ if new_rating != current_rating:
 
 def _add_to_watchlist() -> None:
     """Add current movie to watchlist and advance to next."""
-    st.session_state.watchlist.append(movie)
-    save_to_watchlist(movie)
-    st.session_state.discover_index += 1
+    st.session_state.watchlist.append(movie)  # Update runtime state
+    save_to_watchlist(movie)  # Persist full movie dict to SQLite
+    st.session_state.discover_index += 1  # Advance to next movie on rerun
 
 
 def _dismiss() -> None:
     """Mark current movie as dismissed and advance to next."""
-    st.session_state.dismissed.add(movie["id"])
-    save_dismissed(movie["id"])
-    st.session_state.discover_index += 1
+    st.session_state.dismissed.add(movie["id"])  # Update runtime set
+    save_dismissed(movie["id"])  # Persist dismissal to SQLite
+    st.session_state.discover_index += 1  # Advance to next movie on rerun
 
 
 with st.container(horizontal=True):

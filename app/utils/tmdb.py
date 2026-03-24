@@ -35,11 +35,13 @@ def _get(
         requests.HTTPError: If the API returns a non-2xx status code.
         requests.ConnectionError: If the connection to TMDB fails.
     """
+    # Merge extra params (for dotted keys like "vote_count.gte") into kwargs
     if extra:
         params.update(extra)
+    # Inject API key into every request automatically
     params["api_key"] = API_KEY
     response = requests.get(f"{BASE_URL}{path}", params=params, timeout=10)
-    response.raise_for_status()
+    response.raise_for_status()  # Raises HTTPError for 4xx/5xx responses
     return response.json()
 
 
@@ -156,5 +158,7 @@ def get_watch_providers(movie_id: int, region: str = "CH") -> list[dict]:
     """
     # GET /movie/{id}/watch/providers — streaming availability per country
     data = _get(f"/movie/{movie_id}/watch/providers")
+    # Response is keyed by ISO 3166-1 country code (e.g., "CH", "DE", "US")
     country = data.get("results", {}).get(region, {})
+    # Return only flatrate (subscription) providers; ignore rent/buy/ads
     return country.get("flatrate", [])

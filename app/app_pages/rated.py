@@ -13,6 +13,7 @@ from utils.tmdb import get_movie_details, poster_url
 
 st.header("Your ratings", divider="blue")
 
+# Read ratings dict from session state — {movie_id: float 0.00-10.00}
 ratings = st.session_state.get("ratings", {})
 
 # --- Empty state ---
@@ -24,18 +25,20 @@ if not ratings:
     st.stop()
 
 # --- Build lookup of movie metadata ---
-# Collect metadata from watchlist first, then fetch missing from TMDB.
+# Watchlist movies already have metadata cached in session state.
+# Rated movies NOT in the watchlist need a TMDB API call for title/poster.
 watchlist = st.session_state.get("watchlist", [])
 movie_lookup: dict[int, dict] = {m["id"]: m for m in watchlist}
 
-# Fetch metadata for rated movies not in the watchlist
+# Fetch metadata for rated movies not in the watchlist (cached 1h per movie)
 for movie_id in ratings:
     if movie_id not in movie_lookup:
         try:
+            # GET /movie/{id} — retrieves title, poster, rating for display
             details = get_movie_details(movie_id)
             movie_lookup[movie_id] = details
         except requests.RequestException:
-            # Graceful fallback — show what we have
+            # Graceful fallback — show movie ID if API fails
             movie_lookup[movie_id] = {"id": movie_id, "title": f"Movie #{movie_id}"}
 
 # --- Rated movie list with sliders ---
@@ -43,6 +46,7 @@ for movie_id, current_rating in ratings.items():
     movie = movie_lookup[movie_id]
 
     with st.container(border=True):
+        # 2-column layout: compact poster, wide info area with re-rating slider
         col_poster, col_info = st.columns([1, 3])
         with col_poster:
             st.image(
@@ -54,7 +58,7 @@ for movie_id, current_rating in ratings.items():
                 f"TMDB rating: {movie.get('vote_average', 'N/A')} / 10"
             )
 
-        # Slider for re-rating
+        # Slider for re-rating — same scale as Discover page (0.00-10.00, 0.01 steps)
         new_rating = st.slider(
             "Your rating",
             min_value=0.00,
@@ -64,9 +68,10 @@ for movie_id, current_rating in ratings.items():
             format="%.2f/10",
             key=f"rated_{movie_id}",
         )
-        # Save only when the rating changes
+        # Save only when the rating changes (avoids redundant DB writes on rerun)
         if new_rating != current_rating:
-            st.session_state.ratings[movie_id] = new_rating
-            save_rating(movie_id, new_rating)
+            st.session_state.ratings[movie_id] = new_rating  # Update runtime state
+            save_rating(movie_id, new_rating)  # Persist to SQLite
 
+# Footer: total count with correct singular/plural
 st.caption(f"{len(ratings)} movie{'s' if len(ratings) != 1 else ''} rated")
