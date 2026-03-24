@@ -28,10 +28,6 @@
   - Context: The wireframe shows total watch hours, genre counts, favorite director, poster gallery. This requires fetching and caching `runtime`, `genres`, and `credits.crew` (filtered by `job: "Director"`) for every watched film. Can be done in one call per film via `GET /movie/{id}?append_to_response=credits`, but the when/where of caching is unaddressed.
   - Found: 2026-03-18
 
-- [ ] `#008` **[gap]** — Watch provider integration not in concept
-  - Context: TMDB provides `GET /movie/{id}/watch/providers` with streaming availability per country (Netflix, Amazon, Disney+, etc.). Showing WHERE to watch a recommended film directly supports the use case. Low implementation effort, high user value. Not mentioned in concept or wireframe.
-  - Found: 2026-03-18
-
 ### Low
 
 - [ ] `#010` **[unclear]** — "Not interested" signal usage
@@ -53,4 +49,5 @@
 - [x] `#015` **[decision]** — Card-based UX flow: one movie at a time with rate/dismiss buttons, matching wireframe prototype (2026-03-23)
 - [x] `#016` **[decision]** — TMDB API key injected via `_get()` helper in `app/utils/tmdb.py` (2026-03-23)
 - [x] `#006` **[decision]** — Sort by `popularity.desc` with `vote_count.gte=100` floor, AND logic for genres, automatic pagination up to 10 pages (2026-03-24)
+- [x] `#008` **[gap]** — Flatrate streaming providers (CH) shown on Watchlist with brand-colored badges (2026-03-24)
 - [x] `#012` **[gap]** — "No movies found — try selecting fewer tags" message + back button to genre selection (2026-03-24)

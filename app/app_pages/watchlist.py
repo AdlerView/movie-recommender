@@ -1,12 +1,24 @@
-"""Watchlist page — View saved movies with their ratings.
+"""Watchlist page — View saved movies with their ratings and streaming providers.
 
 Displays movies the user has added from the Discover page. Ratings are
-shown as read-only values. To re-rate, use the Rated page.
+shown as read-only values. To re-rate, use the Rated page. Each movie
+shows flatrate streaming providers available in Switzerland.
 """
 from __future__ import annotations
 
+import requests
 import streamlit as st
-from utils.tmdb import poster_url
+from utils.tmdb import get_watch_providers, poster_url
+
+# Provider brand colors for badge styling
+_PROVIDER_COLORS: dict[str, str] = {
+    "Netflix": "red",
+    "Amazon Prime Video": "blue",
+    "Disney Plus": "green",
+    "Apple TV Plus": "gray",
+    "Paramount Plus": "orange",
+}
+_DEFAULT_PROVIDER_COLOR = "violet"
 
 st.header("Your watchlist", divider="blue")
 
@@ -33,6 +45,16 @@ for movie in watchlist:
         with col_info:
             st.subheader(movie["title"])
             st.caption(f"TMDB rating: {movie.get('vote_average', 'N/A')} / 10")
+            # Show flatrate streaming providers for Switzerland
+            try:
+                providers = get_watch_providers(movie["id"])
+            except requests.RequestException:
+                providers = []
+            if providers:
+                st.markdown(" ".join(
+                    f":{_PROVIDER_COLORS.get(p['provider_name'], _DEFAULT_PROVIDER_COLOR)}-badge[{p['provider_name']}]"
+                    for p in providers
+                ))
         with col_rating:
             # Read-only display of the user's rating
             st.caption("Your rating")
