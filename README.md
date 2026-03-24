@@ -38,11 +38,11 @@ Two-phase flow matching the wireframe prototype. First, select genre tags (19 TM
 
 ### Watched
 
-Search and rate movies you've already seen. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies as quick entry points — posters are clickable via CSS overlay. Selecting a movie opens a detail card with a 0.00-10.00 color-coded rating slider and Save button. Below the trending section, a "Your ratings" list shows all previously rated movies with color-coded rating badges (red ≤3.33, orange ≤6.66, green >6.66), runtime, and an edit button that opens the full rating view. Initial 5, paginated via Load more. Search results also paginate with Load more.
+Search and rate movies you've already seen. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies as quick entry points — posters are clickable via CSS overlay. Already-rated movies are excluded from the grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genres, TMDB rating, runtime, overview, and a 0.00-10.00 color-coded rating slider. Below the trending section, a "Your ratings" list shows all previously rated movies with color-coded rating badges (red ≤3.33, orange ≤6.66, green >6.66), runtime, and an edit button that opens the same rating dialog. Initial 5, paginated via Load more.
 
 ### Watchlist
 
-View all saved movies with posters, titles, TMDB ratings, and flatrate streaming provider badges for Switzerland (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.).
+Netflix-style poster grid of saved movies. Clicking a poster opens a detail dialog with TMDB rating, runtime, genres, overview, and flatrate streaming providers for Switzerland (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.). Actions: "Remove from watchlist" or "Mark as watched" which opens a rating slider — saving the rating moves the movie from watchlist to rated.
 
 ### Statistics
 

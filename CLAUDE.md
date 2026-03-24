@@ -101,12 +101,13 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Imports relative to `app/`: `from utils.tmdb import get_genres`
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
-- UX pattern: Discover (genre pills → card browsing, no rating) and Watched (search + poster grid → rate)
+- UX pattern: Poster grids on Watched and Watchlist, click → detail dialog overlay (`@st.dialog`)
 - Discover: Two-phase flow (genre selection → movie browsing), card-based one at a time, watchlist/dismiss only
-- Watched: TMDB text search + Netflix-style clickable poster grid + trending + integrated "Your ratings" with color-coded badges and edit button. Already-rated movies are excluded from the grid (auto-fetches extra TMDB pages to always show exactly 20 results).
+- Watched: TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details + rating slider. Already-rated movies excluded from grid (auto-fetches extra TMDB pages to always show exactly 20). "Your ratings" below with color-coded badges and edit button → same dialog.
+- Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, streaming providers (CH), "Remove from watchlist" and "Mark as watched" (with rating slider). Rating removes movie from watchlist.
 - Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Watched
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
-- Your Ratings: color-coded badges (red ≤3.33, orange ≤6.66, green >6.66) + tertiary edit button → reuses Phase 2 rating view
+- Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script (dialogs cannot be triggered from callbacks directly)
 - Movie details: Eagerly cached in normalized SQLite tables on every rating save + backfill on startup
 - Navigation: 4 pages — Discover, Watched, Watchlist (left-aligned), Statistics (right-aligned via CSS)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
