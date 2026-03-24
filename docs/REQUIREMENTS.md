@@ -33,9 +33,9 @@
 
 > The application uses some data that is loaded via an API and/or provided via a database.
 
-**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/discover/movie` (filter by genre), `/movie/{id}` (details + credits), `/genre/movie/list` (genre catalog), `/movie/{id}/watch/providers` (streaming availability).
+**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/trending/movie/{time_window}` (trending movies), `/movie/{id}` (details), `/genre/movie/list` (genre catalog). Local SQLite database persists ratings (REAL 0.00-10.00), watchlist (JSON movie data), and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
 
-**Status:** planned
+**Status:** implemented
 
 ---
 
@@ -53,9 +53,9 @@
 
 > The application allows for some user interaction, e.g., adding additional data, selecting certain data, running certain data analyses.
 
-**Our approach:** Genre tag selection → search → recommendation display → "rate it" or "not interested" → next recommendation. Rating history feeds visualization and ML components.
+**Our approach:** Card-based discover flow: one trending movie at a time with a 0.00-10.00 decimal slider for rating, "Add to watchlist" and "Not interested" buttons. Rating and watchlist are independent actions. Separate Rated page for re-rating all rated movies. Watchlist page shows saved movies with read-only ratings. All actions persist to SQLite immediately.
 
-**Status:** planned
+**Status:** implemented
 
 ---
 
@@ -73,9 +73,9 @@
 
 > The source code is well documented by comments in the source code.
 
-**Our approach:** Docstrings on all functions, inline comments for non-obvious logic.
+**Our approach:** Google-style docstrings on all functions and modules, inline comments for non-obvious logic, API calls commented with endpoint and purpose, session state operations documented.
 
-**Status:** not started
+**Status:** in progress
 
 ---
 

@@ -20,12 +20,13 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Frontend  | [Streamlit](https://streamlit.io) (mandatory) |
-| Language  | Python |
-| Data      | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| ML        | TBD (content-based filtering planned) |
+| Component   | Technology |
+|-------------|------------|
+| Frontend    | [Streamlit](https://streamlit.io) (mandatory) |
+| Language    | Python |
+| Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
+| Persistence | SQLite (WAL mode, schema-versioned) |
+| ML          | TBD (content-based filtering planned) |
 
 ---
 
@@ -33,19 +34,27 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Browse trending movies one at a time in a card-based flow (poster, genres, rating, overview). Each movie can be added to the watchlist or dismissed. Dismissed and watchlisted movies are automatically skipped.
+Browse trending movies one at a time in a card-based flow (poster, genres, rating, overview). Rate movies on a 0.00-10.00 decimal slider (0.01 steps, matching TMDB scale). Each movie can be added to the watchlist or dismissed. Rating and watchlist are independent actions. Dismissed and watchlisted movies are automatically skipped.
 
 ### Watchlist
 
-View all saved movies with posters, titles, and TMDB ratings.
+View all saved movies with posters, titles, TMDB ratings, and your rating (read-only display). To re-rate, use the Rated page.
+
+### Rated
+
+View and re-rate all movies you have rated, regardless of watchlist status. Each movie shows a slider to adjust your rating. Movies not in the watchlist have their metadata fetched from TMDB.
 
 ### Statistics
 
-Dashboard with KPI metrics: number of watchlisted, rated, and dismissed movies.
+Dashboard with KPI metrics: number of watchlisted, rated, and dismissed movies, plus average rating.
+
+### Persistence
+
+All ratings, watchlist entries, and dismissals are persisted in a local SQLite database. Data loads on startup and saves on every action.
 
 ### TMDB Integration
 
-Live data from TMDB API v3 with cached responses (genres 1h, trending 30m). Error handling for API failures with user-facing messages.
+Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, movie details 1h). Error handling for API failures with user-facing messages.
 
 ---
 
@@ -70,11 +79,11 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m). Erro
 | # | Requirement | Status |
 |---|-------------|--------|
 | 1 | Problem clearly stated | defined |
-| 2 | Data via API/database | planned (TMDB) |
+| 2 | Data via API/database | implemented (TMDB + SQLite) |
 | 3 | Data visualization | planned |
-| 4 | User interaction | planned |
+| 4 | User interaction | implemented (rate/dismiss/watchlist) |
 | 5 | Machine learning | open |
-| 6 | Code documentation | not started |
+| 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |
 | 8 | 4-min video + demo | not started |
 

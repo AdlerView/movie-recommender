@@ -1,7 +1,7 @@
 # Open Issues
 
 > Conceptual gaps, ambiguities, and pending decisions.
-> Last updated: 2026-03-23
+> Last updated: 2026-03-24
 
 ## Legend
 
@@ -61,8 +61,8 @@
 - [x] `#001` **[gap]** — SQLite persistence with session state as runtime source (2026-03-23)
 - [x] `#003` **[issue]** — Use 19 official TMDB genres directly (2026-03-23)
 - [x] `#004` **[decision]** — Movies only, no TV series (2026-03-23)
-- [x] `#007` **[decision]** — Decimal rating 0.00-10.00 via ▲/▼ stepper buttons in 0.01 steps, matching TMDB scale (2026-03-23)
+- [x] `#007` **[decision]** — Decimal rating 0.00-10.00 via slider in 0.01 steps, matching TMDB scale (2026-03-23)
 - [x] `#009` **[decision]** — Streamlit + server-side TMDB key in `.streamlit/secrets.toml` (2026-03-23)
-- [x] `#014` **[decision]** — Multi-page app with top navigation: 3 pages (Discover, Statistics, Watchlist), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23)
+- [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Watchlist, Rated, Statistics), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23)
 - [x] `#015` **[decision]** — Card-based UX flow: one movie at a time with rate/dismiss buttons, matching wireframe prototype (2026-03-23)
 - [x] `#016` **[decision]** — TMDB API key injected via `_get()` helper in `app/utils/tmdb.py` (2026-03-23)

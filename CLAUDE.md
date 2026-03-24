@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-23
+**Updated:** 2026-03-24
 
 ---
 
@@ -17,6 +17,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 
 - **Framework:** Streamlit (>=1.53.0)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`)
+- **Database:** SQLite (WAL mode, schema versioned via `PRAGMA user_version`)
 - **ML:** scikit-learn (content-based filtering, planned for weeks 10-11)
 - **Python:** 3.11 (conda environment in `.conda/`)
 
@@ -30,9 +31,12 @@ movie-recommender/
 │   ├── streamlit_app.py          # Entry point (router)
 │   ├── app_pages/                # Page modules
 │   │   ├── discover.py
-│   │   ├── statistics.py
-│   │   └── watchlist.py
+│   │   ├── watchlist.py
+│   │   ├── rated.py
+│   │   └── statistics.py
 │   └── utils/                    # Business logic & helpers
+│       ├── __init__.py
+│       ├── db.py                 # SQLite persistence layer
 │       └── tmdb.py
 ├── docs/                         # Project documentation
 │   ├── CONTRIBUTION.md
@@ -81,6 +85,8 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Card-based flow (one movie at a time) for discover/recommend
+- Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale)
+- Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 
 ---
 
@@ -89,9 +95,9 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 | # | Requirement | Status |
 |---|------------|--------|
 | 1 | Problem statement | Defined |
-| 2 | Data via API | TMDB integrated |
+| 2 | Data via API | TMDB + SQLite integrated |
 | 3 | Data visualization | Planned |
-| 4 | User interaction | Planned (rate/dismiss flow) |
+| 4 | User interaction | Implemented (rate/dismiss/watchlist) |
 | 5 | Machine learning | Open (weeks 10-11) |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |
