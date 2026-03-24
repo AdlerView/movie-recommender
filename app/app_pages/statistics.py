@@ -8,6 +8,7 @@ Grading requirement 3: Data visualization.
 """
 from __future__ import annotations
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 from utils.db import (
@@ -62,9 +63,14 @@ genre_data = load_genre_distribution()
 
 if genre_data:
     st.subheader("Genre distribution", divider="gray")
-    # Build DataFrame for st.bar_chart (index = genre name, column = count)
+    # Build DataFrame — SQL already returns rows sorted by count descending
     genre_df = pd.DataFrame(genre_data, columns=["Genre", "Movies"])
-    st.bar_chart(genre_df, x="Genre", y="Movies", horizontal=True)
+    # Altair horizontal bar chart with explicit sort by frequency descending
+    chart = alt.Chart(genre_df).mark_bar().encode(
+        x=alt.X("Movies:Q", title="Movies"),
+        y=alt.Y("Genre:N", sort="-x", title=None),
+    )
+    st.altair_chart(chart, use_container_width=True)
 
 # --- Top directors ---
 directors = load_top_directors()
