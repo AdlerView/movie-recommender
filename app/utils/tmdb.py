@@ -147,19 +147,27 @@ def search_movies(query: str, page: int = 1) -> list[dict]:
 
 @st.cache_data(ttl="1h", show_spinner=False)
 def get_movie_details(movie_id: int) -> dict:
-    """Fetch details for a single movie by ID.
+    """Fetch full details for a single movie by ID.
 
-    Used to retrieve metadata (title, poster, rating) for movies that were
-    rated but not added to the watchlist.
+    Uses append_to_response to combine credits, videos, and watch providers
+    into a single API call. Returns runtime, genres (full objects), directors
+    and cast (credits.crew/cast), trailers (videos), and streaming providers
+    (watch/providers) alongside standard movie metadata.
 
     Args:
         movie_id: TMDB movie ID.
 
     Returns:
-        Full movie details dict from TMDB.
+        Full movie details dict with nested credits, videos, and
+        watch/providers keys.
     """
-    # GET /movie/{id} — full movie details
-    return _get(f"/movie/{movie_id}", language="en-US")
+    # GET /movie/{id}?append_to_response=credits,videos,watch/providers
+    # One call replaces three separate requests for credits, videos, providers
+    return _get(
+        f"/movie/{movie_id}",
+        append_to_response="credits,videos,watch/providers",
+        language="en-US",
+    )
 
 
 @st.cache_data(ttl="1h", show_spinner=False)

@@ -16,7 +16,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 ## Tech Stack
 
 - **Framework:** Streamlit (>=1.53.0)
-- **API:** TMDB API v3 (key in `.streamlit/secrets.toml`)
+- **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
 - **Database:** SQLite (WAL mode, schema versioned via `PRAGMA user_version`)
 - **ML:** scikit-learn (content-based filtering, planned for weeks 10-11)
 - **Python:** 3.11 (conda environment in `.conda/`)

@@ -54,7 +54,7 @@ All ratings, watchlist entries, and dismissals are persisted in a local SQLite d
 
 ### TMDB Integration
 
-Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, discover 30m, movie details 1h). Genre-based filtering via `/discover/movie`, trending via `/trending/movie/week`. Error handling for API failures with user-facing messages.
+Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, discover 30m, search 5m, movie details 1h). Genre-based filtering via `/discover/movie`, trending via `/trending/movie/week`, text search via `/search/movie`. Movie details use `append_to_response=credits,videos,watch/providers` to fetch runtime, directors, cast, trailers, and streaming providers in a single API call. Error handling for API failures with user-facing messages.
 
 ---
 
