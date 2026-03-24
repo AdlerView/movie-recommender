@@ -9,7 +9,7 @@ from __future__ import annotations
 import requests
 import streamlit as st
 from utils.db import (
-    MOOD_KEYWORD_NAMES,
+    classify_movie_keywords,
     get_movie_keywords_from_index,
     remove_from_watchlist,
     save_movie_details,
@@ -91,22 +91,22 @@ def _show_detail(movie_id: int) -> None:
             ))
         # Look up keywords from the keyword index (no API call)
         kw_list = get_movie_keywords_from_index(movie_id)
-        mood_kws = [kw for kw in kw_list if kw["keyword_name"] in MOOD_KEYWORD_NAMES]
-        regular_kws = [kw for kw in kw_list if kw["keyword_name"] not in MOOD_KEYWORD_NAMES]
-        # Mood section — always primary (Cinema Gold)
-        if mood_kws:
+        mood_cats, regular_kws = classify_movie_keywords(kw_list)
+        # Mood section — category names as primary badges (Cinema Gold)
+        if mood_cats:
             st.caption("**Mood**")
             st.markdown(" ".join(
-                f":primary-badge[{kw['keyword_name']}]" for kw in mood_kws
+                f":primary-badge[{cat}]" for cat in mood_cats
             ))
-        # Keywords section — always gray
+        # Keywords section — unclassified keywords as gray badges
         if regular_kws:
             st.caption("**Keywords**")
             st.markdown(" ".join(
                 f":gray-badge[{kw['keyword_name']}]" for kw in regular_kws
             ))
-        # TMDB rating
-        st.caption(f"TMDB rating: {details.get('vote_average', 'N/A')} / 10")
+        # TMDB rating — 1 decimal for consistent display
+        _tmdb = details.get("vote_average")
+        st.caption(f"TMDB rating: {_tmdb:.1f} / 10" if _tmdb else "TMDB rating: N/A")
         # Runtime
         runtime = details.get("runtime")
         if runtime:
@@ -159,6 +159,13 @@ def _show_detail(movie_id: int) -> None:
     # --- Rating slider (shown after "Mark as watched" click) ---
     if st.session_state.get("_watchlist_show_rating"):
         st.subheader("Rate this movie")
+        # Track whether slider was moved — prevents accidental 0-ratings
+        _touch_key = f"_wl_touched_{movie_id}"
+        st.session_state.setdefault(_touch_key, False)
+
+        def _mark_touched() -> None:
+            st.session_state[_touch_key] = True
+
         new_rating = st.slider(
             "Your rating",
             min_value=0.00,
@@ -167,6 +174,7 @@ def _show_detail(movie_id: int) -> None:
             step=0.01,
             format="%.2f/10",
             key=f"watchlist_rate_{movie_id}",
+            on_change=_mark_touched,
         )
 
         # Dynamic sentiment label — changes with slider value
@@ -249,7 +257,11 @@ def _show_detail(movie_id: int) -> None:
             unsafe_allow_html=True,
         )
 
-        if st.button("Save rating", type="primary", icon=":material/save:"):
+        # Save button — disabled until the slider is moved at least once
+        _slider_ready = st.session_state.get(_touch_key, False)
+        if not _slider_ready:
+            st.caption("Move the slider to set your rating", text_alignment="center")
+        if st.button("Save rating", type="primary", icon=":material/save:", disabled=not _slider_ready):
             # Save rating to session state and database
             st.session_state.ratings[movie_id] = new_rating
             save_rating(movie_id, new_rating)
@@ -270,6 +282,7 @@ def _show_detail(movie_id: int) -> None:
             # Clean up dialog state
             st.session_state._watchlist_selected = None
             st.session_state.pop("_watchlist_show_rating", None)
+            st.session_state.pop(_touch_key, None)
             st.session_state["_watchlist_toast"] = (
                 f"Rated **{details.get('title', '')}**: {new_rating:.2f}/10"
             )

@@ -1,5 +1,5 @@
 {
-  "Happy / Feel-Good": [
+  "Joyful": [
     {
       "id": 281585,
       "name": "inspirational",
@@ -96,7 +96,7 @@
       "frequency": 44
     }
   ],
-  "Romantic / Warm": [
+  "Romantic": [
     {
       "id": 6054,
       "name": "friendship",
@@ -178,7 +178,7 @@
       "frequency": 91
     }
   ],
-  "Funny / Comedic": [
+  "Funny": [
     {
       "id": 10123,
       "name": "dark comedy",
@@ -260,7 +260,7 @@
       "frequency": 21
     }
   ],
-  "Exciting / Thrilling": [
+  "Tense": [
     {
       "id": 10349,
       "name": "survival",
@@ -322,7 +322,7 @@
       "frequency": 68
     }
   ],
-  "Dark / Brooding": [
+  "Dark": [
     {
       "id": 9748,
       "name": "revenge",
@@ -439,7 +439,7 @@
       "frequency": 31
     }
   ],
-  "Sad / Heavy": [
+  "Heavy": [
     {
       "id": 34079,
       "name": "death",
@@ -546,7 +546,7 @@
       "frequency": 26
     }
   ],
-  "Eerie / Atmospheric": [
+  "Eerie": [
     {
       "id": 9887,
       "name": "surrealism",
@@ -643,7 +643,7 @@
       "frequency": 20
     }
   ],
-  "Nostalgic / Seasonal": [
+  "Nostalgic": [
     {
       "id": 207317,
       "name": "christmas",
@@ -792,7 +792,7 @@
       "frequency": 21
     }
   ],
-  "Provocative / Bold": [
+  "Provocative": [
     {
       "id": 325773,
       "name": "audacious",
@@ -804,18 +804,8 @@
       "frequency": 133
     },
     {
-      "id": 239797,
-      "name": "complex",
-      "frequency": 124
-    },
-    {
       "id": 325791,
       "name": "defiant",
-      "frequency": 109
-    },
-    {
-      "id": 209792,
-      "name": "candid",
       "frequency": 109
     },
     {
@@ -824,24 +814,59 @@
       "frequency": 108
     },
     {
-      "id": 325787,
-      "name": "complicated",
-      "frequency": 106
-    },
-    {
       "id": 199524,
       "name": "disturbed",
       "frequency": 86
     },
     {
-      "id": 325779,
-      "name": "brisk",
-      "frequency": 36
+      "id": 15027,
+      "name": "taboo",
+      "frequency": 18
     },
     {
-      "id": 41260,
-      "name": "sensuality",
-      "frequency": 20
+      "id": 2804,
+      "name": "exploitation",
+      "frequency": 127
+    },
+    {
+      "id": 281741,
+      "name": "nudity",
+      "frequency": 48
+    },
+    {
+      "id": 738,
+      "name": "sexuality",
+      "frequency": 107
+    },
+    {
+      "id": 11479,
+      "name": "social commentary",
+      "frequency": 38
+    },
+    {
+      "id": 198423,
+      "name": "moral dilemma",
+      "frequency": 47
+    },
+    {
+      "id": 256466,
+      "name": "erotic",
+      "frequency": 59
+    },
+    {
+      "id": 10292,
+      "name": "gore",
+      "frequency": 385
+    },
+    {
+      "id": 169086,
+      "name": "political satire",
+      "frequency": 43
+    },
+    {
+      "id": 11196,
+      "name": "rebellion",
+      "frequency": 70
     }
   ]
 }

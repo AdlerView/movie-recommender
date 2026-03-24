@@ -10,7 +10,7 @@ from __future__ import annotations
 import requests
 import streamlit as st
 from utils.db import (
-    MOOD_KEYWORD_NAMES,
+    classify_movie_keywords,
     get_movie_keywords_from_index,
     save_movie_details,
     save_movie_keywords,
@@ -88,22 +88,22 @@ def _show_rating_dialog(movie_id: int) -> None:
             st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
         # Look up keywords from the keyword index (no API call)
         kw_list = get_movie_keywords_from_index(movie_id)
-        mood_kws = [kw for kw in kw_list if kw["keyword_name"] in MOOD_KEYWORD_NAMES]
-        regular_kws = [kw for kw in kw_list if kw["keyword_name"] not in MOOD_KEYWORD_NAMES]
-        # Mood section — always primary (Cinema Gold)
-        if mood_kws:
+        mood_cats, regular_kws = classify_movie_keywords(kw_list)
+        # Mood section — category names as primary badges (Cinema Gold)
+        if mood_cats:
             st.caption("**Mood**")
             st.markdown(" ".join(
-                f":primary-badge[{kw['keyword_name']}]" for kw in mood_kws
+                f":primary-badge[{cat}]" for cat in mood_cats
             ))
-        # Keywords section — always gray
+        # Keywords section — unclassified keywords as gray badges
         if regular_kws:
             st.caption("**Keywords**")
             st.markdown(" ".join(
                 f":gray-badge[{kw['keyword_name']}]" for kw in regular_kws
             ))
-        # TMDB rating
-        st.caption(f"TMDB rating: {details.get('vote_average', 'N/A')} / 10")
+        # TMDB rating — 1 decimal for consistent display
+        _tmdb = details.get("vote_average")
+        st.caption(f"TMDB rating: {_tmdb:.1f} / 10" if _tmdb else "TMDB rating: N/A")
         # Runtime
         runtime = details.get("runtime")
         if runtime:
@@ -120,6 +120,13 @@ def _show_rating_dialog(movie_id: int) -> None:
     # --- Rating slider ---
     # Pre-fill with existing rating if the movie was previously rated
     current_rating = st.session_state.ratings.get(movie_id)
+    # Track whether slider was moved — prevents accidental 0-ratings
+    _touch_key = f"_rate_touched_{movie_id}"
+    st.session_state.setdefault(_touch_key, current_rating is not None)
+
+    def _mark_touched() -> None:
+        st.session_state[_touch_key] = True
+
     new_rating = st.slider(
         "Your rating",
         min_value=0.00,
@@ -128,6 +135,7 @@ def _show_rating_dialog(movie_id: int) -> None:
         step=0.01,
         format="%.2f/10",
         key=f"watched_rate_{movie_id}",
+        on_change=_mark_touched,
     )
 
     # Dynamic sentiment label — changes with slider value
@@ -210,8 +218,11 @@ def _show_rating_dialog(movie_id: int) -> None:
         unsafe_allow_html=True,
     )
 
-    # Save button — persists rating and closes dialog
-    if st.button("Save rating", type="primary", icon=":material/save:"):
+    # Save button — disabled until the slider is moved at least once
+    _slider_ready = st.session_state.get(_touch_key, False)
+    if not _slider_ready:
+        st.caption("Move the slider to set your rating", text_alignment="center")
+    if st.button("Save rating", type="primary", icon=":material/save:", disabled=not _slider_ready):
         st.session_state.ratings[movie_id] = new_rating
         save_rating(movie_id, new_rating)
         # Eager fetch: cache full TMDB details + keywords for Statistics/ML
@@ -224,6 +235,7 @@ def _show_rating_dialog(movie_id: int) -> None:
         except Exception:
             pass
         st.session_state._watched_selected_id = None
+        st.session_state.pop(_touch_key, None)
         st.session_state["_watched_toast"] = (
             f"Rated **{details.get('title', '')}**: {new_rating:.2f}/10"
         )
@@ -249,7 +261,9 @@ if current_query != st.session_state._watched_prev_query:
     st.session_state._watched_pages = 1
     st.session_state._watched_prev_query = current_query
 
-if not current_query:
+if current_query:
+    st.subheader("Search results")
+else:
     # No search query — show trending movies as quick entry point
     st.subheader("Trending movies")
 
@@ -274,12 +288,14 @@ try:
         if not page_movies:
             has_more = False
             break
-        # Filter per page: remove poster-less, already-rated, and duplicate movies
+        # Filter per page: remove poster-less and duplicate movies.
+        # Rated movies are excluded from trending (already rated = not actionable)
+        # but kept in search results (allows re-rating via search).
         seen_ids = {m["id"] for m in movies}
         page_movies = [
             m for m in page_movies
-            if m.get("poster_path") and m["id"] not in rated_ids
-            and m["id"] not in seen_ids
+            if m.get("poster_path") and m["id"] not in seen_ids
+            and (current_query or m["id"] not in rated_ids)
         ]
         movies.extend(page_movies)
         # TMDB returns 20 per page; fewer means we've reached the last page

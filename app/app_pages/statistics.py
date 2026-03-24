@@ -193,7 +193,7 @@ if rated_rows:
             "Poster": poster_url(row.get("poster_path"), size="w92") or "",
             "Title": row.get("title") or f"Movie #{row['movie_id']}",
             "Duration": duration,
-            "TMDB": round(row["vote_average"], 1) if row.get("vote_average") else None,
+            "TMDB": round(row["vote_average"], 1) if row.get("vote_average") is not None else None,
             "Your rating": round(row["rating"], 2),
         })
 
@@ -206,9 +206,9 @@ if rated_rows:
             "Poster": st.column_config.ImageColumn("", width="small"),
             "Title": st.column_config.TextColumn("Title"),
             "Duration": st.column_config.TextColumn("Duration"),
-            "TMDB": st.column_config.NumberColumn("TMDB", format="%.1f"),
+            "TMDB": st.column_config.NumberColumn("TMDB", format="%.1f", width="small"),
             "Your rating": st.column_config.NumberColumn(
-                "Your rating", format="%.2f",
+                "Your rating", format="%.2f", width="small",
             ),
         },
         hide_index=True,

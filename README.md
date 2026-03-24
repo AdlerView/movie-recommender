@@ -26,7 +26,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) + `keywords.db` (read-only keyword index) |
+| Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) + `keywords.db` (read-only keyword index, ~63k movies) |
 | ML          | [EmbeddingGemma-300M](https://huggingface.co/google/embeddinggemma-300m) (sentence-transformers) + scikit-learn KNN (mood classification pipeline) |
 
 ---
@@ -35,11 +35,11 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres), mood tags (curated feeling/atmosphere keywords), and keyword tags (top 30 from keyword index) — or skip to browse trending movies. Genres use **AND logic** as a hard filter via the TMDB API. Moods and keywords use **relevance ranking**: films are scored by how many selected moods/keywords they match (via a pre-populated local keyword index of ~50k movies), sorted by match count descending with TMDB popularity as tiebreaker. When moods/keywords are active, up to 5 pages (~100 movies) are pre-fetched to build a meaningful ranking pool. Then browse filtered movies one at a time in a card-based flow with three labeled badge sections: Genre (gray), Mood (gold/primary), Keywords (gray). Already-rated, dismissed, and watchlisted movies are all filtered out. Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 10 pages). No rating on this page — rating happens on the Rate page after you've seen the movie.
+Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres), mood tags (10 ML-classified categories like Joyful, Tense, Dark), and keyword tags (top 30 from keyword index + search popover for all ~34k keywords) — or skip to browse trending movies. Genres use **AND logic** as a hard filter via the TMDB API. Moods and keywords use **hard relevance filtering**: films are scored by how many selected moods/keywords they match (via a pre-populated local keyword index of ~63k movies), then only movies with at least one match are shown, sorted by match count descending with TMDB popularity as tiebreaker. When moods/keywords are active, up to 5 pages (~100 movies) are pre-fetched to build a ranking pool. Then browse filtered movies one at a time in a card-based flow with three labeled badge sections (Genre, Mood, Keywords), runtime, streaming providers (Switzerland), and a movie counter. Active filter badges are shown on the browse phase; clicking "Change filters" preserves selections. Toast notifications confirm watchlist additions and dismissals. Already-rated, dismissed, and watchlisted movies are all filtered out. Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 10 pages). No rating on this page — rating happens on the Rate page after you've seen the movie.
 
 ### Rate
 
-Pure action tab for rating movies. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies — posters are clickable via CSS overlay. Already-rated movies are excluded from the grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genre/mood/keyword badge sections, TMDB rating, runtime, overview, and a 0.00-10.00 color-coded rating slider. Linear flow: search/browse → click → rate → done.
+Pure action tab for rating movies. A TMDB text search field at the top finds any movie by title (rated movies appear in search results for re-rating). Below, a Netflix-style poster grid shows trending movies — posters are clickable via CSS overlay. Already-rated movies are excluded from the trending grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genre/mood/keyword badge sections, TMDB rating (1 decimal), runtime, overview, and a 0.00-10.00 color-coded rating slider. Save button is disabled until the slider is moved (prevents accidental 0-ratings). Linear flow: search/browse → click → rate → done.
 
 ### Watchlist
 
@@ -131,35 +131,35 @@ Last commit: `d39fae4` — "Add keyword scoring, mood badges, and centered heade
 - Full Streamlit app: Discover, Rate, Watchlist, Statistics pages
 - TMDB API integration with caching
 - SQLite persistence (ratings, watchlist, dismissed)
-- keywords.db extraction complete (~50k movies, read-only keyword index)
-- Keyword scoring integrated into Discover (genre AND filter + keyword/mood relevance ranking)
+- keywords.db extraction complete (~63k movies, read-only keyword index)
+- Keyword scoring integrated into Discover (genre AND filter + keyword/mood hard filtering)
+- Keyword search popover on Discover (search all ~34k keywords in keywords.db)
+- Mood classification pipeline complete (909 keywords in 10 categories, threshold 0.85)
+- 10 mood category pills on Discover, top 3 mood badges on all movie cards (relative scoring)
 - Three badge sections (Genre gray, Mood primary, Keywords gray) on all movie cards/dialogs
 - Cinema Gold theme, centered headers, clickable poster grids, rating slider UX
 - Statistics PoC (KPIs, 6 Altair charts, rankings, rated movies table)
 
-### Current Task: Mood Super-Categories in UI
+### ML: Mood Classification
 
-**ML Pipeline: DONE.** Two-phase mood classification via `scripts/mood_classify.py`. 165 curated seed keywords in 10 categories (`data/seed_keywords.json`) used as labeled anchors. EmbeddingGemma-300M (256d Matryoshka truncation) for keyword embeddings. Phase 1: centroid-based labeling (31,941 keywords). Phase 2: sklearn KNN classifier (accuracy 0.622, F1 0.620, 1,361 newly classified). Total: 33,302 keywords classified into `keyword_moods` table in `keywords.db`. 874 keywords remain unlabeled.
+Two-phase mood classification via `scripts/mood_classify.py`. 150 curated seed keywords in 10 categories (`data/seed_keywords.json`) used as labeled anchors. EmbeddingGemma-300M (256d Matryoshka truncation) for keyword embeddings. Phase 1: centroid-based cosine similarity labeling (threshold 0.85) → 909 high-quality mood keywords in `keyword_moods` table in `keywords.db`. Phase 2: sklearn KNN classifier for grading metrics only (accuracy 0.758, F1 0.762).
 
-**10 Mood Categories (33,302 classified keywords):**
+**10 Mood Categories (909 classified keywords):**
 
-| Category | Count | Top seed keywords |
-|----------|-------|-------------|
-| Provocative / Bold | 6,663 | audacious, shocking, defiant, provocative, complex |
-| Nostalgic / Seasonal | 6,063 | christmas, holiday, fairy tale, halloween, nostalgic |
-| Contemplative | 5,372 | ambiguous, transformation, thoughtful, philosophical, cautionary |
-| Dark / Brooding | 4,205 | revenge, jealousy, betrayal, aggressive, obsession |
-| Exciting / Thrilling | 3,441 | survival, escape, suspenseful, intense, excited |
-| Eerie / Atmospheric | 2,506 | surrealism, horror, nightmare, surreal, mysterious |
-| Romantic / Warm | 2,173 | friendship, love, coming of age, admiring, romantic |
-| Sad / Heavy | 1,207 | death, loss of loved one, grief, mental illness, tragedy |
-| Funny / Comedic | 1,054 | dark comedy, amused, absurd, romcom, satire |
-| Happy / Feel-Good | 618 | inspirational, playful, whimsical, hopeful, cheerful |
+| Category | Count | Example seeds |
+|----------|-------|---------------|
+| Dark | 181 | revenge, jealousy, betrayal, obsession |
+| Eerie | 111 | surrealism, horror, nightmare, mysterious |
+| Romantic | 98 | friendship, love, coming of age, romantic |
+| Funny | 94 | dark comedy, absurd, romcom, satire |
+| Provocative | 93 | audacious, shocking, taboo, social commentary |
+| Heavy | 80 | death, grief, mental illness, tragedy |
+| Tense | 78 | survival, escape, suspenseful, intense |
+| Nostalgic | 69 | christmas, holiday, fairy tale, nostalgic |
+| Contemplative | 58 | ambiguous, philosophical, cautionary |
+| Joyful | 47 | inspirational, whimsical, hopeful, cheerful |
 
-**Next steps for UI:**
-- Discover mood pills: show 10 category names instead of individual keywords
-- On selection: expand category to all member keyword IDs for scoring
-- Badge display: show category name on movie cards instead of raw keyword names
+Fully integrated into UI: Discover shows 10 mood pills, movie cards display top 3 mood badges (relative scoring), keyword search popover for all ~34k keywords.
 
 ---
 

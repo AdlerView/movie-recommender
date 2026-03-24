@@ -19,15 +19,17 @@
 - [x] Keyword badges on movie cards — three sections (Genre gray, Mood primary, Keywords gray) on all pages
 - [x] Centered headers on all pages (Discover, Rate, Watchlist, Statistics)
 - [x] Curate mood keyword list — 165 keywords in 10 categories, verified against keywords.db, saved as `data/seed_keywords.json`
-- [ ] Mood super-categories in UI — replace individual mood pills with 10 umbrella categories in Discover
+- [x] Mood super-categories in UI — 10 mood pills on Discover, top 3 mood badges on movie cards (relative scoring)
+- [x] Keyword hard-filtering — movies with score 0 filtered out when keywords/moods active on Discover
+- [x] Keyword search popover — search all ~34k keywords on Discover page via popover with text input
 - [ ] Statistics dashboard iteration — layout improvements, additional KPIs, chart refinements
 
 ### Week 08 — 2026-04-23 (Coaching: 20.04)
 
 - [ ] Optional: MVP presentation II
-- [x] mood_classify.py script — Phase 1: EmbeddingGemma-300M centroid labeling (31,941 keywords)
-- [x] mood_classify.py script — Phase 2: sklearn KNN classifier (acc 0.622, F1 0.620, 1,361 newly classified)
-- [ ] Integrate ML results — read keyword_moods table in db.py, replace MOOD_KEYWORD_NAMES frozenset
+- [x] mood_classify.py script — Phase 1: EmbeddingGemma-300M centroid labeling (threshold 0.85, 909 keywords)
+- [x] mood_classify.py script — Phase 2: sklearn KNN classifier (acc 0.758, F1 0.762, grading metrics only)
+- [x] Integrate ML results — read keyword_moods table in db.py, classify_movie_keywords() shared helper
 
 ### Week 09 — 2026-04-30 (Coaching: 27.04)
 
@@ -75,4 +77,17 @@
 - [x] Keyword scoring on Discover — genre AND + keyword/mood relevance ranking via keywords.db (2026-03-24)
 - [x] Mood badges + keyword sections — Genre/Mood/Keywords badges on Discover, Rate, and Watchlist (2026-03-24)
 - [x] Centered headers on all pages (2026-03-24)
-- [x] Curated mood keywords — 165 keywords in 10 categories, verified against keywords.db, `data/seed_keywords.json` + `MOOD_KEYWORD_NAMES` in db.py (2026-03-24)
+- [x] Curated mood keywords — 150 keywords in 10 categories, verified against keywords.db, `data/seed_keywords.json` (2026-03-24)
+- [x] Mood classification pipeline — EmbeddingGemma-300M centroid labeling (threshold 0.85), 909 keywords in keyword_moods table (2026-03-24)
+- [x] Mood UI integration — 10 mood pills on Discover, classify_movie_keywords() for badges on all pages (2026-03-24)
+- [x] Keyword hard-filtering — score 0 movies removed on Discover when keywords/moods active (2026-03-24)
+- [x] Keyword search popover — search all ~34k keywords via popover on Discover page (2026-03-24)
+- [x] Slider save guard — save button disabled until slider moved, prevents accidental 0-ratings on Rate + Watchlist (2026-03-24)
+- [x] Discover toast feedback — toast notifications for "Add to watchlist" and "Not interested" actions (2026-03-24)
+- [x] Discover filter persistence — pills restored on "Change filters" via saved session state (2026-03-24)
+- [x] Discover active filter badges — genre/mood/keyword badges shown on browse phase (2026-03-24)
+- [x] Discover movie counter — "Movie X of Y" below action buttons (2026-03-24)
+- [x] Discover runtime + streaming — fetch details for current card, show runtime and CH streaming providers (2026-03-24)
+- [x] TMDB rating format — unified to 1 decimal across all pages (2026-03-24)
+- [x] Re-rating via search — rated movies appear in Rate search results, excluded only from trending (2026-03-24)
+- [x] Statistics table fix — proper None handling for TMDB ratings, column width for "Your rating" (2026-03-24)
