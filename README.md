@@ -122,6 +122,31 @@ Optional extension (not graded, but improves the result): deploy publicly via [S
 
 ---
 
+## Deployment
+
+The app is publicly accessible at **https://hsg.adlerscope.com** via Cloudflare Tunnel.
+
+| Component | Detail |
+|-----------|--------|
+| Tunnel name | `movie-recommender` |
+| Protocol | QUIC |
+| Service | `http://localhost:8501` (Streamlit) |
+| Config | `~/Developer/.config/cloudflared/config.yml` |
+| Credentials | `~/Developer/.local/share/cloudflared/movie-recommender.json` |
+
+```bash
+# Start Streamlit (Terminal 1)
+conda activate ./.conda
+streamlit run app/streamlit_app.py
+
+# Start tunnel (Terminal 2)
+cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender
+```
+
+The tunnel requires both Streamlit and `cloudflared` to be running. TMDB API keys remain server-side (never sent to clients). Each browser tab gets an isolated Streamlit session.
+
+---
+
 ## Setup
 
 ```bash

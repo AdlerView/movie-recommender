@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Created:** 2026-03-23
 **Updated:** 2026-03-24
 
+
 ---
 
 ## Purpose
@@ -62,6 +63,22 @@ movie-recommender/
 conda activate ./.conda
 streamlit run app/streamlit_app.py
 ```
+
+---
+
+## Deployment
+
+Public URL: **https://hsg.adlerscope.com** (Cloudflare Tunnel)
+
+```bash
+# Terminal 2 — start tunnel
+cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender
+```
+
+Tunnel config and credentials follow XDG layout:
+- Config: `~/Developer/.config/cloudflared/config.yml`
+- Credentials: `~/Developer/.local/share/cloudflared/movie-recommender.json`
+- Cert: `~/Developer/.config/cloudflared/cert.pem` (via `$TUNNEL_ORIGIN_CERT`)
 
 ---
 
