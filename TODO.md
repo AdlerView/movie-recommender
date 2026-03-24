@@ -5,18 +5,15 @@
 
 ## In Progress
 
+- [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
+
 ## Upcoming
-
-### Week 06 — 2026-03-26 (Coaching: 23.03)
-
-- [ ] Optional: project idea presentation II
 
 ### *Semester Break*
 
 ### Week 07 — 2026-04-16 (Coaching: 13.04)
 
-- [ ] Statistics dashboard — watch hours, genre distribution, favorite directors (Open Issue #005)
-- [ ] Data visualization charts for statistics page (Req 3)
+- [ ] Statistics dashboard iteration — layout improvements, additional KPIs, chart refinements
 
 ### Week 08 — 2026-04-23 (Coaching: 20.04)
 
@@ -58,3 +55,10 @@
 - [x] Rated page — view and re-rate all rated movies with TMDB metadata fetch (2026-03-23, merged into Watched 2026-03-24)
 - [x] Watchlist cleanup — removed user rating display, streaming-only focus (2026-03-24)
 - [x] Code documentation — inline comments on all pages and utils (Req 6) (2026-03-24)
+- [x] Clickable poster grid — CSS overlay pattern on Rate + Watchlist pages (2026-03-24)
+- [x] Dialog-based rating — @st.dialog overlay replaces full-page rating view (2026-03-24)
+- [x] Rating slider UX — dot tick marks, sentiment labels, color-coded track (2026-03-24)
+- [x] Tab restructuring — Watched → Rate (pure action), ratings table moved to Statistics (2026-03-24)
+- [x] Statistics PoC — KPIs, 6 Altair charts (genre, decade, language, rating distribution, rating history, user vs TMDB), top directors + actors, rated movies table (2026-03-24)
+- [x] TMDB keywords infrastructure — separate endpoint, movie_keywords table (schema v4), eager fetch + backfill (2026-03-24)
+- [x] Cinema Gold theme — dark base, #D4A574 accent, Poppins font, toolbarMode minimal (2026-03-24)

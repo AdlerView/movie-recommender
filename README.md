@@ -26,7 +26,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema v3, normalized detail tables) |
+| Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) |
 | ML          | TBD (content-based filtering planned) |
 
 ---
@@ -47,7 +47,7 @@ Netflix-style poster grid of saved movies. Clicking a poster opens a detail dial
 
 ### Statistics
 
-Dashboard powered by normalized SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Genre distribution bar chart and top 5 favorite directors ranking. Below, a sortable table of all rated movies with poster thumbnails, title, duration, TMDB rating, and user rating (default sorted by user rating descending). All movie details are eagerly cached on every rating save and backfilled on startup.
+Dashboard powered by normalized SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Six Altair charts: genre distribution (horizontal bars, sorted by frequency), language distribution, decade distribution, rating distribution histogram, rating history line chart, and user vs TMDB scatter plot (with diagonal reference line). Top 5 favorite directors and actors rankings. Sortable table of all rated movies with poster thumbnails, title, duration, TMDB rating, and user rating (default sorted by user rating descending). Movie details + keywords eagerly cached on every rating save and backfilled on startup. Currently a proof of concept — layout and polish pending.
 
 ### Persistence
 
@@ -81,7 +81,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 |---|-------------|--------|
 | 1 | Problem clearly stated | defined |
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
-| 3 | Data visualization | implemented (KPIs, genre chart, directors) |
+| 3 | Data visualization | in progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | open |
 | 6 | Code documentation | in progress |

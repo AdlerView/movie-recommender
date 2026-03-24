@@ -19,7 +19,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 - **Framework:** Streamlit (>=1.53.0)
 - **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
-- **Database:** SQLite (WAL mode, schema versioned via `PRAGMA user_version`)
+- **Database:** SQLite (WAL mode, schema v4 via `PRAGMA user_version`)
 - **ML:** scikit-learn (content-based filtering, planned for weeks 10-11)
 - **Python:** 3.11 (conda environment in `.conda/`)
 
@@ -107,11 +107,11 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Discover: Two-phase flow (genre selection → movie browsing), card-based one at a time, watchlist/dismiss only
 - Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details + rating slider. Already-rated movies excluded from grid (auto-fetches extra TMDB pages to always show exactly 20).
 - Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, streaming providers (CH), "Remove from watchlist" and "Mark as watched" (with rating slider). Rating removes movie from watchlist.
-- Statistics: KPIs, genre chart, top directors + sortable rated movies table (thumbnail, title, duration, TMDB + user rating). All data from SQLite, zero API calls.
+- Statistics: KPIs, 6 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter), top directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
 - Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Rate
-- Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
+- Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green), dot tick marks at whole numbers, dynamic sentiment label (Awful/Poor/Decent/Great/Masterpiece)
 - Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script (dialogs cannot be triggered from callbacks directly)
-- Movie details: Eagerly cached in normalized SQLite tables on every rating save + backfill on startup
+- Movie details: Eagerly cached in normalized SQLite tables on every rating save + backfill on startup. Keywords fetched via separate endpoint (`get_movie_keywords`) with own backfill.
 - Navigation: 4 pages — Discover, Rate, Watchlist (left-aligned), Statistics (right-aligned via CSS)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
@@ -131,7 +131,7 @@ header [data-testid="stHeader"]
               └── div (empty spacer)
               └── div.rc-overflow  ← flex container for nav items
                     ├── div.rc-overflow-item (order: 0)  ← Discover
-                    ├── div.rc-overflow-item (order: 1)  ← Watched
+                    ├── div.rc-overflow-item (order: 1)  ← Rate
                     ├── div.rc-overflow-item (order: 2)  ← Watchlist
                     ├── div.rc-overflow-item (order: 3)  ← Statistics
                     └── div.rc-overflow-item-rest (hidden)
@@ -195,7 +195,7 @@ Key gotchas:
 |---|------------|--------|
 | 1 | Problem statement | Defined |
 | 2 | Data via API | TMDB + SQLite integrated |
-| 3 | Data visualization | Implemented (KPIs, genre chart, top directors) |
+| 3 | Data visualization | In progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | Implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | Open (weeks 10-11) |
 | 6 | Code documentation | In progress |

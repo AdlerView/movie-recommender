@@ -24,9 +24,7 @@
 
 ### Medium
 
-- [ ] `#005` **[gap]** — Statistics dashboard data pipeline missing
-  - Context: The wireframe shows total watch hours, genre counts, favorite director, poster gallery. This requires fetching and caching `runtime`, `genres`, and `credits.crew` (filtered by `job: "Director"`) for every watched film. Can be done in one call per film via `GET /movie/{id}?append_to_response=credits`, but the when/where of caching is unaddressed.
-  - Found: 2026-03-18
+(none)
 
 ### Low
 
@@ -45,9 +43,10 @@
 - [x] `#004` **[decision]** — Movies only, no TV series (2026-03-23)
 - [x] `#007` **[decision]** — Decimal rating 0.00-10.00 via slider in 0.01 steps, matching TMDB scale (2026-03-23)
 - [x] `#009` **[decision]** — Streamlit + server-side TMDB key in `.streamlit/secrets.toml` (2026-03-23)
-- [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Watched, Watchlist, Statistics), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23, restructured 2026-03-24: Rated merged into Watched)
+- [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Rate, Watchlist, Statistics), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23, restructured 2026-03-24: Watched renamed to Rate as pure action tab)
 - [x] `#015` **[decision]** — Card-based UX flow: one movie at a time with rate/dismiss buttons, matching wireframe prototype (2026-03-23)
 - [x] `#016` **[decision]** — TMDB API key injected via `_get()` helper in `app/utils/tmdb.py` (2026-03-23)
 - [x] `#006` **[decision]** — Sort by `popularity.desc` with `vote_count.gte=100` floor, AND logic for genres, automatic pagination up to 10 pages (2026-03-24)
 - [x] `#008` **[gap]** — Flatrate streaming providers (CH) shown on Watchlist with brand-colored badges (2026-03-24)
+- [x] `#005` **[gap]** — Statistics data pipeline: normalized SQLite tables (movie_details, movie_genres, movie_cast, movie_crew, movie_countries, movie_keywords), eager fetch on rating save + backfill on startup. Dashboard PoC with KPIs, 6 Altair charts, rankings, rated movies table (2026-03-24)
 - [x] `#012` **[gap]** — "No movies found — try selecting fewer tags" message + back button to genre selection (2026-03-24)

@@ -14,10 +14,10 @@
 | Concept / Wireframe    |            |                   |           |                |
 | TMDB API Integration   |     ■      |                   |           |                |
 | Genre Selection UI     |     ■      |                   |           |                |
-| Watched Page / Search  |     ■      |                   |           |                |
-| Recommendation Engine  |            |                   |           |                |
-| Rating System          |     ■      |                   |           |                |
-| Statistics Dashboard   |            |                   |           |                |
+| Rate Page / Search     |     ■      |                   |           |                |
+| Watchlist Page         |     ■      |                   |           |                |
+| Rating System / UX     |     ■      |                   |           |                |
+| Statistics Dashboard   |     ■      |                   |           |                |
 | Machine Learning       |            |                   |           |                |
 | Code Documentation     |     ■      |                   |           |                |
 | Video / Presentation   |            |                   |           |                |

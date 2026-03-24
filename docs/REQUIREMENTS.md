@@ -43,9 +43,9 @@
 
 > The application visualizes some data that serves the use case.
 
-**Our approach:** "Spotify Wrapped" style statistics dashboard — total watch hours, genre distribution, favorite directors, poster gallery. Requires caching `runtime`, `genres`, and `credits.crew` per watched film.
+**Our approach:** Statistics dashboard with KPI metrics (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 5 Altair charts (genre distribution, decade distribution, language distribution, rating distribution histogram, user vs TMDB scatter plot, rating history line chart), top 5 directors + actors rankings, and sortable rated movies table with poster thumbnails. All data from normalized SQLite tables (zero API calls). Movie details + keywords eagerly cached on rating save + backfilled on startup.
 
-**Status:** planned
+**Status:** in progress (proof of concept — charts and data pipeline functional, layout and polish pending)
 
 ---
 
@@ -53,7 +53,7 @@
 
 > The application allows for some user interaction, e.g., adding additional data, selecting certain data, running certain data analyses.
 
-**Our approach:** Separated discover and rating flows. Discover: two-phase genre tag selection (19 TMDB genres as pills) → card-based movie browsing with "Add to watchlist" and "Not interested" buttons, automatic pagination (up to 10 pages). Watched: TMDB text search + Netflix-style clickable poster grid for finding and rating already-seen movies (0.00-10.00 decimal slider, color-coded), integrated "Your ratings" section with re-rating. Watchlist: saved movies with streaming provider badges. All actions persist to SQLite immediately.
+**Our approach:** Separated discover and rating flows across 4 pages. Discover: two-phase genre tag selection (19 TMDB genres as pills) → card-based movie browsing with "Add to watchlist" and "Not interested" buttons, automatic pagination (up to 10 pages). Rate: pure action tab — TMDB text search + Netflix-style clickable poster grid (CSS overlay), click opens `@st.dialog` with details + 0.00-10.00 color-coded rating slider with dot tick marks and sentiment labels. Already-rated movies excluded, auto-fetches extra pages. Watchlist: poster grid, click → dialog with streaming providers (CH), "Remove" or "Mark as watched" with rating slider. Statistics: KPI dashboard, genre chart, directors, sortable rated movies table. All actions persist to SQLite immediately.
 
 **Status:** implemented
 

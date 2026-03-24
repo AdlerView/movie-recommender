@@ -12,10 +12,16 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 from utils.db import (
+    load_decade_distribution,
     load_genre_distribution,
+    load_language_distribution,
     load_rated_movies_table,
+    load_rating_distribution,
+    load_rating_history,
     load_stats_summary,
+    load_top_actors,
     load_top_directors,
+    load_user_vs_tmdb,
 )
 from utils.tmdb import poster_url
 
@@ -72,12 +78,95 @@ if genre_data:
     )
     st.altair_chart(chart, use_container_width=True)
 
+# --- Language distribution bar chart ---
+lang_data = load_language_distribution()
+
+if lang_data:
+    st.subheader("Language distribution", divider="gray")
+    lang_df = pd.DataFrame(lang_data, columns=["Language", "Movies"])
+    chart = alt.Chart(lang_df).mark_bar().encode(
+        x=alt.X("Movies:Q", title="Movies"),
+        y=alt.Y("Language:N", sort="-x", title=None),
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+# --- Decade distribution bar chart ---
+decade_data = load_decade_distribution()
+
+if decade_data:
+    st.subheader("Decade distribution", divider="gray")
+    decade_df = pd.DataFrame(decade_data, columns=["Decade", "Movies"])
+    # Explicit categorical order to preserve descending decade sort
+    chart = alt.Chart(decade_df).mark_bar().encode(
+        x=alt.X("Movies:Q", title="Movies"),
+        y=alt.Y("Decade:N", sort=list(decade_df["Decade"]), title=None),
+    )
+    st.altair_chart(chart, use_container_width=True)
+
 # --- Top directors ---
 directors = load_top_directors()
 
 if directors:
     st.subheader("Favorite directors", divider="gray")
     for rank, (name, count) in enumerate(directors, start=1):
+        # Display as numbered list with movie count
+        suffix = "movie" if count == 1 else "movies"
+        st.markdown(f"**{rank}. {name}** — {count} {suffix}")
+
+# --- User vs TMDB scatter plot ---
+user_vs_tmdb = load_user_vs_tmdb()
+
+if user_vs_tmdb:
+    st.subheader("Your rating vs TMDB", divider="gray")
+    scatter_df = pd.DataFrame(user_vs_tmdb, columns=["TMDB", "You", "Title"])
+    # Diagonal reference line: points above = you rate higher than TMDB
+    line_df = pd.DataFrame({"x": [0, 10], "y": [0, 10]})
+    base_line = alt.Chart(line_df).mark_line(
+        strokeDash=[4, 4], color="gray", opacity=0.5,
+    ).encode(x="x:Q", y="y:Q")
+    points = alt.Chart(scatter_df).mark_circle(size=60).encode(
+        x=alt.X("TMDB:Q", title="TMDB rating", scale=alt.Scale(domain=[0, 10])),
+        y=alt.Y("You:Q", title="Your rating", scale=alt.Scale(domain=[0, 10])),
+        tooltip=["Title", "TMDB", "You"],
+    )
+    st.altair_chart(base_line + points, use_container_width=True)
+
+# --- Rating distribution histogram ---
+rating_values = load_rating_distribution()
+
+if rating_values:
+    st.subheader("Rating distribution", divider="gray")
+    rating_df = pd.DataFrame({"Rating": rating_values})
+    # Histogram with bins at whole numbers (0-1, 1-2, ..., 9-10)
+    chart = alt.Chart(rating_df).mark_bar().encode(
+        x=alt.X("Rating:Q", bin=alt.Bin(step=1), title="Rating"),
+        y=alt.Y("count()", title="Movies"),
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+# --- Rating history line chart ---
+rating_history = load_rating_history()
+
+if len(rating_history) >= 2:
+    st.subheader("Rating history", divider="gray")
+    history_df = pd.DataFrame(rating_history, columns=["Date", "Rating"])
+    history_df["Date"] = pd.to_datetime(history_df["Date"])
+    # Add sequential index for x-axis (movie #1, #2, ...) since multiple
+    # ratings may share the same timestamp
+    history_df["Movie #"] = range(1, len(history_df) + 1)
+    chart = alt.Chart(history_df).mark_line(point=True).encode(
+        x=alt.X("Movie #:Q", title="Movie #"),
+        y=alt.Y("Rating:Q", title="Rating", scale=alt.Scale(domain=[0, 10])),
+        tooltip=["Movie #", "Rating", "Date"],
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+# --- Top actors ---
+actors = load_top_actors()
+
+if actors:
+    st.subheader("Favorite actors", divider="gray")
+    for rank, (name, count) in enumerate(actors, start=1):
         # Display as numbered list with movie count
         suffix = "movie" if count == 1 else "movies"
         st.markdown(f"**{rank}. {name}** — {count} {suffix}")
