@@ -20,7 +20,7 @@
 
 - [x] `#002` **[gap]** — ML approach unspecified
   - Context: "Implements machine learning" is a project requirement. The concept deferred this to "after the ML class."
-  - Decision: Mood classification pipeline. Phase 1: spaCy `en_core_web_md` word vectors + cosine similarity assigns ~15k TMDB keywords to 10 mood super-categories using ~100 seed keywords (labeling, not ML). Phase 2: sklearn KNeighborsClassifier trained on labeled data with train/test split + evaluation metrics (demonstrable ML step). Output populates `MOOD_CATEGORIES` dict in `db.py` for Discover mood scoring.
+  - Decision: Mood classification pipeline (`scripts/mood_classify.py`). Phase 1: Google EmbeddingGemma-300M embeddings (256d) + cosine similarity assigns ~34k TMDB keywords to 10 mood categories using 165 curated seed keywords (centroid labeling → 31,941 keywords). Phase 2: sklearn KNeighborsClassifier (k=7, cosine, acc 0.622, F1 0.620) classifies 1,361 additional keywords. Total: 33,302 entries in `keyword_moods` table in `keywords.db`.
   - Found: 2026-03-18 | Resolved: 2026-03-24
 
 ### Medium

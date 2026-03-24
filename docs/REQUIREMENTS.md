@@ -63,9 +63,9 @@
 
 > The application implements some machine learning.
 
-**Our approach:** Mood classification pipeline for the Discover page. Two phases: (1) spaCy `en_core_web_md` word vectors + cosine similarity to label ~15k TMDB keywords into 10 mood super-categories using seed keywords (semi-automatic labeling step), (2) scikit-learn KNeighborsClassifier trained on the labeled data with train/test split and evaluation metrics (demonstrable ML step). Output populates `MOOD_CATEGORIES` in the app, enabling mood-based movie scoring on the Discover page.
+**Our approach:** Mood classification pipeline for the Discover page (`scripts/mood_classify.py`). Two phases: (1) Google EmbeddingGemma-300M embeddings (256d Matryoshka truncation) + cosine similarity to label ~34k TMDB keywords into 10 mood super-categories using 165 curated seed keywords (centroid-based labeling, 31,941 keywords assigned), (2) scikit-learn KNeighborsClassifier (k=7, cosine metric) trained on Phase 1 labels with 80/20 stratified split (accuracy 0.622, weighted F1 0.620, 1,361 newly classified). Total: 33,302 keywords stored in `keyword_moods` table in `keywords.db`. Output enables mood-based movie scoring on the Discover page.
 
-**Status:** planned — design confirmed, implementation pending
+**Status:** implemented — pipeline complete, UI integration pending
 
 ---
 

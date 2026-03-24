@@ -7,7 +7,7 @@
 
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
 - [x] TMDB keyword extraction — `data/keywords.db` (~50k movies) complete
-- [ ] Mood super-category ML pipeline — two-phase: (1) spaCy labeling, (2) sklearn KNN classifier (Req 5)
+- [x] Mood classification ML pipeline — two-phase: (1) EmbeddingGemma-300M centroid labeling, (2) sklearn KNN classifier → 33,302 keywords in keyword_moods table (Req 5)
 
 ## Upcoming
 
@@ -25,9 +25,9 @@
 ### Week 08 — 2026-04-23 (Coaching: 20.04)
 
 - [ ] Optional: MVP presentation II
-- [ ] mood-classify.py script — Phase 1: spaCy word vectors + cosine similarity for keyword labeling
-- [ ] mood-classify.py script — Phase 2: sklearn KNN classifier with train/test split + evaluation metrics
-- [ ] Integrate ML results — populate MOOD_CATEGORIES in db.py from classifier output
+- [x] mood_classify.py script — Phase 1: EmbeddingGemma-300M centroid labeling (31,941 keywords)
+- [x] mood_classify.py script — Phase 2: sklearn KNN classifier (acc 0.622, F1 0.620, 1,361 newly classified)
+- [ ] Integrate ML results — read keyword_moods table in db.py, replace MOOD_KEYWORD_NAMES frozenset
 
 ### Week 09 — 2026-04-30 (Coaching: 27.04)
 

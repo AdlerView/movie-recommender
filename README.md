@@ -27,7 +27,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
 | Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) + `keywords.db` (read-only keyword index) |
-| ML          | spaCy word vectors + scikit-learn KNN (mood classification pipeline, planned) |
+| ML          | [EmbeddingGemma-300M](https://huggingface.co/google/embeddinggemma-300m) (sentence-transformers) + scikit-learn KNN (mood classification pipeline) |
 
 ---
 
@@ -83,7 +83,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
 | 3 | Data visualization | in progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | planned (mood classification: spaCy + sklearn KNN) |
+| 5 | Machine learning | implemented (mood classification: EmbeddingGemma-300M + sklearn KNN) |
 | 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |
 | 8 | 4-min video + demo | not started |
@@ -137,32 +137,24 @@ Last commit: `d39fae4` — "Add keyword scoring, mood badges, and centered heade
 - Cinema Gold theme, centered headers, clickable poster grids, rating slider UX
 - Statistics PoC (KPIs, 6 Altair charts, rankings, rated movies table)
 
-### Current Task: Mood Super-Categories in UI + ML Pipeline
+### Current Task: Mood Super-Categories in UI
 
-**Seed keywords: DONE.** 165 curated mood keywords in 10 categories, verified against `keywords.db`, stored in `data/seed_keywords.json`. Each entry has TMDB `id`, `name`, and `frequency`. `MOOD_KEYWORD_NAMES` frozenset in `db.py` is synced (165 names).
+**ML Pipeline: DONE.** Two-phase mood classification via `scripts/mood_classify.py`. 165 curated seed keywords in 10 categories (`data/seed_keywords.json`) used as labeled anchors. EmbeddingGemma-300M (256d Matryoshka truncation) for keyword embeddings. Phase 1: centroid-based labeling (31,941 keywords). Phase 2: sklearn KNN classifier (accuracy 0.622, F1 0.620, 1,361 newly classified). Total: 33,302 keywords classified into `keyword_moods` table in `keywords.db`. 874 keywords remain unlabeled.
 
-**10 Mood Categories (165 keywords total):**
+**10 Mood Categories (33,302 classified keywords):**
 
-| Category | Count | Top keywords |
+| Category | Count | Top seed keywords |
 |----------|-------|-------------|
-| Happy / Feel-Good | 19 | inspirational, playful, whimsical, hopeful, cheerful |
-| Romantic / Warm | 16 | friendship, love, coming of age, admiring, romantic |
-| Funny / Comedic | 16 | dark comedy, amused, absurd, romcom, satire |
-| Exciting / Thrilling | 12 | survival, escape, suspenseful, intense, excited |
-| Dark / Brooding | 23 | revenge, jealousy, betrayal, aggressive, obsession |
-| Sad / Heavy | 21 | death, loss of loved one, grief, mental illness, tragedy |
-| Eerie / Atmospheric | 19 | surrealism, horror, nightmare, surreal, mysterious |
-| Nostalgic / Seasonal | 10 | christmas, holiday, fairy tale, halloween, nostalgic |
-| Contemplative | 19 | ambiguous, transformation, thoughtful, philosophical, cautionary |
-| Provocative / Bold | 10 | audacious, shocking, defiant, provocative, complex |
-
-**Next: ML Pipeline (two phases):**
-- **Phase 1 (Labeling, NOT ML):** spaCy `en_core_web_md` word vectors + cosine similarity. Use the 165 seed keywords as labeled anchors → compute centroid vectors per category → assign remaining ~34k keywords to nearest mood (with threshold for "no mood"). Semi-automatic labeling.
-- **Phase 2 (ML, for grading Req 5):** sklearn KNeighborsClassifier trained on Phase 1 labels. Train/test split, evaluation metrics. Uses spaCy vectors as feature input. This is the demonstrable ML step.
-
-**Script location:** `mood-classify.py`
-**Input:** `data/keywords.db` (all unique keywords) + `data/seed_keywords.json` (165 labeled seeds)
-**Output:** JSON mapping or dict for `MOOD_CATEGORIES` in db.py
+| Provocative / Bold | 6,663 | audacious, shocking, defiant, provocative, complex |
+| Nostalgic / Seasonal | 6,063 | christmas, holiday, fairy tale, halloween, nostalgic |
+| Contemplative | 5,372 | ambiguous, transformation, thoughtful, philosophical, cautionary |
+| Dark / Brooding | 4,205 | revenge, jealousy, betrayal, aggressive, obsession |
+| Exciting / Thrilling | 3,441 | survival, escape, suspenseful, intense, excited |
+| Eerie / Atmospheric | 2,506 | surrealism, horror, nightmare, surreal, mysterious |
+| Romantic / Warm | 2,173 | friendship, love, coming of age, admiring, romantic |
+| Sad / Heavy | 1,207 | death, loss of loved one, grief, mental illness, tragedy |
+| Funny / Comedic | 1,054 | dark comedy, amused, absurd, romcom, satire |
+| Happy / Feel-Good | 618 | inspirational, playful, whimsical, hopeful, cheerful |
 
 **Next steps for UI:**
 - Discover mood pills: show 10 category names instead of individual keywords

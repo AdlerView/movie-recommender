@@ -40,7 +40,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 - **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
 - **Database:** SQLite (WAL mode, schema v4 via `PRAGMA user_version`) + `data/keywords.db` (read-only keyword index, ~50k movies)
-- **ML:** spaCy `en_core_web_md` (word vectors for labeling) + scikit-learn KNN (mood classification)
+- **ML:** Google EmbeddingGemma-300M via sentence-transformers (keyword embeddings, 256d Matryoshka) + scikit-learn KNN (mood classification). Pipeline: `scripts/mood_classify.py`, results in `keyword_moods` table in `keywords.db`
 - **Python:** 3.11 (conda environment in `.conda/`)
 
 ---
@@ -61,8 +61,10 @@ movie-recommender/
 │   │   ├── db.py                 # SQLite persistence layer
 │   │   └── tmdb.py
 │   └── static/                   # Poppins font files (18 TTFs + OFL license)
+├── scripts/
+│   └── mood_classify.py           # Two-phase mood classification pipeline (EmbeddingGemma + KNN)
 ├── data/                            # Generated data (gitignored except .gitkeep + seed_keywords.json)
-│   ├── keywords.db              # Pre-populated keyword index (~50k movies, read-only)
+│   ├── keywords.db              # Pre-populated keyword index (~50k movies) + keyword_moods table (33k classified keywords)
 │   ├── seed_keywords.json       # 165 curated mood keywords (10 categories, with TMDB IDs + frequencies)
 │   └── .gitkeep
 ├── docs/                         # Project documentation
@@ -223,7 +225,7 @@ Key gotchas:
 | 2 | Data via API | TMDB + SQLite integrated |
 | 3 | Data visualization | In progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | Implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | Planned (mood classification: spaCy vectors + sklearn KNN) |
+| 5 | Machine learning | Implemented (mood classification: EmbeddingGemma-300M + sklearn KNN, 33k keywords in 10 categories) |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |
 | 8 | 4-min video | Not started |
