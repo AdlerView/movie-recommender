@@ -32,9 +32,9 @@ movie-recommender/
 │   ├── streamlit_app.py          # Entry point (router)
 │   ├── app_pages/                # Page modules
 │   │   ├── discover.py           # Genre selection → movie browsing (no rating)
-│   │   ├── watched.py            # Search/rate movies, poster grid, your ratings
-│   │   ├── watchlist.py          # Saved movies with streaming providers
-│   │   └── statistics.py
+│   │   ├── watched.py            # Rate tab: search/browse → click poster → rate dialog
+│   │   ├── watchlist.py          # Poster grid → detail dialog with streaming + actions
+│   │   └── statistics.py         # KPIs, charts, rated movies table
 │   └── utils/                    # Business logic & helpers
 │       ├── __init__.py
 │       ├── db.py                 # SQLite persistence layer
@@ -101,15 +101,16 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Imports relative to `app/`: `from utils.tmdb import get_genres`
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
-- UX pattern: Poster grids on Watched and Watchlist, click → detail dialog overlay (`@st.dialog`)
+- UX pattern: Each tab has one responsibility. Poster grids on Rate and Watchlist, click → detail dialog overlay (`@st.dialog`)
 - Discover: Two-phase flow (genre selection → movie browsing), card-based one at a time, watchlist/dismiss only
-- Watched: TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details + rating slider. Already-rated movies excluded from grid (auto-fetches extra TMDB pages to always show exactly 20). "Your ratings" below with color-coded badges and edit button → same dialog.
+- Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details + rating slider. Already-rated movies excluded from grid (auto-fetches extra TMDB pages to always show exactly 20).
 - Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, streaming providers (CH), "Remove from watchlist" and "Mark as watched" (with rating slider). Rating removes movie from watchlist.
-- Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Watched
+- Statistics: KPIs, genre chart, top directors + sortable rated movies table (thumbnail, title, duration, TMDB + user rating). All data from SQLite, zero API calls.
+- Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Rate
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green)
 - Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script (dialogs cannot be triggered from callbacks directly)
 - Movie details: Eagerly cached in normalized SQLite tables on every rating save + backfill on startup
-- Navigation: 4 pages — Discover, Watched, Watchlist (left-aligned), Statistics (right-aligned via CSS)
+- Navigation: 4 pages — Discover, Rate, Watchlist (left-aligned), Statistics (right-aligned via CSS)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 

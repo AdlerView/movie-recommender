@@ -1,6 +1,6 @@
-"""Statistics page — Dashboard with KPIs, genre chart, and top directors.
+"""Statistics page — Dashboard with KPIs, genre chart, directors, and ratings table.
 
-Displays aggregated metrics from the normalized movie_details tables.
+Displays aggregated metrics and a sortable table of all rated movies.
 All data is pre-cached in SQLite via eager fetch (on rating) and backfill
 (on startup), so this page makes zero TMDB API calls.
 
@@ -10,7 +10,13 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-from utils.db import load_genre_distribution, load_stats_summary, load_top_directors
+from utils.db import (
+    load_genre_distribution,
+    load_rated_movies_table,
+    load_stats_summary,
+    load_top_directors,
+)
+from utils.tmdb import poster_url
 
 st.header("Your statistics", divider="blue")
 
@@ -69,3 +75,48 @@ if directors:
         # Display as numbered list with movie count
         suffix = "movie" if count == 1 else "movies"
         st.markdown(f"**{rank}. {name}** — {count} {suffix}")
+
+# --- Rated movies table ---
+# Compact sortable table with thumbnail, title, duration, and ratings.
+rated_rows = load_rated_movies_table()
+
+if rated_rows:
+    st.subheader("Your ratings", divider="blue")
+
+    # Build DataFrame with display-ready columns
+    table_data = []
+    for row in rated_rows:
+        # Format runtime as "Xh Ymin"
+        runtime = row.get("runtime")
+        if runtime:
+            h, m = divmod(runtime, 60)
+            duration = f"{h}h {m}min" if h else f"{m} min"
+        else:
+            duration = "—"
+
+        table_data.append({
+            "Poster": poster_url(row.get("poster_path"), size="w92") or "",
+            "Title": row.get("title") or f"Movie #{row['movie_id']}",
+            "Duration": duration,
+            "TMDB": round(row["vote_average"], 1) if row.get("vote_average") else None,
+            "Your rating": round(row["rating"], 2),
+        })
+
+    df = pd.DataFrame(table_data)
+
+    # Sortable interactive dataframe with poster thumbnails
+    st.dataframe(
+        df,
+        column_config={
+            "Poster": st.column_config.ImageColumn("", width="small"),
+            "Title": st.column_config.TextColumn("Title"),
+            "Duration": st.column_config.TextColumn("Duration"),
+            "TMDB": st.column_config.NumberColumn("TMDB", format="%.1f"),
+            "Your rating": st.column_config.NumberColumn(
+                "Your rating", format="%.2f",
+            ),
+        },
+        hide_index=True,
+        use_container_width=True,
+        row_height=50,
+    )

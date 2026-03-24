@@ -34,11 +34,11 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres as pills) and click Search — or skip to browse trending movies. Movies must match **all** selected genres (AND logic). Then browse filtered movies one at a time in a card-based flow (poster, genres, TMDB rating, overview). Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 200 movies). No rating on this page — rating happens on the Watched page after you've seen the movie.
+Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres as pills) and click Search — or skip to browse trending movies. Movies must match **all** selected genres (AND logic). Then browse filtered movies one at a time in a card-based flow (poster, genres, TMDB rating, overview). Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 200 movies). No rating on this page — rating happens on the Rate page after you've seen the movie.
 
-### Watched
+### Rate
 
-Search and rate movies you've already seen. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies as quick entry points — posters are clickable via CSS overlay. Already-rated movies are excluded from the grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genres, TMDB rating, runtime, overview, and a 0.00-10.00 color-coded rating slider. Below the trending section, a "Your ratings" list shows all previously rated movies with color-coded rating badges (red ≤3.33, orange ≤6.66, green >6.66), runtime, and an edit button that opens the same rating dialog. Initial 5, paginated via Load more.
+Pure action tab for rating movies. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies — posters are clickable via CSS overlay. Already-rated movies are excluded from the grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genres, TMDB rating, runtime, overview, and a 0.00-10.00 color-coded rating slider. Linear flow: search/browse → click → rate → done.
 
 ### Watchlist
 
@@ -46,7 +46,7 @@ Netflix-style poster grid of saved movies. Clicking a poster opens a detail dial
 
 ### Statistics
 
-Dashboard powered by normalized SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Genre distribution bar chart and top 5 favorite directors ranking. All movie details (runtime, genres, credits, countries) are eagerly cached on every rating save and backfilled on startup.
+Dashboard powered by normalized SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Genre distribution bar chart and top 5 favorite directors ranking. Below, a sortable table of all rated movies with poster thumbnails, title, duration, TMDB rating, and user rating (default sorted by user rating descending). All movie details are eagerly cached on every rating save and backfilled on startup.
 
 ### Persistence
 

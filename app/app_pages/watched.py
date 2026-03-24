@@ -1,10 +1,9 @@
-"""Watched page — Search, rate, and re-rate movies you've already seen.
+"""Rate page — Search and rate movies you've already seen.
 
 Find movies via TMDB text search or browse trending titles, then rate them
 on a 0.00-10.00 scale matching the TMDB rating system. Clicking a poster
-opens a detail dialog with rating slider. Below the trending section, all
-previously rated movies are listed with color-coded badges and edit buttons.
-Ratings persist to session state (runtime) and SQLite (disk).
+opens a detail dialog with rating slider. Pure action tab — rated movies
+are reviewed on the Statistics page instead.
 """
 from __future__ import annotations
 
@@ -12,7 +11,6 @@ import requests
 import streamlit as st
 from utils.db import save_movie_details, save_rating
 from utils.tmdb import (
-    get_genre_map,
     get_movie_details,
     get_trending,
     poster_url,
@@ -26,19 +24,6 @@ st.header("Rate a movie", divider="blue")
 if "_watched_toast" in st.session_state:
     st.toast(st.session_state.pop("_watched_toast"), icon=":material/star:")
 
-# --- Load genre data for badge display on movie cards ---
-try:
-    genre_map = get_genre_map()
-except requests.HTTPError:
-    st.error("TMDB API error. Please try again later.", icon=":material/error:")
-    st.stop()
-except requests.ConnectionError:
-    st.error(
-        "Could not connect to TMDB. Check your internet connection.",
-        icon=":material/wifi_off:",
-    )
-    st.stop()
-
 # --- State management ---
 # _watched_selected_id: movie ID to show in the detail dialog (int or None)
 st.session_state.setdefault("_watched_selected_id", None)
@@ -51,9 +36,6 @@ st.session_state.setdefault("_watched_prev_query", "")
 _GRID_COLS = 5
 # TMDB returns 20 results per page — used to detect when no more pages exist
 _TMDB_PAGE_SIZE = 20
-# Number of rated movies shown initially and per "Load more" click
-_RATED_PAGE_SIZE = 5
-st.session_state.setdefault("_rated_show_count", _RATED_PAGE_SIZE)
 
 
 def _select_movie_id(movie_id: int) -> None:
@@ -69,10 +51,6 @@ def _load_more() -> None:
     """Load the next page of trending/search results."""
     st.session_state._watched_pages += 1
 
-
-def _load_more_rated() -> None:
-    """Show more rated movies in the Your Ratings section."""
-    st.session_state._rated_show_count += _RATED_PAGE_SIZE
 
 
 # --- Dialog: movie detail + rating overlay ---
@@ -303,93 +281,6 @@ if has_more:
         icon=":material/expand_more:",
         on_click=_load_more,
         use_container_width=True,
-    )
-
-# --- Your ratings section (below trending, hidden during search) ---
-# Shows all previously rated movies with color-coded badges and edit buttons.
-# Only visible when browsing (no search query) and at least one rating exists.
-ratings = st.session_state.get("ratings", {})
-if not current_query and ratings:
-    st.subheader("Your ratings", divider="blue")
-
-    # Build lookup from watchlist as initial seed (basic metadata).
-    watchlist_lookup: dict[int, dict] = {
-        m["id"]: m for m in st.session_state.get("watchlist", [])
-    }
-
-    # Paginate: show first _rated_show_count entries
-    rated_items = list(ratings.items())
-    visible_items = rated_items[:st.session_state._rated_show_count]
-
-    # Fetch full details for all visible rated movies (cached 1h).
-    for movie_id, _ in visible_items:
-        try:
-            watchlist_lookup[movie_id] = get_movie_details(movie_id)
-        except requests.RequestException:
-            if movie_id not in watchlist_lookup:
-                watchlist_lookup[movie_id] = {
-                    "id": movie_id, "title": f"Movie #{movie_id}",
-                }
-
-    # Render rated movie cards with rating badge + edit button
-    for movie_id, current_rating in visible_items:
-        rated_movie = watchlist_lookup[movie_id]
-
-        with st.container(border=True):
-            # 3-column layout: poster, info, edit button (top-right)
-            col_poster, col_info, col_edit = st.columns([1, 3, 0.5])
-            with col_poster:
-                st.image(
-                    poster_url(rated_movie.get("poster_path"), size="w185"),
-                    width=100,
-                )
-            with col_info:
-                st.subheader(
-                    rated_movie.get("title", f"Movie #{movie_id}")
-                )
-                st.caption(
-                    f"TMDB: {rated_movie.get('vote_average', 'N/A')} / 10"
-                )
-                # Runtime on its own line with clock icon
-                runtime = rated_movie.get("runtime")
-                if runtime:
-                    hours, mins = divmod(runtime, 60)
-                    if hours:
-                        st.caption(f":material/schedule: {hours}h {mins}min")
-                    else:
-                        st.caption(f":material/schedule: {mins} min")
-                # Color-coded rating badge
-                if current_rating <= 3.33:
-                    badge = f":red-badge[{current_rating:.2f} / 10]"
-                elif current_rating <= 6.66:
-                    badge = f":orange-badge[{current_rating:.2f} / 10]"
-                else:
-                    badge = f":green-badge[{current_rating:.2f} / 10]"
-                st.markdown(f"Your rating: {badge}")
-            with col_edit:
-                # Small edit button top-right → opens rating dialog
-                st.button(
-                    "",
-                    icon=":material/edit:",
-                    key=f"edit_{movie_id}",
-                    on_click=_select_movie_id,
-                    args=(movie_id,),
-                    type="tertiary",
-                )
-
-    # Load more rated movies
-    if len(rated_items) > st.session_state._rated_show_count:
-        st.button(
-            "Load more",
-            icon=":material/expand_more:",
-            on_click=_load_more_rated,
-            use_container_width=True,
-            key="load_more_rated",
-        )
-
-    # Footer: total count
-    st.caption(
-        f"{len(ratings)} movie{'s' if len(ratings) != 1 else ''} rated"
     )
 
 # --- Trigger dialog after page renders (dialog must be called in main flow) ---

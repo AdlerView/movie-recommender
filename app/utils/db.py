@@ -459,3 +459,24 @@ def load_top_directors(limit: int = 5) -> list[tuple[str, int]]:
             (limit,),
         ).fetchall()
     return [(row["person_name"], row["count"]) for row in rows]
+
+
+def load_rated_movies_table() -> list[dict]:
+    """Load all rated movies with details for the Statistics table.
+
+    Joins ratings with movie_details to get title, runtime, TMDB rating,
+    and poster path. Sorted by user rating descending.
+
+    Returns:
+        List of dicts with keys: movie_id, title, runtime, vote_average,
+        rating, poster_path.
+    """
+    with _connection() as conn:
+        rows = conn.execute(
+            """SELECT r.movie_id, d.title, d.runtime, d.vote_average,
+                      r.rating, d.poster_path
+               FROM ratings r
+               LEFT JOIN movie_details d ON r.movie_id = d.movie_id
+               ORDER BY r.rating DESC""",
+        ).fetchall()
+    return [dict(row) for row in rows]

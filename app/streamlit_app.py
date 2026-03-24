@@ -69,11 +69,12 @@ st.markdown("""<style>
 </style>""", unsafe_allow_html=True)
 
 # --- Navigation ---
-# Top navigation for 4 pages: discover new → rate watched → saved → stats
+# Top navigation: each tab has exactly one responsibility
+# Discover = find new, Rate = rate watched, Watchlist = saved, Statistics = review
 page = st.navigation(
     [
         st.Page("app_pages/discover.py", title="Discover", icon=":material/explore:"),
-        st.Page("app_pages/watched.py", title="Watched", icon=":material/visibility:"),
+        st.Page("app_pages/watched.py", title="Rate", icon=":material/star:"),
         st.Page("app_pages/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
         st.Page("app_pages/statistics.py", title="Statistics", icon=":material/bar_chart:"),
     ],
