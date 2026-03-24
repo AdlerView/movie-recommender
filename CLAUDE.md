@@ -147,7 +147,7 @@ Key selectors:
 
 Standard `[data-testid="stNavigation"]` and `ul/li` selectors do NOT work.
 
-### Poster Grid (Watched Page)
+### Poster Grid (Rate Page)
 
 Clickable posters use an invisible `st.button` overlaid on `st.image` via CSS. Scoped to `.st-key-poster_grid` (via `st.container(key="poster_grid")`).
 
@@ -164,6 +164,28 @@ Key gotchas:
 - `stElementContainer` may have `width="fit-content"` attribute — must override with explicit `width: 100% !important`
 - Use `width/height: 100%` instead of `left: 0; right: 0` for the overlay — the latter doesn't override `fit-content`
 - `max-width: 100%` and `padding: 0` needed on the button to prevent Streamlit defaults from shrinking it
+
+### Slider (Rating Dialog)
+
+```
+div.stSlider [data-baseweb="slider"]
+  └── div                                    ← outer wrapper
+        └── div.e16ozfla3                    ← track container (::after for dot ticks)
+              ├── div.e16ozfla4              ← thumb container
+              │     └── div[role="slider"]   ← draggable thumb
+              │           └── div[data-testid="stSliderThumbValue"]  ← value label
+              └── div (height: 0.25rem)      ← track bar
+  └── div[data-testid="stSliderTickBar"]     ← tick bar below track
+        ├── div[data-testid="stMarkdownContainer"]  ← "0.00/10"
+        └── div[data-testid="stMarkdownContainer"]  ← "10.00/10"
+```
+
+Key gotchas:
+- Tick bar testid is `stSliderTickBar` (NOT `stTickBar`, `stTickBarMin`, `stTickBarMax`)
+- The tick bar contains only the min/max value labels as `stMarkdownContainer` children — no separate dot elements
+- Bottom dots are CSS-generated decorations on `stSliderTickBar` (hide with `background: none`)
+- Custom dot ticks use `::after` on `[data-baseweb="slider"] > div` with `radial-gradient` at 10% intervals
+- Slider thumb needs `z-index: 2` to stay above the dot tick `::after` layer (`z-index: 1`)
 
 ---
 

@@ -106,6 +106,22 @@ def _show_rating_dialog(movie_id: int) -> None:
         key=f"watched_rate_{movie_id}",
     )
 
+    # Dynamic sentiment label — changes with slider value
+    if new_rating == 0.00:
+        _label = ""
+    elif new_rating <= 2.00:
+        _label = "Awful"
+    elif new_rating <= 4.00:
+        _label = "Poor"
+    elif new_rating <= 6.00:
+        _label = "Decent"
+    elif new_rating <= 8.00:
+        _label = "Great"
+    else:
+        _label = "Masterpiece"
+    if _label:
+        st.caption(_label, text_alignment="center")
+
     # Dynamic slider color: gray (0), red (<=3.33), orange (<=6.66), green (>6.66)
     if new_rating == 0.00:
         _color = "#d3d3d3"
@@ -115,14 +131,47 @@ def _show_rating_dialog(movie_id: int) -> None:
         _color = "#ffa421"
     else:
         _color = "#21c354"
+    # Generate CSS dot positions at every 10% (0%, 10%, ... 100%)
+    _dots = ", ".join(
+        f"radial-gradient(circle, rgba(255,255,255,0.6) 3px, transparent 3px) {i*10}% 50%"
+        for i in range(11)
+    )
     st.markdown(
         f"""<style>
         .stSlider > div > div > div > div {{
             background: {_color} !important;
         }}
+        /* Hide tick dot decorations below slider, keep min/max value labels */
+        .stSlider [data-testid="stSliderTickBar"] {{
+            background: none !important;
+            background-image: none !important;
+        }}
+        .stSlider [data-testid="stSliderTickBar"]::before,
+        .stSlider [data-testid="stSliderTickBar"]::after {{
+            display: none !important;
+        }}
+        /* Dot tick marks at whole numbers on the slider track */
+        .stSlider [data-baseweb="slider"] > div {{
+            position: relative !important;
+        }}
+        .stSlider [data-baseweb="slider"] > div::after {{
+            content: '' !important;
+            position: absolute !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 50% !important;
+            height: 7px !important;
+            transform: translateY(-50%) !important;
+            background: {_dots} !important;
+            background-repeat: no-repeat !important;
+            background-size: 7px 7px !important;
+            pointer-events: none !important;
+            z-index: 1 !important;
+        }}
         .stSlider [role="slider"] {{
             background-color: #000 !important;
             border-color: #000 !important;
+            z-index: 2 !important;
         }}
         .stSlider [role="slider"]:focus,
         .stSlider [role="slider"]:active {{
