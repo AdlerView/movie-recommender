@@ -6,6 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Updated:** 2026-03-24
 
 
+
+---
+
+## Session Startup
+
+At the start of every new session, read ALL of the following files before doing any work:
+
+**Documentation (all `.md` files):**
+- `CLAUDE.md`, `README.md`, `TODO.md`
+- `docs/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
+- `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`
+
+**Config:**
+- `.streamlit/config.toml`
+
+**Source code (all `.py` files):**
+- `app/streamlit_app.py`
+- `app/utils/__init__.py`, `app/utils/db.py`, `app/utils/tmdb.py`
+- `app/app_pages/discover.py`, `app/app_pages/rate.py`, `app/app_pages/statistics.py`, `app/app_pages/watchlist.py`
+
 ---
 
 ## Purpose
