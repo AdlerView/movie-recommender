@@ -26,7 +26,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) |
+| Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) + `keywords.db` (read-only keyword index) |
 | ML          | TBD (content-based filtering planned) |
 
 ---
@@ -35,15 +35,15 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres as pills) and click Search — or skip to browse trending movies. Movies must match **all** selected genres (AND logic). Then browse filtered movies one at a time in a card-based flow (poster, genres, TMDB rating, overview). Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 200 movies). No rating on this page — rating happens on the Rate page after you've seen the movie.
+Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres), mood tags (curated feeling/atmosphere keywords), and keyword tags (top 30 from keyword index) — or skip to browse trending movies. Genres use **AND logic** as a hard filter via the TMDB API. Moods and keywords use **relevance ranking**: films are scored by how many selected moods/keywords they match (via a pre-populated local keyword index of ~50k movies), sorted by match count descending with TMDB popularity as tiebreaker. When moods/keywords are active, up to 5 pages (~100 movies) are pre-fetched to build a meaningful ranking pool. Then browse filtered movies one at a time in a card-based flow with three labeled badge sections: Genre (gray), Mood (gold/primary), Keywords (gray). Already-rated, dismissed, and watchlisted movies are all filtered out. Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 10 pages). No rating on this page — rating happens on the Rate page after you've seen the movie.
 
 ### Rate
 
-Pure action tab for rating movies. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies — posters are clickable via CSS overlay. Already-rated movies are excluded from the grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genres, TMDB rating, runtime, overview, and a 0.00-10.00 color-coded rating slider. Linear flow: search/browse → click → rate → done.
+Pure action tab for rating movies. A TMDB text search field at the top finds any movie by title. Below, a Netflix-style poster grid shows trending movies — posters are clickable via CSS overlay. Already-rated movies are excluded from the grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genre/mood/keyword badge sections, TMDB rating, runtime, overview, and a 0.00-10.00 color-coded rating slider. Linear flow: search/browse → click → rate → done.
 
 ### Watchlist
 
-Netflix-style poster grid of saved movies. Clicking a poster opens a detail dialog with TMDB rating, runtime, genres, overview, and flatrate streaming providers for Switzerland (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.). Actions: "Remove from watchlist" or "Mark as watched" which opens a rating slider — saving the rating moves the movie from watchlist to rated.
+Netflix-style poster grid of saved movies. Clicking a poster opens a detail dialog with genre/mood/keyword badge sections, TMDB rating, runtime, overview, and flatrate streaming providers for Switzerland (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.). Actions: "Remove from watchlist" or "Mark as watched" which opens a rating slider — saving the rating moves the movie from watchlist to rated.
 
 ### Statistics
 

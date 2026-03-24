@@ -9,8 +9,11 @@ junction tables for genres, cast, crew, and production countries. This
 enables efficient SQL aggregations for the Statistics dashboard without
 re-fetching from TMDB.
 
-Database file: data/movies.db (gitignored).
-Schema version: 4 (managed via PRAGMA user_version).
+Database files (both gitignored):
+- data/movies.db: App runtime database (ratings, watchlist, dismissed, details).
+  Schema version: 4 (managed via PRAGMA user_version).
+- data/keywords.db: Pre-populated keyword index (~50k movies, read-only).
+  Generated once via tmdb-keyword-extract.py for Discover keyword scoring.
 """
 from __future__ import annotations
 
@@ -19,8 +22,26 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-# Database path: project_root/data/movies.db (two levels up from utils/)
-DB_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "movies.db"
+# Database paths: project_root/data/ (two levels up from utils/)
+_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+DB_PATH = _DATA_DIR / "movies.db"
+KEYWORDS_DB_PATH = _DATA_DIR / "keywords.db"
+
+# Curated mood keyword names — used across pages for badge coloring.
+# Moods get :primary-badge (Cinema Gold), regular keywords get :orange-badge.
+# TODO: Finalize list once keyword extraction data is available.
+MOOD_KEYWORD_NAMES: frozenset[str] = frozenset({
+    "funny",
+    "romantic",
+    "suspenseful",
+    "dark",
+    "feel-good",
+    "intense",
+    "absurd",
+    "psychological",
+    "heartwarming",
+    "nostalgic",
+})
 
 
 @contextmanager
@@ -648,3 +669,136 @@ def load_rated_movies_table() -> list[dict]:
                ORDER BY r.rating DESC""",
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+# --- Keyword Index (read-only, from keywords.db) ---
+
+
+@contextmanager
+def _keywords_connection():
+    """Open a read-only connection to the keyword index database.
+
+    keywords.db is a separate SQLite file pre-populated by the extraction
+    script (tmdb-keyword-extract.py). It contains movie-to-keyword mappings
+    for ~50k movies, used for Discover keyword scoring without API calls.
+
+    Yields:
+        sqlite3.Connection with Row factory for dict-like access.
+
+    Raises:
+        FileNotFoundError: If keywords.db does not exist.
+    """
+    if not KEYWORDS_DB_PATH.exists():
+        raise FileNotFoundError(f"Keyword index not found: {KEYWORDS_DB_PATH}")
+    # Open as read-only URI to prevent accidental writes
+    conn = sqlite3.connect(
+        f"file:{KEYWORDS_DB_PATH}?mode=ro", uri=True,
+    )
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+def keywords_db_available() -> bool:
+    """Check if the keyword index database exists and has data.
+
+    Returns:
+        True if keywords.db exists and contains at least one row.
+    """
+    if not KEYWORDS_DB_PATH.exists():
+        return False
+    try:
+        with _keywords_connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM movie_keywords LIMIT 1"
+            ).fetchone()
+            return row[0] > 0
+    except (sqlite3.OperationalError, FileNotFoundError):
+        return False
+
+
+def get_popular_keywords(limit: int = 30) -> list[dict]:
+    """Load the most common keywords from the keyword index.
+
+    Aggregates keyword frequency across all indexed movies. Used to
+    populate the keyword pill selector on the Discover page.
+
+    Args:
+        limit: Maximum number of keywords to return.
+
+    Returns:
+        List of dicts with keys: keyword_id, keyword_name, count.
+        Sorted by count descending.
+    """
+    with _keywords_connection() as conn:
+        rows = conn.execute(
+            """SELECT keyword_id, keyword_name, COUNT(*) AS count
+               FROM movie_keywords
+               GROUP BY keyword_id
+               ORDER BY count DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def score_movies_by_keywords(
+    movie_ids: list[int],
+    keyword_ids: list[int],
+) -> dict[int, int]:
+    """Score movies by how many of the selected keywords they match.
+
+    Queries the keyword index for each movie in the candidate list and
+    counts how many of the user-selected keywords appear. Movies not in
+    the index or with zero matches are omitted from the result.
+
+    Args:
+        movie_ids: TMDB movie IDs from Discover API results.
+        keyword_ids: Keyword IDs selected by the user on the Discover page.
+
+    Returns:
+        Dict mapping movie_id to match count (only movies with score >= 1).
+    """
+    if not movie_ids or not keyword_ids:
+        return {}
+    # Build parameterized placeholders for both IN clauses
+    movie_ph = ",".join("?" * len(movie_ids))
+    kw_ph = ",".join("?" * len(keyword_ids))
+    with _keywords_connection() as conn:
+        rows = conn.execute(
+            f"""SELECT movie_id, COUNT(*) AS score
+                FROM movie_keywords
+                WHERE movie_id IN ({movie_ph})
+                  AND keyword_id IN ({kw_ph})
+                GROUP BY movie_id""",
+            [*movie_ids, *keyword_ids],
+        ).fetchall()
+    return {row["movie_id"]: row["score"] for row in rows}
+
+
+def get_movie_keywords_from_index(movie_id: int) -> list[dict]:
+    """Load all keywords for a movie from the keyword index.
+
+    Used to display keyword badges on movie cards, with matched keywords
+    highlighted in a different color.
+
+    Args:
+        movie_id: TMDB movie ID.
+
+    Returns:
+        List of dicts with keys: keyword_id, keyword_name.
+        Empty list if movie not in the index.
+    """
+    try:
+        with _keywords_connection() as conn:
+            rows = conn.execute(
+                """SELECT keyword_id, keyword_name
+                   FROM movie_keywords
+                   WHERE movie_id = ?""",
+                (movie_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+    except FileNotFoundError:
+        return []

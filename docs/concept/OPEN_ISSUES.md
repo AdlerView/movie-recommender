@@ -24,7 +24,11 @@
 
 ### Medium
 
-(none)
+- [x] `#017` **[decision]** — Keyword scoring architecture for Discover
+  - Context: TMDB keywords follow a long-tail distribution (top keyword "based on novel or book" in ~11% of films). AND logic is impractical — even 2 keywords would eliminate most results.
+  - Decision: Genres = hard AND filter (TMDB API), Keywords = soft relevance ranking via `data/keywords.db`. Films sorted by keyword match count (descending), then TMDB popularity as tiebreaker. Score 0 films shown after scored films. Keyword pills displayed alongside genre pills in Phase 1 of Discover. Matched keywords highlighted on movie cards (brown=matched, gray=other).
+  - Database: `keywords.db` is a separate read-only SQLite file generated once via `tmdb-keyword-extract.py` (~50k movies). App opens it as a second connection for scoring queries. Graceful fallback if file missing.
+  - Resolved: 2026-03-24
 
 ### Low
 

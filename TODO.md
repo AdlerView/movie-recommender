@@ -6,6 +6,7 @@
 ## In Progress
 
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
+- [ ] TMDB keyword extraction — bulk extraction via `tmdb-keyword-extract.py` into `data/keywords.db` (~50k movies, running)
 
 ## Upcoming
 
@@ -13,6 +14,9 @@
 
 ### Week 07 — 2026-04-16 (Coaching: 13.04)
 
+- [ ] Discover keyword scoring — integrate `keywords.db` into Discover page (genre AND filter + keyword relevance ranking)
+- [ ] Curate keyword pill list — select top keywords from frequency data, filter out mood/meta tags
+- [ ] Keyword badges on movie cards — show all keywords, highlight matched ones (brown=matched, gray=other)
 - [ ] Statistics dashboard iteration — layout improvements, additional KPIs, chart refinements
 
 ### Week 08 — 2026-04-23 (Coaching: 20.04)

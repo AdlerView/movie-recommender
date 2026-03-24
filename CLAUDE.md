@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-24
+**Updated:** 2026-03-25
 
 
 
@@ -39,7 +39,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 - **Framework:** Streamlit (>=1.53.0)
 - **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
-- **Database:** SQLite (WAL mode, schema v4 via `PRAGMA user_version`)
+- **Database:** SQLite (WAL mode, schema v4 via `PRAGMA user_version`) + `data/keywords.db` (read-only keyword index, ~50k movies)
 - **ML:** scikit-learn (content-based filtering, planned for weeks 10-11)
 - **Python:** 3.11 (conda environment in `.conda/`)
 
@@ -61,6 +61,9 @@ movie-recommender/
 │   │   ├── db.py                 # SQLite persistence layer
 │   │   └── tmdb.py
 │   └── static/                   # Poppins font files (18 TTFs + OFL license)
+├── data/                            # Generated data (gitignored except .gitkeep)
+│   ├── keywords.db              # Pre-populated keyword index (~50k movies, read-only)
+│   └── .gitkeep
 ├── docs/                         # Project documentation
 │   ├── CONTRIBUTION.md
 │   ├── REQUIREMENTS.md
@@ -124,9 +127,9 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Each tab has one responsibility. Poster grids on Rate and Watchlist, click → detail dialog overlay (`@st.dialog`)
-- Discover: Two-phase flow (genre selection → movie browsing), card-based one at a time, watchlist/dismiss only
-- Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details + rating slider. Already-rated movies excluded from grid (auto-fetches extra TMDB pages to always show exactly 20).
-- Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, streaming providers (CH), "Remove from watchlist" and "Mark as watched" (with rating slider). Rating removes movie from watchlist.
+- Discover: Two-phase flow (genre + mood + keyword selection → movie browsing), card-based one at a time, watchlist/dismiss only. Phase 1: three pill sections (Genre, Mood, Keywords) each with `st.subheader` + `st.pills(label_visibility="collapsed")`. Genres = hard AND filter (TMDB API). Moods + Keywords = soft relevance ranking via `data/keywords.db` (merged into one score, sorted by match count DESC, popularity as tiebreaker). With moods/keywords active, pre-fetches up to 5 pages (~100 movies) for ranking pool. Movie cards always show keyword badges in three labeled sections (Genre, Mood, Keywords). Already-rated, dismissed, and watchlisted movies are all filtered out.
+- Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details, keyword badges (Genre/Mood/Keywords sections), and rating slider. Already-rated movies excluded from grid (auto-fetches extra TMDB pages to always show exactly 20).
+- Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, keyword badges (Genre/Mood/Keywords sections), streaming providers (CH), "Remove from watchlist" and "Mark as watched" (with rating slider). Rating removes movie from watchlist.
 - Statistics: KPIs, 6 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter), top directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
 - Pagination: Automatic page advancement on Discover (up to 10 pages), "Load more" button on Rate
 - Rating: Decimal slider 0.00-10.00 in 0.01 steps (matching TMDB scale), color-coded track (gray/red/orange/green), dot tick marks at whole numbers, dynamic sentiment label (Awful/Poor/Decent/Great/Masterpiece)
@@ -135,7 +138,9 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Navigation: 4 pages — Discover, Rate, Watchlist (left-aligned), Statistics (right-aligned via CSS)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
-- Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, genre badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
+- Headers: All page headers use `text_alignment="center"`. Section headers use `st.subheader` with `label_visibility="collapsed"` on the associated widget.
+- Movie detail badges: Three labeled sections on all movie cards/dialogs (Discover, Rate, Watchlist). Genre = `:gray-badge`, Mood = `:primary-badge` (Cinema Gold), Keywords = `:gray-badge`. Section headers via `st.caption("**Genre**")` etc. Moods identified by `MOOD_KEYWORD_NAMES` frozenset in `db.py`. Sections only shown when data exists.
+- Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, genre badges use `:gray-badge[...]`, mood badges use `:primary-badge[...]` (Cinema Gold accent). Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
 - Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `app/static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
 
 ---

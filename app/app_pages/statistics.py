@@ -25,7 +25,7 @@ from utils.db import (
 )
 from utils.tmdb import poster_url
 
-st.header("Your statistics", divider="gray")
+st.header("Your statistics", divider="gray", text_alignment="center")
 
 # --- Load aggregated data from SQLite ---
 stats = load_stats_summary()

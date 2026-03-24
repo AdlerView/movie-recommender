@@ -9,7 +9,13 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import save_movie_details, save_movie_keywords, save_rating
+from utils.db import (
+    MOOD_KEYWORD_NAMES,
+    get_movie_keywords_from_index,
+    save_movie_details,
+    save_movie_keywords,
+    save_rating,
+)
 from utils.tmdb import (
     get_movie_details,
     get_movie_keywords,
@@ -18,7 +24,7 @@ from utils.tmdb import (
     search_movies,
 )
 
-st.header("Rate a movie", divider="gray")
+st.header("Rate a movie", divider="gray", text_alignment="center")
 
 # --- Deferred toast ---
 # Shown after rerun following a save (st.toast before st.rerun is lost)
@@ -75,10 +81,27 @@ def _show_rating_dialog(movie_id: int) -> None:
         st.image(poster_url(details.get("poster_path"), size="w500"), width=250)
     with col_info:
         st.subheader(details.get("title", "Unknown"))
-        # Genre badges
+        # Genre section
         genres = details.get("genres", [])
         if genres:
+            st.caption("**Genre**")
             st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
+        # Look up keywords from the keyword index (no API call)
+        kw_list = get_movie_keywords_from_index(movie_id)
+        mood_kws = [kw for kw in kw_list if kw["keyword_name"] in MOOD_KEYWORD_NAMES]
+        regular_kws = [kw for kw in kw_list if kw["keyword_name"] not in MOOD_KEYWORD_NAMES]
+        # Mood section — always primary (Cinema Gold)
+        if mood_kws:
+            st.caption("**Mood**")
+            st.markdown(" ".join(
+                f":primary-badge[{kw['keyword_name']}]" for kw in mood_kws
+            ))
+        # Keywords section — always gray
+        if regular_kws:
+            st.caption("**Keywords**")
+            st.markdown(" ".join(
+                f":gray-badge[{kw['keyword_name']}]" for kw in regular_kws
+            ))
         # TMDB rating
         st.caption(f"TMDB rating: {details.get('vote_average', 'N/A')} / 10")
         # Runtime
@@ -208,12 +231,14 @@ def _show_rating_dialog(movie_id: int) -> None:
 
 
 # === Search & Browse ===
-# Search field — results update on Enter/blur (Streamlit default behavior)
+# Search subheader with collapsed widget label for visual consistency
+st.subheader("Search")
 query = st.text_input(
-    "Search for a movie you've watched",
+    "Search",
     placeholder="e.g. Inception, The Matrix, Parasite...",
     key="watched_search",
     icon=":material/search:",
+    label_visibility="collapsed",
 )
 
 # Normalize query for comparison and pagination reset
@@ -227,7 +252,6 @@ if current_query != st.session_state._watched_prev_query:
 if not current_query:
     # No search query — show trending movies as quick entry point
     st.subheader("Trending movies")
-    st.caption("Movies you might have already seen")
 
 # --- Fetch movies with pagination ---
 # Loads pages until we have enough unrated movies to fill the grid.
