@@ -9,13 +9,15 @@ from __future__ import annotations
 import streamlit as st
 from utils.db import (
     get_ratings_without_details,
+    get_ratings_without_keywords,
     init_db,
     load_dismissed,
     load_ratings,
     load_watchlist,
     save_movie_details,
+    save_movie_keywords,
 )
-from utils.tmdb import get_movie_details
+from utils.tmdb import get_movie_details, get_movie_keywords
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -52,6 +54,21 @@ if "details_backfilled" not in st.session_state:
                 except Exception:
                     pass  # Skip failed fetches — will retry next session
     st.session_state.details_backfilled = True
+
+# --- Backfill movie keywords ---
+# Fetch TMDB keywords for ratings that have details but no keywords yet.
+# Keywords are fetched via a separate endpoint to avoid cache invalidation.
+if "keywords_backfilled" not in st.session_state:
+    missing_kw_ids = get_ratings_without_keywords()
+    if missing_kw_ids:
+        with st.spinner(f"Loading keywords for {len(missing_kw_ids)} rated movies..."):
+            for movie_id in missing_kw_ids:
+                try:
+                    keywords = get_movie_keywords(movie_id)
+                    save_movie_keywords(movie_id, keywords)
+                except Exception:
+                    pass  # Skip failed fetches — will retry next session
+    st.session_state.keywords_backfilled = True
 
 # --- Push Statistics tab to the far right of the nav bar ---
 # The first 3 tabs (Discover, Watched, Watchlist) stay left-aligned;

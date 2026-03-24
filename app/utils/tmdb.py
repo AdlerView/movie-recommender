@@ -171,6 +171,24 @@ def get_movie_details(movie_id: int) -> dict:
 
 
 @st.cache_data(ttl="1h", show_spinner=False)
+def get_movie_keywords(movie_id: int) -> list[dict]:
+    """Fetch keywords for a movie.
+
+    Keywords are thematic tags assigned by TMDB (e.g., "time travel",
+    "dystopia"). Useful for content-based ML filtering and keyword clouds.
+    Separate from get_movie_details to avoid cache invalidation.
+
+    Args:
+        movie_id: TMDB movie ID.
+
+    Returns:
+        List of keyword dicts with "id" and "name" keys.
+    """
+    # GET /movie/{id}/keywords — thematic tags for content analysis
+    return _get(f"/movie/{movie_id}/keywords")["keywords"]
+
+
+@st.cache_data(ttl="1h", show_spinner=False)
 def get_watch_providers(movie_id: int, region: str = "CH") -> list[dict]:
     """Fetch flatrate streaming providers for a movie in a given region.
 

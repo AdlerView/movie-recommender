@@ -10,7 +10,7 @@ enables efficient SQL aggregations for the Statistics dashboard without
 re-fetching from TMDB.
 
 Database file: data/movies.db (gitignored).
-Schema version: 3 (managed via PRAGMA user_version).
+Schema version: 4 (managed via PRAGMA user_version).
 """
 from __future__ import annotations
 
@@ -52,12 +52,13 @@ def init_db() -> None:
     - ratings: decimal ratings (0.00-10.00) per movie, matching TMDB scale
     - dismissed: movies the user skipped
 
-    Normalized detail tables (v3, for Statistics dashboard):
+    Normalized detail tables (v3+, for Statistics dashboard):
     - movie_details: core TMDB metadata (runtime, release_date, etc.)
     - movie_genres: genre assignments per movie (many-to-many)
     - movie_cast: top 5 cast members per movie by billing order
     - movie_crew: directors per movie (filtered on job='Director')
     - movie_countries: production countries per movie
+    - movie_keywords: thematic tags per movie (v4, for ML + keyword cloud)
 
     Called once at app startup from streamlit_app.py.
     """
@@ -140,11 +141,19 @@ def init_db() -> None:
                 PRIMARY KEY (movie_id, country_code),
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
+            -- v4: Thematic keywords per movie (from /movie/{id}/keywords)
+            CREATE TABLE IF NOT EXISTS movie_keywords (
+                movie_id     INTEGER NOT NULL,
+                keyword_id   INTEGER NOT NULL,
+                keyword_name TEXT NOT NULL,
+                PRIMARY KEY (movie_id, keyword_id),
+                FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
+            );
         """)
 
         # Bump schema version to current
-        if version < 3:
-            conn.execute("PRAGMA user_version = 3")
+        if version < 4:
+            conn.execute("PRAGMA user_version = 4")
 
         conn.commit()
 
@@ -361,6 +370,29 @@ def save_movie_details(movie_id: int, details: dict) -> None:
         conn.commit()
 
 
+def save_movie_keywords(movie_id: int, keywords: list[dict]) -> None:
+    """Save TMDB keywords for a movie.
+
+    Fetched separately from movie details via get_movie_keywords().
+    Uses DELETE + INSERT for idempotent updates.
+
+    Args:
+        movie_id: TMDB movie ID.
+        keywords: List of keyword dicts with "id" and "name" keys.
+    """
+    with _connection() as conn:
+        conn.execute(
+            "DELETE FROM movie_keywords WHERE movie_id = ?", (movie_id,),
+        )
+        for kw in keywords:
+            conn.execute(
+                """INSERT INTO movie_keywords (movie_id, keyword_id, keyword_name)
+                   VALUES (?, ?, ?)""",
+                (movie_id, kw["id"], kw["name"]),
+            )
+        conn.commit()
+
+
 def get_ratings_without_details() -> list[int]:
     """Find movie IDs that have ratings but no cached details.
 
@@ -375,6 +407,24 @@ def get_ratings_without_details() -> list[int]:
             """SELECT r.movie_id FROM ratings r
                LEFT JOIN movie_details d ON r.movie_id = d.movie_id
                WHERE d.movie_id IS NULL"""
+        ).fetchall()
+    return [row["movie_id"] for row in rows]
+
+
+def get_ratings_without_keywords() -> list[int]:
+    """Find rated movie IDs that have no cached keywords.
+
+    Used for backfilling keywords separately from movie details,
+    since keywords are fetched via a dedicated API endpoint.
+
+    Returns:
+        List of TMDB movie IDs needing keyword fetch.
+    """
+    with _connection() as conn:
+        rows = conn.execute(
+            """SELECT r.movie_id FROM ratings r
+               LEFT JOIN movie_keywords k ON r.movie_id = k.movie_id
+               WHERE k.movie_id IS NULL"""
         ).fetchall()
     return [row["movie_id"] for row in rows]
 

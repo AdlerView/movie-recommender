@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import save_movie_details, save_rating
+from utils.db import save_movie_details, save_movie_keywords, save_rating
 from utils.tmdb import (
     get_movie_details,
+    get_movie_keywords,
     get_trending,
     poster_url,
     search_movies,
@@ -190,9 +191,13 @@ def _show_rating_dialog(movie_id: int) -> None:
     if st.button("Save rating", type="primary", icon=":material/save:"):
         st.session_state.ratings[movie_id] = new_rating
         save_rating(movie_id, new_rating)
-        # Eager fetch: cache full TMDB details for Statistics dashboard
+        # Eager fetch: cache full TMDB details + keywords for Statistics/ML
         try:
             save_movie_details(movie_id, details)
+        except Exception:
+            pass
+        try:
+            save_movie_keywords(movie_id, get_movie_keywords(movie_id))
         except Exception:
             pass
         st.session_state._watched_selected_id = None

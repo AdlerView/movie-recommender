@@ -8,8 +8,13 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import remove_from_watchlist, save_movie_details, save_rating
-from utils.tmdb import get_movie_details, poster_url
+from utils.db import (
+    remove_from_watchlist,
+    save_movie_details,
+    save_movie_keywords,
+    save_rating,
+)
+from utils.tmdb import get_movie_details, get_movie_keywords, poster_url
 
 # Provider brand colors for badge styling
 _PROVIDER_COLORS: dict[str, str] = {
@@ -229,9 +234,13 @@ def _show_detail(movie_id: int) -> None:
             # Save rating to session state and database
             st.session_state.ratings[movie_id] = new_rating
             save_rating(movie_id, new_rating)
-            # Eager fetch: cache full TMDB details for Statistics dashboard
+            # Eager fetch: cache full TMDB details + keywords for Statistics/ML
             try:
                 save_movie_details(movie_id, details)
+            except Exception:
+                pass
+            try:
+                save_movie_keywords(movie_id, get_movie_keywords(movie_id))
             except Exception:
                 pass
             # Remove from watchlist (watched = no longer on watchlist)
