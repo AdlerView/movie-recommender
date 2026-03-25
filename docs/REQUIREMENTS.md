@@ -33,7 +33,7 @@
 
 > The application uses some data that is loaded via an API and/or provided via a database.
 
-**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/discover/movie` (genre-filtered results), `/trending/movie/{time_window}` (trending), `/movie/{id}` (details), `/genre/movie/list` (genre catalog), `/search/movie` (text search by title), `/movie/{id}/watch/providers` (streaming availability). Local SQLite database persists ratings (REAL 0.00-10.00), watchlist (JSON movie data), and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
+**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/discover/movie` (genre-filtered results), `/trending/movie/{time_window}` (trending), `/movie/{id}` (details), `/genre/movie/list` (genre catalog), `/search/movie` (text search by title), `/movie/{id}/watch/providers` (streaming availability). Local SQLite database persists ratings (INTEGER 0-100), mood reactions, watchlist, and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
 
 **Status:** implemented
 
@@ -53,9 +53,9 @@
 
 > The application allows for some user interaction, e.g., adding additional data, selecting certain data, running certain data analyses.
 
-**Our approach:** Separated discover and rating flows across 4 pages. Discover: two-phase genre tag selection (19 TMDB genres as pills) → card-based movie browsing with "Add to watchlist" and "Not interested" buttons, automatic pagination (up to 10 pages). Rate: pure action tab — TMDB text search + Netflix-style clickable poster grid (CSS overlay), click opens `@st.dialog` with details + 0.00-10.00 color-coded rating slider with dot tick marks and sentiment labels. Already-rated movies excluded, auto-fetches extra pages. Watchlist: poster grid, click → dialog with streaming providers (CH), "Remove" or "Mark as watched" with rating slider. Statistics: KPI dashboard, genre chart, directors, sortable rated movies table. All actions persist to SQLite immediately.
+**Our approach:** Separated discover and rating flows across 4 pages. Discover: 14 filter controls (genre, mood, certification, year, language, runtime, score, votes, keywords, streaming country/provider) with 4 sort options including personalized ML scoring. Filters passed to TMDB API `/discover/movie`; mood filter + personalized ranking run locally against precomputed `.npy` arrays. Rate: TMDB text search + Netflix-style clickable poster grid, click opens `@st.dialog` with details + 0-100 rating slider (steps of 10) + 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Watchlist: poster grid, click → dialog with streaming providers, "Remove" or "Mark as watched" with rating slider + mood reactions. Statistics: KPI dashboard, charts (genre, language, decade, rating, mood distribution), directors/actors rankings, rated movies table. All actions persist to SQLite immediately.
 
-**Status:** implemented
+**Status:** in progress — redesign from 2026-03-25, implementation pending
 
 ---
 
@@ -63,9 +63,9 @@
 
 > The application implements some machine learning.
 
-**Our approach:** Mood classification pipeline for the Discover page (`scripts/mood_classify.py`). Two phases: (1) Google EmbeddingGemma-300M embeddings (256d Matryoshka truncation) + cosine similarity to label ~34k TMDB keywords into 10 mood super-categories using 170 curated seed keywords (centroid-based labeling, 909 keywords assigned to `keyword_moods` table in `keywords.db`), (2) scikit-learn KNeighborsClassifier (k=7, cosine metric) trained on Phase 1 labels with 80/20 stratified split for demonstrable ML metrics (train/test evaluation, classification report). UI integration: 10 mood pills on Discover page, top 3 mood badges on all movie cards via relative scoring.
+**Our approach:** Personalized movie recommendations combining content-based filtering with user feedback. Users rate movies (1-10) and tag mood reactions (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). The system builds a user profile from rating history and computes personalized scores for candidate movies using multiple similarity signals: keyword TF-IDF/SVD similarity, mood match, director/actor SVD similarity, decade/language/runtime preference, quality score (Bayesian average), and contra-penalty from low-rated films. All feature vectors derived from `tmdb.db` (~1.17M movies, 30 normalized tables). Offline pipeline: feature extraction (sklearn TF-IDF + TruncatedSVD), mood score prediction (genre→mood + keyword→mood mapping + emotion classifier on overview/review text), quality scores. ML evaluation follows course patterns: train/test split (stratified), 5+ classifier comparison (KNN, LogisticRegression, SVC, GaussianNB, MLPClassifier + DummyClassifier baseline), confusion matrix, classification_report, accuracy/precision/recall/F1.
 
-**Status:** implemented
+**Status:** in progress — architecture designed, offline pipeline and scoring implementation pending
 
 ---
 

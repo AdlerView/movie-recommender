@@ -20,16 +20,17 @@
 
 - [x] `#002` **[gap]** — ML approach unspecified
   - Context: "Implements machine learning" is a project requirement. The concept deferred this to "after the ML class."
-  - Decision: Mood classification pipeline (`scripts/mood_classify.py`). Phase 1: Google EmbeddingGemma-300M embeddings (256d) + cosine similarity assigns 909 TMDB keywords to 10 mood categories using 170 curated seed keywords (centroid labeling). Phase 2: sklearn KNeighborsClassifier (k=7, cosine) trained on Phase 1 labels for demonstrable ML metrics. Results in `keyword_moods` table in `keywords.db`. Integrated into UI: 10 mood pills on Discover, top 3 mood badges on movie cards via relative scoring.
-  - Found: 2026-03-18 | Resolved: 2026-03-24
+  - Decision (v2, 2026-03-25): Personalized recommendations from user ratings + mood reactions. 7 mood categories (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). Users tag moods on Rate page. Offline pipeline extracts feature vectors (keyword/director/actor SVD, genre/decade/language onehot, mood scores, quality scores) from `tmdb.db` into `.npy` arrays. Runtime scoring: cosine similarity between user profile and candidate vectors, mood match, contra-penalty. Full course ML workflow: train/test split, 5+ classifier comparison, confusion matrix, DummyClassifier baseline. See `MIGRATION.md` for full architecture.
+  - Superseded: v1 (10 custom mood categories via EmbeddingGemma-300M centroid labeling + KNN, 2026-03-24)
+  - Found: 2026-03-18 | Resolved: 2026-03-25
 
 ### Medium
 
 - [x] `#017` **[decision]** — Keyword scoring architecture for Discover
   - Context: TMDB keywords follow a long-tail distribution (top keyword "based on novel or book" in ~11% of films). AND logic is impractical — even 2 keywords would eliminate most results.
-  - Decision: Genres = hard AND filter (TMDB API). Keywords/moods = hard relevance filtering via `data/keywords.db`. Films scored by keyword match count, then only movies with score > 0 are shown (sorted by match count DESC, TMDB popularity as tiebreaker). Top 30 popular keywords shown as pills + search popover for all ~34k keywords. 10 mood categories (ML-classified) shown as separate pill section.
-  - Database: `keywords.db` is a separate read-only SQLite file generated once via `tmdb-keyword-extract.py` (~63k movies). App opens it as a second connection for scoring queries. Graceful fallback if file missing.
-  - Resolved: 2026-03-24
+  - Decision (v2, 2026-03-25): All 14 Discover filters passed to TMDB API `/discover/movie` endpoint (genres, certification, year, language, runtime, score, votes, keywords, providers). Keyword autocomplete via TMDB API `search/keyword`. Mood filter + personalized scoring run locally against precomputed `.npy` arrays. `tmdb.db` is offline only — not queried at runtime. See `MIGRATION.md` for full architecture.
+  - Superseded: v1 (keywords.db ~63k movies + 10 mood pill categories, 2026-03-24)
+  - Resolved: 2026-03-25
 
 ### Low
 
@@ -46,7 +47,7 @@
 - [x] `#001` **[gap]** — SQLite persistence with session state as runtime source (2026-03-23)
 - [x] `#003` **[issue]** — Use 19 official TMDB genres directly (2026-03-23)
 - [x] `#004` **[decision]** — Movies only, no TV series (2026-03-23)
-- [x] `#007` **[decision]** — Decimal rating 0.00-10.00 via slider in 0.01 steps, matching TMDB scale (2026-03-23)
+- [x] `#007` **[decision]** — Rating 0-100 in steps of 10 via slider (2026-03-23, redesigned 2026-03-25 from 0.00-10.00 in 0.01 steps)
 - [x] `#009` **[decision]** — Streamlit + server-side TMDB key in `.streamlit/secrets.toml` (2026-03-23)
 - [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Rate, Watchlist, Statistics), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23, restructured 2026-03-24: Watched renamed to Rate as pure action tab)
 - [x] `#015` **[decision]** — Card-based UX flow: one movie at a time with rate/dismiss buttons, matching wireframe prototype (2026-03-23)

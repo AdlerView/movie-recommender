@@ -77,5 +77,9 @@ data/*.sqlite
 data/*.db
 data/*.db-shm
 data/*.db-wal
+data/*.tsv
+data/exports/
 !data/.gitkeep
-!data/seed_keywords.json
+
+# Model artifacts (precomputed feature arrays)
+model/

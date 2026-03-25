@@ -589,10 +589,20 @@ movie-recommender/
     03_quality_scores.py
     04_build_index.py
   app/
-    scoring.py                       scoring formula + dynamic weights
-    filters.py                       SQL filter builder (user DB)
-    user_profile.py                  user profile computation from ratings
-    app.py                           Streamlit application
+    streamlit_app.py                 entry point (router, init, navigation)
+    app_pages/
+      discover.py                    14 filters + personalized scoring
+      rate.py                        search/browse → rate + mood reactions
+      watchlist.py                   poster grid → detail dialog + actions
+      statistics.py                  KPIs, charts, rankings, table
+    utils/
+      __init__.py
+      db.py                          SQLite persistence (user ratings, watchlist, dismissed)
+      tmdb.py                        TMDB API client (cached)
+      scoring.py                     scoring formula + dynamic weights
+      filters.py                     TMDB API parameter builder + local mood filter
+      user_profile.py                user profile computation from ratings
+    static/                          Poppins font files (18 TTFs + OFL license)
   docs/
     tmdb-schema.mmd                  ER diagram of TMDB database
 ```

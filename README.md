@@ -26,8 +26,8 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema v4, normalized detail + keyword tables) + `keywords.db` (read-only keyword index, ~63k movies) |
-| ML          | [EmbeddingGemma-300M](https://huggingface.co/google/embeddinggemma-300m) (sentence-transformers) + scikit-learn KNN (mood classification pipeline) |
+| Persistence | SQLite (WAL mode, schema v5) for user data. `tmdb.db` (1.17M movies, 30 tables, 8.2 GB) offline only. Runtime: precomputed `.npy` arrays (~3 GB) + TMDB API |
+| ML          | Personalized recommendations via scikit-learn (content-based scoring from user ratings + mood reactions, feature vectors from tmdb.db) |
 
 ---
 
@@ -35,19 +35,19 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Two-phase flow matching the wireframe prototype. First, select genre tags (19 TMDB genres), mood tags (10 ML-classified categories like Joyful, Tense, Dark), and keyword tags (top 30 from keyword index + search popover for all ~34k keywords) — or skip to browse trending movies. Genres use **AND logic** as a hard filter via the TMDB API. Moods and keywords use **hard relevance filtering**: films are scored by how many selected moods/keywords they match (via a pre-populated local keyword index of ~63k movies), then only movies with at least one match are shown, sorted by match count descending with TMDB popularity as tiebreaker. When moods/keywords are active, up to 5 pages (~100 movies) are pre-fetched to build a ranking pool. Then browse filtered movies one at a time in a card-based flow with three labeled badge sections (Genre, Mood, Keywords), runtime, streaming providers (Switzerland), and a movie counter. Active filter badges are shown on the browse phase; clicking "Change filters" preserves selections. Toast notifications confirm watchlist additions and dismissals. Already-rated, dismissed, and watchlisted movies are all filtered out. Each movie can be added to the watchlist or dismissed. Automatic pagination loads the next page when all current movies are exhausted (up to 10 pages). No rating on this page — rating happens on the Rate page after you've seen the movie.
+Personalized movie discovery with 14 filter controls and ML-based ranking. Filters: Genre (19 TMDB genres, required), Mood (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry), Certification (country-dependent, e.g. DE: 0/6/12/16/18), Release Year range, Language, Runtime range, User Score range, Minimum Votes, Keywords (autocomplete via TMDB API `search/keyword`), Streaming Country, Streaming Provider, Only My Subscriptions, and Sort order. Filters are passed to the TMDB API `/discover/movie` endpoint for candidate retrieval. Mood filtering and personalized scoring run locally against precomputed `.npy` feature arrays (~3 GB, derived offline from `tmdb.db`). When sort is set to "Personalized Score" (default), results are ranked by an ML scoring model that combines keyword similarity, mood match, director/actor/decade/language/runtime similarity, quality score (Bayesian average), and contra-penalty — all derived from the user's rating history. Results displayed as card-based flow or poster grid with Genre/Keyword badges, predicted mood, runtime, streaming providers, and personalized score. Already-rated, dismissed, and watchlisted movies are filtered out. Cold-start: with 0 ratings, ranking falls back to quality + mood match; personalization strengthens with more ratings.
 
 ### Rate
 
-Pure action tab for rating movies. A TMDB text search field at the top finds any movie by title (rated movies appear in search results for re-rating). Below, a Netflix-style poster grid shows trending movies — posters are clickable via CSS overlay. Already-rated movies are excluded from the trending grid (auto-fetches extra pages to always show exactly 20). Clicking a poster opens a detail dialog with poster, genre/mood/keyword badge sections, TMDB rating (1 decimal), runtime, overview, and a 0.00-10.00 color-coded rating slider. Save button is disabled until the slider is moved (prevents accidental 0-ratings). Linear flow: search/browse → click → rate → done.
+Pure action tab for rating movies you've already seen. TMDB text search + Netflix-style clickable poster grid (trending). Clicking a poster opens a detail dialog with poster, keyword badges, TMDB rating, runtime, overview, a 0-100 color-coded rating slider (steps of 10), and 7 optional mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — based on TMDB's Vibes model / Ekman's basic emotions). Mood reactions are multi-select, saved alongside the numeric rating, and serve as training data for the personalized recommendation model. Save button is disabled until the slider is moved (prevents accidental 0-ratings). Linear flow: search/browse → click → rate (+ optional mood) → done.
 
 ### Watchlist
 
-Netflix-style poster grid of saved movies. Clicking a poster opens a detail dialog with genre/mood/keyword badge sections, TMDB rating, runtime, overview, and flatrate streaming providers for Switzerland (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.). Actions: "Remove from watchlist" or "Mark as watched" which opens a rating slider — saving the rating moves the movie from watchlist to rated.
+Netflix-style poster grid of saved movies. Clicking a poster opens a detail dialog with keyword badges, TMDB rating, runtime, overview, and flatrate streaming providers for the user's selected country (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.). Actions: "Remove from watchlist" or "Mark as watched" which opens a rating slider with 7 mood reaction buttons — saving the rating moves the movie from watchlist to rated.
 
 ### Statistics
 
-Dashboard powered by normalized SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Six Altair charts: genre distribution (horizontal bars, sorted by frequency), language distribution, decade distribution, rating distribution histogram, rating history line chart, and user vs TMDB scatter plot (with diagonal reference line). Top 5 favorite directors and actors rankings. Sortable table of all rated movies with poster thumbnails, title, duration, TMDB rating, and user rating (default sorted by user rating descending). Movie details + keywords eagerly cached on every rating save and backfilled on startup. Currently a proof of concept — layout and polish pending.
+Dashboard powered by local user SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Altair charts: genre distribution, language distribution, decade distribution, rating distribution histogram, rating history line chart, user vs TMDB scatter plot, mood distribution (from user mood reactions). Top 5 favorite directors and actors rankings. Sortable table of all rated movies with poster thumbnails, title, duration, TMDB rating, and user rating. Currently a proof of concept — layout and polish pending.
 
 ### Persistence
 
@@ -83,7 +83,7 @@ Live data from TMDB API v3 with cached responses (genres 1h, trending 30m, disco
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
 | 3 | Data visualization | in progress (PoC: KPIs, 6 charts, rankings, table) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | implemented (mood classification: EmbeddingGemma-300M + sklearn KNN, 909 keywords, UI integrated) |
+| 5 | Machine learning | in progress (personalized recommendations: content-based scoring from user ratings + mood reactions, sklearn pipeline with classifier comparison) |
 | 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |
 | 8 | 4-min video + demo | not started |
