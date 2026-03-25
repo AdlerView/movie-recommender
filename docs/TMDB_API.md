@@ -88,6 +88,39 @@ Returns movie details + credits + videos + watch providers in a single response.
 
 ---
 
+### API Configuration
+
+```
+GET /3/configuration?api_key=KEY
+```
+
+Returns image base URLs, valid image sizes, and other API integration
+details. Currently the app hardcodes `IMAGE_BASE = "https://image.tmdb.org/t/p"`
+in `tmdb.py` — this endpoint provides the canonical source.
+
+**Response:**
+
+```json
+{
+  "images": {
+    "base_url": "http://image.tmdb.org/t/p/",
+    "secure_base_url": "https://image.tmdb.org/t/p/",
+    "backdrop_sizes": ["w300", "w780", "w1280", "original"],
+    "logo_sizes": ["w45", "w92", "w154", "w185", "w300", "w500", "original"],
+    "poster_sizes": ["w92", "w154", "w185", "w342", "w500", "w780", "original"],
+    "profile_sizes": ["w45", "w185", "h632", "original"],
+    "still_sizes": ["w92", "w185", "w300", "original"]
+  },
+  "change_keys": ["adult", "budget", "genres", "images", "overview", "title", "videos"]
+}
+```
+
+Use `images.secure_base_url` + size + `file_path` to build image URLs.
+The `poster_sizes` and `backdrop_sizes` arrays define all valid size
+presets for the Image URLs section above.
+
+---
+
 ### Genre List
 
 ```
@@ -271,6 +304,145 @@ The primary endpoint for filtered movie discovery. 30+ filter parameters.
 ---
 
 ## Movie Detail Endpoints
+
+---
+
+### Movie Keywords
+
+```
+GET /3/movie/{movie_id}/keywords?api_key=KEY
+```
+
+Get the keywords (thematic tags) for a movie. Used for keyword badges on
+movie cards and as input to the ML pipeline (keyword TF-IDF/SVD vectors).
+
+**Response:**
+
+```json
+{
+  "id": 550,
+  "keywords": [
+    {"id": 818, "name": "based on novel or book"},
+    {"id": 825, "name": "support group"},
+    {"id": 851, "name": "dual identity"},
+    {"id": 1541, "name": "nihilism"},
+    {"id": 4565, "name": "dystopia"}
+  ]
+}
+```
+
+Each keyword has `id` (int) and `name` (string). Pass keyword IDs to
+`discover/movie?with_keywords=` for filtered discovery.
+
+---
+
+### Movie Reviews
+
+```
+GET /3/movie/{movie_id}/reviews?api_key=KEY&language=en-US&page=1
+```
+
+Get user reviews for a movie. Paginated (20 per page). Used in the
+offline pipeline (Stage 2) for emotion classification on review text
+to predict mood scores.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `language` | string | Default: `en-US` |
+| `page` | int | 1-based pagination |
+
+**Response:**
+
+```json
+{
+  "id": 550,
+  "page": 1,
+  "results": [
+    {
+      "author": "Goddard",
+      "author_details": {
+        "name": "",
+        "username": "Goddard",
+        "avatar_path": "/path.jpg",
+        "rating": 9.0
+      },
+      "content": "Pretty awesome movie...",
+      "created_at": "2018-06-09T17:51:53.359Z",
+      "id": "5b1c13b9c3a36848f2026384",
+      "updated_at": "2021-06-23T15:58:09.421Z",
+      "url": "https://www.themoviedb.org/review/5b1c13b9c3a36848f2026384"
+    }
+  ],
+  "total_pages": 1,
+  "total_results": 8
+}
+```
+
+Key fields: `content` (review text for emotion classification),
+`author_details.rating` (nullable float 0-10).
+
+---
+
+### Movie External IDs
+
+```
+GET /3/movie/{movie_id}/external_ids?api_key=KEY
+```
+
+Get external IDs for a movie (IMDb, Wikidata, social media).
+
+**Supported IDs:**
+
+| Media Databases | Social IDs |
+|-----------------|------------|
+| IMDb | Facebook |
+| Wikidata | Instagram |
+| | Twitter |
+
+**Response:**
+
+```json
+{
+  "id": 550,
+  "imdb_id": "tt0137523",
+  "wikidata_id": null,
+  "facebook_id": "FightClub",
+  "instagram_id": null,
+  "twitter_id": null
+}
+```
+
+Use `imdb_id` to link to IMDb movie pages
+(`https://www.imdb.com/title/{imdb_id}`).
+
+---
+
+### Movie Latest
+
+```
+GET /3/movie/latest?api_key=KEY
+```
+
+Get the newest movie ID. This is a live response and continuously
+changes. Used in the offline pipeline to determine the upper bound
+of movie IDs when building `tmdb.db`.
+
+**Response:**
+
+```json
+{
+  "id": 1119232,
+  "title": "König Charles III",
+  "adult": false,
+  "original_language": "fr",
+  "release_date": "",
+  "vote_average": 0.0,
+  "vote_count": 0
+}
+```
+
+Returns a full movie details object. The `id` field is the relevant
+value for pipeline use.
 
 ---
 
@@ -553,27 +725,62 @@ Returns all available streaming providers for a region.
 
 ---
 
-## Recommended Request Pattern
-
-### App startup (5 calls, cached 24h)
+### Watch Provider Regions
 
 ```
+GET /3/watch/providers/regions?api_key=KEY&language=en-US
+```
+
+Get the list of countries that have watch provider (OTT/streaming) data.
+More precise than `configuration/countries` for the streaming country
+dropdown — only returns countries where provider data actually exists.
+
+**Response:**
+
+```json
+{
+  "results": [
+    {"iso_3166_1": "CH", "english_name": "Switzerland", "native_name": "Switzerland"},
+    {"iso_3166_1": "DE", "english_name": "Germany", "native_name": "Germany"},
+    {"iso_3166_1": "US", "english_name": "United States of America", "native_name": "United States"}
+  ]
+}
+```
+
+Same response shape as `configuration/countries`. Use for the Discover
+streaming country dropdown (filter #12) to avoid showing countries
+without any provider data.
+
+---
+
+## Recommended Request Pattern
+
+### App startup (7 calls, cached 24h)
+
+```
+GET /3/configuration
 GET /3/genre/movie/list?language=en
 GET /3/configuration/languages
 GET /3/certification/movie/list
 GET /3/watch/providers/movie?watch_region=DE&language=en
+GET /3/watch/providers/regions?language=en
 GET /3/configuration/countries?language=en
 ```
 
 The provider call is re-fetched when the user changes their streaming
-country.
+country. `watch/providers/regions` is preferred over
+`configuration/countries` for the streaming country dropdown.
 
-### Flow 1: Rate a movie (2 calls)
+### Flow 1: Rate a movie (3 calls)
 
 ```
 GET /3/search/movie?query={text}&language=en-US&page=1
 GET /3/movie/{id}?language=en-US
+GET /3/movie/{id}/keywords
 ```
+
+Keywords are fetched separately on rating save for caching in the local
+database (used for keyword badges and ML pipeline).
 
 ### Flow 2: Discover a movie (~25 calls)
 
