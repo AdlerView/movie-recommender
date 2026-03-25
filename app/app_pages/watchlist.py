@@ -9,8 +9,6 @@ from __future__ import annotations
 import requests
 import streamlit as st
 from utils.db import (
-    classify_movie_keywords,
-    get_movie_keywords_from_index,
     remove_from_watchlist,
     save_movie_details,
     save_movie_keywords,
@@ -88,21 +86,6 @@ def _show_detail(movie_id: int) -> None:
             st.caption("**Genre**")
             st.markdown(" ".join(
                 f":gray-badge[{g['name']}]" for g in genres
-            ))
-        # Look up keywords from the keyword index (no API call)
-        kw_list = get_movie_keywords_from_index(movie_id)
-        mood_cats, regular_kws = classify_movie_keywords(kw_list)
-        # Mood section — category names as primary badges (Cinema Gold)
-        if mood_cats:
-            st.caption("**Mood**")
-            st.markdown(" ".join(
-                f":primary-badge[{cat}]" for cat in mood_cats
-            ))
-        # Keywords section — unclassified keywords as gray badges
-        if regular_kws:
-            st.caption("**Keywords**")
-            st.markdown(" ".join(
-                f":gray-badge[{kw['keyword_name']}]" for kw in regular_kws
             ))
         # TMDB rating — 1 decimal for consistent display
         _tmdb = details.get("vote_average")
