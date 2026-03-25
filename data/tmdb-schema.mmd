@@ -1,0 +1,271 @@
+erDiagram
+    movies {
+        INTEGER id PK
+        TEXT title
+        TEXT original_title
+        TEXT original_language
+        TEXT origin_country
+        TEXT release_date
+        REAL popularity
+        REAL vote_average
+        INTEGER vote_count
+        INTEGER budget
+        INTEGER revenue
+        INTEGER runtime
+        TEXT status
+        TEXT overview
+        TEXT poster_path
+        TEXT backdrop_path
+        TEXT imdb_id
+        INTEGER adult
+        INTEGER video
+        TEXT tagline
+        TEXT homepage
+        INTEGER collection_id FK
+        TEXT fetched_at
+    }
+
+    collections {
+        INTEGER id PK
+        TEXT name
+        TEXT poster_path
+        TEXT backdrop_path
+    }
+
+    genres {
+        INTEGER id PK
+        TEXT name
+    }
+
+    keywords {
+        INTEGER id PK
+        TEXT name
+    }
+
+    persons {
+        INTEGER id PK
+        TEXT name
+        TEXT original_name
+        INTEGER gender
+        INTEGER adult
+        TEXT known_for_department
+        REAL popularity
+        TEXT profile_path
+    }
+
+    companies {
+        INTEGER id PK
+        TEXT name
+        TEXT logo_path
+        TEXT origin_country
+    }
+
+    countries {
+        TEXT iso_3166_1 PK
+        TEXT name
+    }
+
+    languages {
+        TEXT iso_639_1 PK
+        TEXT english_name
+        TEXT name
+    }
+
+    watch_providers {
+        INTEGER provider_id PK
+        TEXT provider_name
+        TEXT logo_path
+    }
+
+    movie_genres {
+        INTEGER movie_id PK, FK
+        INTEGER genre_id PK, FK
+    }
+
+    movie_keywords {
+        INTEGER movie_id PK, FK
+        INTEGER keyword_id PK, FK
+    }
+
+    movie_cast {
+        INTEGER movie_id PK, FK
+        INTEGER person_id FK
+        TEXT character
+        TEXT credit_id PK
+        INTEGER cast_id
+        INTEGER cast_order
+    }
+
+    movie_crew {
+        INTEGER movie_id PK, FK
+        INTEGER person_id FK
+        TEXT department
+        TEXT job
+        TEXT credit_id PK
+    }
+
+    movie_companies {
+        INTEGER movie_id PK, FK
+        INTEGER company_id PK, FK
+    }
+
+    movie_production_countries {
+        INTEGER movie_id PK, FK
+        TEXT iso_3166_1 PK, FK
+    }
+
+    movie_spoken_languages {
+        INTEGER movie_id PK, FK
+        TEXT iso_639_1 PK, FK
+    }
+
+    movie_release_dates {
+        INTEGER movie_id FK
+        TEXT iso_3166_1
+        TEXT certification
+        TEXT iso_639_1
+        TEXT note
+        TEXT release_date
+        INTEGER release_type
+        TEXT descriptors
+    }
+
+    movie_external_ids {
+        INTEGER movie_id PK, FK
+        TEXT imdb_id
+        TEXT wikidata_id
+        TEXT facebook_id
+        TEXT instagram_id
+        TEXT twitter_id
+    }
+
+    movie_videos {
+        INTEGER movie_id PK, FK
+        TEXT video_id PK
+        TEXT iso_639_1
+        TEXT iso_3166_1
+        TEXT name
+        TEXT video_key
+        TEXT site
+        INTEGER size
+        TEXT type
+        INTEGER official
+        TEXT published_at
+    }
+
+    movie_watch_providers {
+        INTEGER movie_id PK, FK
+        TEXT iso_3166_1 PK
+        INTEGER provider_id PK, FK
+        TEXT monetization_type PK
+        INTEGER display_priority
+    }
+
+    movie_watch_provider_links {
+        INTEGER movie_id PK, FK
+        TEXT iso_3166_1 PK
+        TEXT link
+    }
+
+    movie_translations {
+        INTEGER movie_id PK, FK
+        TEXT iso_3166_1 PK
+        TEXT iso_639_1 PK
+        TEXT name
+        TEXT english_name
+        TEXT title
+        TEXT overview
+        TEXT tagline
+        TEXT homepage
+        INTEGER runtime
+    }
+
+    movie_alternative_titles {
+        INTEGER movie_id FK
+        TEXT iso_3166_1
+        TEXT title
+        TEXT type
+    }
+
+    movie_images {
+        INTEGER movie_id PK, FK
+        TEXT image_type PK
+        TEXT file_path PK
+        INTEGER width
+        INTEGER height
+        REAL aspect_ratio
+        TEXT iso_639_1
+        REAL vote_average
+        INTEGER vote_count
+    }
+
+    movie_recommendations {
+        INTEGER movie_id PK, FK
+        INTEGER recommended_movie_id PK, FK
+    }
+
+    movie_similar {
+        INTEGER movie_id PK, FK
+        INTEGER similar_movie_id PK, FK
+    }
+
+    movie_reviews {
+        INTEGER movie_id PK, FK
+        TEXT review_id PK
+        TEXT author
+        TEXT username
+        TEXT avatar_path
+        REAL rating
+        TEXT content
+        TEXT created_at
+        TEXT updated_at
+        TEXT url
+    }
+
+    movie_lists {
+        INTEGER movie_id PK, FK
+        INTEGER list_id PK
+        TEXT name
+        TEXT description
+        TEXT iso_639_1
+        INTEGER item_count
+    }
+
+    movie_account_states {
+        INTEGER movie_id PK, FK
+        INTEGER favorite
+        REAL rated
+        INTEGER watchlist
+    }
+
+    movies ||--o| collections : "belongs_to"
+    movies ||--|{ movie_genres : "has"
+    movie_genres }|--|| genres : "is"
+    movies ||--|{ movie_keywords : "has"
+    movie_keywords }|--|| keywords : "is"
+    movies ||--|{ movie_cast : "has"
+    movie_cast }|--|| persons : "is"
+    movies ||--|{ movie_crew : "has"
+    movie_crew }|--|| persons : "is"
+    movies ||--|{ movie_companies : "produced_by"
+    movie_companies }|--|| companies : "is"
+    movies ||--|{ movie_production_countries : "produced_in"
+    movie_production_countries }|--|| countries : "is"
+    movies ||--|{ movie_spoken_languages : "spoken"
+    movie_spoken_languages }|--|| languages : "is"
+    movies ||--|{ movie_release_dates : "released"
+    movies ||--o| movie_external_ids : "linked"
+    movies ||--|{ movie_videos : "has"
+    movies ||--|{ movie_watch_providers : "available_on"
+    movie_watch_providers }|--|| watch_providers : "is"
+    movies ||--|{ movie_watch_provider_links : "watch_link"
+    movies ||--|{ movie_translations : "translated"
+    movies ||--|{ movie_alternative_titles : "aka"
+    movies ||--|{ movie_images : "has"
+    movies ||--|{ movie_recommendations : "recommends"
+    movie_recommendations }|--|| movies : "recommended"
+    movies ||--|{ movie_similar : "similar_to"
+    movie_similar }|--|| movies : "similar"
+    movies ||--|{ movie_reviews : "reviewed"
+    movies ||--|{ movie_lists : "listed_in"
+    movies ||--o| movie_account_states : "user_state"
