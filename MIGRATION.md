@@ -5,7 +5,7 @@ and UI are being replaced. This document defines the new architecture,
 data flows, scoring system, and ML pipeline.
 
 **Created:** 2026-03-25
-**Updated:** 2026-03-25
+**Updated:** 2026-03-26
 
 ---
 
@@ -43,7 +43,7 @@ The user rates a movie after watching it.
 **Steps:**
 
 1. User searches for a movie (text input)
-2. User gives a rating (1-10)
+2. User gives a rating (0-100 in steps of 10)
 3. User selects one or more moods: Happy, Interested, Surprised, Sad,
    Disgusted, Afraid, Angry
 4. User saves
@@ -51,7 +51,7 @@ The user rates a movie after watching it.
 **Data stored:**
 
 ```
-{movie_id: 550, rating: 8, moods: ["surprised", "interested"], rated_at: "2026-03-25T..."}
+{movie_id: 550, rating: 80, moods: ["surprised", "interested"], rated_at: "2026-03-25T..."}
 ```
 
 **After saving:** the user profile vectors are recomputed from all
@@ -70,7 +70,7 @@ The user wants to find a new movie to watch.
 | 1 | Mood | 7 toggle buttons | Hardcoded (own concept) | Optional, multi-select |
 | 2 | Sort | Dropdown | Hardcoded (4 options) | Default: Personalized Score |
 | 3 | Genre | 19 toggle buttons | TMDB API `genre/movie/list` | Required, min 1 |
-| 4 | Certification | Toggle buttons per country | TMDB API `certification/movie/list` | Optional |
+| 4 | Certification | Toggle buttons (values change per country, e.g. DE: 0/6/12/16/18, US: G/PG/PG-13/R/NC-17) | TMDB API `certification/movie/list` | Optional |
 | 5 | Release date from | Year input | -- | Optional |
 | 6 | Release date to | Year input | -- | Optional |
 | 7 | Language | Dropdown | TMDB API `configuration/languages` | Optional |
@@ -214,15 +214,23 @@ User clicks "Discover"
    -> ~100-500 candidate movie IDs + basic data
     |
     v
-2. Mood filter (local)
+2. Mood filter (local, only if user selected a mood)
    For each candidate: mood_scores.npy[movie_id_index[id]]
    Keep only movies where selected mood > 0.3
    -> ~50-300 candidates
+   Fallback: if fewer than 20 candidates remain, lower threshold
+   stepwise (0.2, 0.1, 0.0) until at least 20 candidates or
+   threshold reaches 0. This prevents empty results for rare moods
+   like "Disgusted".
     |
     v
-3. Personalized scoring (local, vectorized numpy)
-   Compute score for each candidate against user profile
-   -> ~50ms for 300 candidates
+3. Scoring depends on selected sort order:
+   - "Personalized Score": full ML scoring (see formula below)
+   - "Popularity": use TMDB popularity from discover response
+   - "Rating": use TMDB vote_average from discover response
+   - "Release date": use TMDB release_date from discover response
+   Mood filter from step 2 applies to ALL sort orders.
+   Non-personalized sorts skip the ML scoring entirely.
     |
     v
 4. Sort + return top-20
@@ -257,8 +265,8 @@ final_score(movie) =
 Cosine similarity between the user's keyword preference vector and
 the candidate's keyword vector. The user vector is a weighted average
 of keyword SVD vectors from all rated movies, where the weight is the
-normalized rating: `(rating - 5.5) / 4.5`. A rating of 10 gives weight
-+1.0, rating 1 gives -1.0, rating 5 gives ~-0.1.
+normalized rating: `(rating - 50) / 50`. A rating of 100 gives weight
++1.0, rating 0 gives -1.0, rating 50 gives 0.0.
 
 **Mood Match (0.20):**
 
@@ -294,7 +302,7 @@ Same logic using language onehot vectors (top-20 languages).
 `1.0 - abs(user_avg_runtime - candidate_runtime) / 360.0`
 
 User average runtime is computed from positively-rated movies only
-(rating > 5.5).
+(rating > 50).
 
 **Quality Score (0.10):**
 
@@ -528,7 +536,7 @@ Total: ~3 GB
 ```sql
 CREATE TABLE user_ratings (
     movie_id   INTEGER PRIMARY KEY,
-    rating     INTEGER NOT NULL,
+    rating     INTEGER NOT NULL CHECK (rating BETWEEN 0 AND 100),  -- 0-100 in steps of 10
     rated_at   TEXT NOT NULL
 );
 
@@ -584,7 +592,7 @@ movie-recommender/
     scoring.py                       scoring formula + dynamic weights
     filters.py                       SQL filter builder (user DB)
     user_profile.py                  user profile computation from ratings
-    api.py                           FastAPI endpoints
+    app.py                           Streamlit application
   docs/
     tmdb-schema.mmd                  ER diagram of TMDB database
 ```

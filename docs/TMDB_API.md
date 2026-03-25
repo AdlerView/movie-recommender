@@ -84,7 +84,9 @@ Returns movie details + credits + videos + watch providers in a single response.
 
 ---
 
-## Endpoints
+## Configuration Endpoints (cached at app startup)
+
+---
 
 ### Genre List
 
@@ -124,13 +126,97 @@ Returns the 19 official TMDB movie genres.
 
 ---
 
+### Certification List
+
+```
+GET /3/certification/movie/list?api_key=KEY
+```
+
+Returns all supported movie certifications per country.
+
+**Response (excerpt):**
+
+```json
+{
+  "certifications": {
+    "DE": [
+      {"certification": "0", "meaning": "No age restriction.", "order": 1},
+      {"certification": "6", "meaning": "No children younger than 6 years admitted.", "order": 2},
+      {"certification": "12", "meaning": "Children 12 or older admitted, children between 6 and 11 only when accompanied by parent or a legal guardian.", "order": 3},
+      {"certification": "16", "meaning": "Children 16 or older admitted, nobody under this age admitted.", "order": 4},
+      {"certification": "18", "meaning": "No youth admitted, only adults.", "order": 5}
+    ],
+    "US": [
+      {"certification": "G", "meaning": "All ages admitted.", "order": 1},
+      {"certification": "PG", "meaning": "Some material may not be suitable for children under 10.", "order": 2},
+      {"certification": "PG-13", "meaning": "Some material may be inappropriate for children under 13.", "order": 3},
+      {"certification": "R", "meaning": "Under 17 requires accompanying parent or adult guardian.", "order": 4},
+      {"certification": "NC-17", "meaning": "No one 17 and under admitted.", "order": 5}
+    ]
+  }
+}
+```
+
+Use `certification_country` + `certification` on the discover endpoint to filter by age rating.
+
+---
+
+### Languages
+
+```
+GET /3/configuration/languages?api_key=KEY
+```
+
+Returns all ISO 639-1 languages used on TMDB.
+
+**Response (excerpt):**
+
+```json
+[
+  {"iso_639_1": "en", "english_name": "English", "name": "English"},
+  {"iso_639_1": "de", "english_name": "German", "name": "Deutsch"},
+  {"iso_639_1": "fr", "english_name": "French", "name": "Français"},
+  {"iso_639_1": "ko", "english_name": "Korean", "name": "한국어/조선말"},
+  {"iso_639_1": "ja", "english_name": "Japanese", "name": "日本語"}
+]
+```
+
+Use `iso_639_1` with `with_original_language` on the discover endpoint.
+
+---
+
+### Countries
+
+```
+GET /3/configuration/countries?language=en&api_key=KEY
+```
+
+Returns all ISO 3166-1 countries. Used for the streaming country
+dropdown and certification country selection.
+
+**Response (excerpt):**
+
+```json
+[
+  {"iso_3166_1": "DE", "english_name": "Germany", "native_name": "Germany"},
+  {"iso_3166_1": "US", "english_name": "United States of America", "native_name": "United States"},
+  {"iso_3166_1": "CH", "english_name": "Switzerland", "native_name": "Switzerland"}
+]
+```
+
+---
+
+## Discovery and Search Endpoints
+
+---
+
 ### Discover Movies
 
 ```
-GET /3/discover/movie?api_key=KEY&with_genres=28,35&sort_by=vote_average.desc&vote_count.gte=100&page=1
+GET /3/discover/movie?api_key=KEY&with_genres=53,18&certification_country=DE&certification.lte=16&with_runtime.gte=90&with_runtime.lte=180&vote_average.gte=6&vote_count.gte=100&with_keywords=10349&watch_region=DE&with_watch_providers=8|337&with_watch_monetization_types=flatrate&sort_by=popularity.desc&page=1
 ```
 
-The primary endpoint for genre-based recommendations. 30+ filter parameters.
+The primary endpoint for filtered movie discovery. 30+ filter parameters.
 
 **Key parameters:**
 
@@ -138,16 +224,32 @@ The primary endpoint for genre-based recommendations. 30+ filter parameters.
 |-----------|------|-------------|
 | `with_genres` | string | Comma-separated genre IDs (AND logic). Use `\|` for OR. |
 | `without_genres` | string | Exclude genre IDs |
-| `sort_by` | string | Default: `popularity.desc`. Options: `vote_average.desc`, `revenue.desc`, `primary_release_date.desc` |
+| `sort_by` | string | Default: `popularity.desc`. Options: `vote_average.desc`, `revenue.desc`, `primary_release_date.desc`, `original_title.asc` |
 | `vote_average.gte` | float | Minimum rating (0-10) |
-| `vote_count.gte` | float | Minimum vote count (use 100+ to filter obscure films) |
+| `vote_average.lte` | float | Maximum rating (0-10) |
+| `vote_count.gte` | float | Minimum vote count (use 50+ to filter obscure films) |
 | `primary_release_date.gte` | date | YYYY-MM-DD |
 | `primary_release_date.lte` | date | YYYY-MM-DD |
-| `with_keywords` | string | Comma-separated keyword IDs |
-| `with_watch_providers` | string | Provider IDs (requires `watch_region`) |
-| `watch_region` | string | ISO 3166-1 country code (e.g., `CH`, `DE`, `US`) |
+| `with_keywords` | string | Comma-separated keyword IDs. Use `\|` for OR, `,` for AND. |
+| `without_keywords` | string | Exclude keyword IDs |
+| `with_original_language` | string | ISO 639-1 language code (e.g., `en`, `de`, `ko`) |
+| `certification_country` | string | ISO 3166-1 code. Required when using `certification` filters. |
+| `certification` | string | Exact certification (e.g., `PG-13`, `16`) |
+| `certification.lte` | string | Maximum certification (e.g., `16` = show 0, 6, 12, 16) |
+| `certification.gte` | string | Minimum certification |
+| `with_runtime.gte` | int | Minimum runtime in minutes |
+| `with_runtime.lte` | int | Maximum runtime in minutes |
+| `with_watch_providers` | string | Provider IDs, pipe-separated for OR (e.g., `8\|337`). Requires `watch_region`. |
+| `watch_region` | string | ISO 3166-1 country code (e.g., `DE`, `US`) |
+| `with_watch_monetization_types` | string | `flatrate`, `free`, `ads`, `rent`, `buy`. Pipe-separated for OR. Requires `watch_region`. |
+| `with_origin_country` | string | ISO 3166-1 origin country |
+| `with_cast` | string | Person IDs, comma (AND) or pipe (OR) separated |
+| `with_crew` | string | Person IDs, comma (AND) or pipe (OR) separated |
+| `with_people` | string | Person IDs (cast or crew), comma (AND) or pipe (OR) separated |
+| `with_companies` | string | Company IDs, comma (AND) or pipe (OR) separated |
 | `language` | string | Default: `en-US` |
 | `page` | int | 1-500 |
+| `include_adult` | bool | Default: `false` |
 
 **Response fields per movie:**
 
@@ -165,6 +267,10 @@ The primary endpoint for genre-based recommendations. 30+ filter parameters.
 | `popularity` | float | TMDB popularity score |
 | `genre_ids` | list[int] | Genre IDs (use genre list to resolve names) |
 | `original_language` | string | ISO 639-1 |
+
+---
+
+## Movie Detail Endpoints
 
 ---
 
@@ -188,6 +294,64 @@ Full metadata for a single movie.
 | `status` | string | Released, Post Production, etc. |
 | `imdb_id` | string | IMDb ID (e.g., `tt0111161`) |
 | `homepage` | string | Official website URL |
+
+---
+
+### Movie Release Dates
+
+```
+GET /3/movie/{movie_id}/release_dates?api_key=KEY
+```
+
+Or via `append_to_response=release_dates` on movie details.
+
+Returns per-country release dates with certification (age rating) and
+release type. Used for certification badges on result cards.
+
+**Release types:**
+
+| Type | Meaning |
+|------|---------|
+| 1 | Premiere |
+| 2 | Theatrical (limited) |
+| 3 | Theatrical |
+| 4 | Digital |
+| 5 | Physical |
+| 6 | TV |
+
+**Response (excerpt):**
+
+```json
+{
+  "id": 550,
+  "results": [
+    {
+      "iso_3166_1": "DE",
+      "release_dates": [
+        {
+          "certification": "18",
+          "release_date": "1999-11-11T00:00:00.000Z",
+          "type": 3
+        }
+      ]
+    },
+    {
+      "iso_3166_1": "US",
+      "release_dates": [
+        {
+          "certification": "R",
+          "release_date": "1999-10-15T00:00:00.000Z",
+          "type": 3
+        }
+      ]
+    }
+  ]
+}
+```
+
+To display a certification badge: filter `results` by the user's
+country, then pick the entry with `type = 3` (theatrical) or the
+first entry with a non-empty `certification`.
 
 ---
 
@@ -328,10 +492,11 @@ Same response format as discover.
 ### Search Keyword
 
 ```
-GET /3/search/keyword?api_key=KEY&query=dystopia
+GET /3/search/keyword?api_key=KEY&query=dystopia&page=1
 ```
 
-Find keyword IDs by name. Use returned IDs in `discover/movie?with_keywords=`.
+Find keyword IDs by name. Used for the keyword autocomplete field in
+the discovery UI. Pass returned IDs to `discover/movie?with_keywords=`.
 
 **Response:**
 
@@ -390,13 +555,38 @@ Returns all available streaming providers for a region.
 
 ## Recommended Request Pattern
 
-For the movie recommender, a typical flow uses 2-3 API calls:
+### App startup (5 calls, cached 24h)
 
-1. **Genre list** (once, cache for 1h+): `GET /3/genre/movie/list`
-2. **Discover** (per user interaction): `GET /3/discover/movie?with_genres=28&sort_by=vote_average.desc&vote_count.gte=100`
-3. **Details** (per movie, with appended data): `GET /3/movie/{id}?append_to_response=credits,watch/providers,videos`
+```
+GET /3/genre/movie/list?language=en
+GET /3/configuration/languages
+GET /3/certification/movie/list
+GET /3/watch/providers/movie?watch_region=DE&language=en
+GET /3/configuration/countries?language=en
+```
 
-Step 3 returns everything needed for the detail view: runtime, director, cast, streaming availability, and trailer — all in one request.
+The provider call is re-fetched when the user changes their streaming
+country.
+
+### Flow 1: Rate a movie (2 calls)
+
+```
+GET /3/search/movie?query={text}&language=en-US&page=1
+GET /3/movie/{id}?language=en-US
+```
+
+### Flow 2: Discover a movie (~25 calls)
+
+1. **Keyword autocomplete** (debounced 300ms): `GET /3/search/keyword?query={text}&page=1`
+2. **Discover** (1-5 pages): `GET /3/discover/movie?with_genres=53,18&certification_country=DE&certification.lte=16&...&page=1`
+3. **Details for top-20** (parallel): `GET /3/movie/{id}?append_to_response=watch/providers,videos,release_dates,credits`
+
+Step 3 returns everything needed for the result cards: streaming
+providers, trailers, certifications, director + top cast -- all in
+one request per movie. 20 parallel calls complete in ~200ms.
+
+Total per discovery: ~25 API calls, ~500ms. Well within the 40 req/s
+rate limit.
 
 ---
 
