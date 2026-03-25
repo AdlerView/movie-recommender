@@ -63,7 +63,34 @@
 
 > The application implements some machine learning.
 
-**Our approach:** Personalized movie recommendations combining content-based filtering with user feedback. Users rate movies (1-10) and tag mood reactions (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). The system builds a user profile from rating history and computes personalized scores for candidate movies using multiple similarity signals: keyword TF-IDF/SVD similarity, mood match, director/actor SVD similarity, decade/language/runtime preference, quality score (Bayesian average), and contra-penalty from low-rated films. All feature vectors derived from `tmdb.db` (~1.17M movies, 30 normalized tables). Offline pipeline: feature extraction (sklearn TF-IDF + TruncatedSVD), mood score prediction (genre→mood + keyword→mood mapping + emotion classifier on overview/review text), quality scores. ML evaluation follows course patterns: train/test split (stratified), 5+ classifier comparison (KNN, LogisticRegression, SVC, GaussianNB, MLPClassifier + DummyClassifier baseline), confusion matrix, classification_report, accuracy/precision/recall/F1.
+**Our approach:** Personalized movie recommendations combining content-based filtering with user feedback. Users rate movies (0-100) and tag mood reactions (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). The system builds a user profile from rating history and computes personalized scores for candidate movies using multiple similarity signals: keyword TF-IDF/SVD similarity, mood match, director/actor SVD similarity, decade/language/runtime preference, quality score (Bayesian average), and contra-penalty from low-rated films. All feature vectors derived from `tmdb.db` (~1.17M movies, 30 normalized tables). Offline pipeline: feature extraction (sklearn TF-IDF + TruncatedSVD), mood score prediction (genre->mood + keyword->mood mapping + emotion classifier on overview/review text), quality scores. See [ML-PIPELINE.md](ML-PIPELINE.md) for full architecture.
+
+**Course-mandated ML evaluation checklist:**
+
+- [ ] `train_test_split(stratify=y, random_state=42)` — stratified, reproducible
+- [ ] Data scaling with `RobustScaler` (fit on train, transform train+test)
+- [ ] 5+ classifier comparison in a pandas DataFrame:
+  - [ ] `KNeighborsClassifier`
+  - [ ] `SVC`
+  - [ ] `GaussianNB`
+  - [ ] `LogisticRegression`
+  - [ ] `MLPClassifier`
+  - [ ] `DummyClassifier(strategy="most_frequent")` — baseline
+  - [ ] `DummyClassifier(strategy="stratified")` — baseline
+- [ ] Metrics: accuracy, precision (macro), recall (macro), F1 (macro) per classifier
+- [ ] Scaled vs unscaled comparison (following assignment-11 pattern)
+- [ ] `ConfusionMatrixDisplay.from_predictions(y_test, y_pred)` for best model
+- [ ] `classification_report(y_test, y_pred)` for best model
+- [ ] `KFold(n_splits=10, shuffle=True)` + `cross_val_score` — mean +/- std
+- [ ] KNN hyperparameter tuning (k=1..20, accuracy vs k plot)
+
+**Beyond course level (score 3 differentiators):**
+
+- TF-IDF + TruncatedSVD on 1.17M movies (70K+ keywords, 170K+ directors)
+- Content-based scoring with 9 weighted signals + dynamic weight shifting
+- Pre-trained transformer for emotion classification on movie text
+- Bayesian average quality scoring
+- Offline pipeline producing ~3 GB of precomputed .npy feature arrays
 
 **Status:** in progress — architecture designed, offline pipeline and scoring implementation pending
 

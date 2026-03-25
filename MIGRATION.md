@@ -5,7 +5,7 @@ and UI are being replaced. This document defines the new architecture,
 data flows, scoring system, and ML pipeline.
 
 **Created:** 2026-03-25
-**Updated:** 2026-03-26
+**Updated:** 2026-03-25
 
 ---
 
@@ -604,5 +604,34 @@ movie-recommender/
       user_profile.py                user profile computation from ratings
     static/                          Poppins font files (18 TTFs + OFL license)
   docs/
+    ML-PIPELINE.md                   offline pipeline + ML evaluation spec
     tmdb-schema.mmd                  ER diagram of TMDB database
 ```
+
+---
+
+## ML Evaluation (Course Requirement 5)
+
+The ML evaluation follows the exact workflow taught in lectures 10-11
+and assignments 10-11. See [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md)
+for the full specification.
+
+**Classification task:** Binary -- predict "liked" (>= 60/100) vs
+"disliked" (< 60/100) from 9 scoring-component feature vectors.
+
+**Mandatory elements (course baseline):**
+
+1. Stratified train/test split with fixed random_state
+2. Data scaling (RobustScaler, fit on train only)
+3. 5+ classifier comparison (KNN, SVC, GaussianNB, LogisticRegression,
+   MLPClassifier) + DummyClassifier baselines
+4. Metrics DataFrame: accuracy, precision, recall, F1 (macro)
+5. Confusion matrix + classification_report for best model
+6. 10-fold cross-validation with mean +/- std
+
+**Beyond course (for score 3):**
+
+- TF-IDF + TruncatedSVD on 1.17M movies
+- Content-based scoring with 9 weighted signals
+- Pre-trained emotion transformer
+- Dynamic weight shifting by rating count

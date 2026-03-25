@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-25
+**Updated:** 2026-03-26
 
 
 
@@ -167,6 +167,62 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Movie detail badges: Genre = `:gray-badge`, Keywords = `:gray-badge`, predicted Mood tags. Section headers via `st.caption("**Genre**")` etc. Sections only shown when data exists.
 - Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
 - Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `app/static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
+
+---
+
+## ML Pipeline & Evaluation
+
+Full architecture: [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md). Scoring formula + dynamic weights: [MIGRATION.md](MIGRATION.md).
+
+### Offline Pipeline (run once, produces model/ directory)
+
+```
+data/tmdb.db (8.2 GB)
+  -> pipeline/01_extract_features.py -> .npy feature arrays
+  -> pipeline/02_predict_moods.py    -> mood_scores.npy
+  -> pipeline/03_quality_scores.py   -> quality_scores.npy
+  -> pipeline/04_build_index.py      -> movie_id_index.json + .pkl models
+```
+
+### Online Scoring (per Discover request)
+
+```
+app/utils/filters.py        -> TMDB API params from UI + local mood filter
+app/utils/user_profile.py   -> User profile vectors from ratings + .npy arrays
+app/utils/scoring.py         -> Batch cosine similarity scoring (9 signals, ~50ms)
+```
+
+### ML Evaluation (Course Requirement 5)
+
+The course (lectures 10-11, assignments 10-11) mandates a specific sklearn workflow. All of these must be present:
+
+- `train_test_split(stratify=y, random_state=42)` -- reproducible, stratified
+- `RobustScaler` -- fit on train only, transform train + test
+- 5+ classifiers compared in a DataFrame: KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier
+- `DummyClassifier` baselines (most_frequent + stratified)
+- `classification_report` + `ConfusionMatrixDisplay` for best model
+- `KFold(n_splits=10)` + `cross_val_score` -- report mean +/- std
+- Scaled vs unscaled comparison
+- KNN hyperparameter tuning (k=1..20 plot)
+
+Classification task: binary -- predict "liked" (rating >= 60) vs "disliked" (rating < 60) from 9 scoring-component feature vectors.
+
+### sklearn Imports Reference
+
+```python
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.preprocessing import RobustScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.dummy import DummyClassifier
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    classification_report, ConfusionMatrixDisplay,
+)
+```
 
 ---
 

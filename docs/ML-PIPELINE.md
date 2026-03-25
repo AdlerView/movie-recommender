@@ -4,7 +4,108 @@ Offline ML pipeline that transforms the TMDB SQLite database into
 precomputed model files used at runtime for personalized scoring.
 
 **Created:** 2026-03-26
-**Updated:** 2026-03-26
+**Updated:** 2026-03-25
+
+---
+
+## Course Expectations (Requirement 5: Machine Learning)
+
+The course (4,125 Grundlagen und Methoden der Informatik, FS26) teaches ML
+via scikit-learn in weeks 10-11. The grading rubric scores ML 0-3 points.
+To score 3 ("outstanding, far beyond the level of this course"), the
+project must demonstrate mastery of everything taught AND go beyond it.
+
+### What the course teaches (mandatory baseline)
+
+These patterns come from lectures 10/11, notebooks 10-0 through 11,
+and assignments 10-11. All must be present in the project:
+
+1. **Train/test split** -- `train_test_split(stratify=..., random_state=...)`
+2. **Data scaling** -- `MinMaxScaler`, `StandardScaler`, or `RobustScaler`
+   (fit on train, transform train+val+test)
+3. **5+ classifier comparison** -- at minimum:
+   - `KNeighborsClassifier`
+   - `SVC` (or `LinearSVC`)
+   - `GaussianNB`
+   - `LogisticRegression`
+   - `MLPClassifier`
+   - `DummyClassifier` (baseline: `most_frequent` + `stratified`)
+4. **Evaluation metrics** -- `classification_report` (precision, recall,
+   F1, macro/weighted avg), `ConfusionMatrixDisplay.from_predictions`,
+   `accuracy_score`
+5. **Cross-validation** -- `KFold` + `cross_val_score` (report mean +
+   std accuracy)
+6. **Hyperparameter tuning** -- at least vary k in KNN, show accuracy vs
+   hyperparameter plot
+
+### What goes beyond the course (for score 3)
+
+Our project adds these elements not covered in the lectures:
+
+- **TF-IDF + TruncatedSVD** on keyword/director/actor features (notebook
+  10-2 covers TF-IDF on text, but SVD dimensionality reduction is new)
+- **Content-based recommendation scoring** with 9 weighted similarity
+  signals (not taught in course)
+- **Dynamic weight adjustment** by rating count (cold start handling)
+- **Pre-trained transformer** for emotion classification on movie text
+  (j-hartmann/emotion-english-distilroberta-base)
+- **Bayesian average** quality scoring (not taught)
+- **Offline pipeline** processing 1.17M movies into .npy arrays
+
+### Concrete ML evaluation deliverable
+
+A dedicated evaluation section (in the app's Statistics page or a
+separate notebook) must show:
+
+```python
+# 1. Data preparation
+X, y = build_features_and_labels(user_ratings, model_arrays)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# 2. Scaling
+scaler = RobustScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 3. Classifier comparison (DataFrame of results)
+estimators = {
+    "KNN": KNeighborsClassifier(n_neighbors=5),
+    "SVC": SVC(gamma="scale"),
+    "GaussianNB": GaussianNB(),
+    "LogisticRegression": LogisticRegression(max_iter=1000),
+    "MLPClassifier": MLPClassifier(hidden_layer_sizes=[64, 64]),
+    "DummyClassifier": DummyClassifier(strategy="most_frequent"),
+}
+results = []
+for name, clf in estimators.items():
+    clf.fit(X_train_scaled, y_train)
+    y_pred = clf.predict(X_test_scaled)
+    results.append({
+        "Classifier": name,
+        "Accuracy": accuracy_score(y_test, y_pred),
+        "Precision": precision_score(y_test, y_pred, average="macro"),
+        "Recall": recall_score(y_test, y_pred, average="macro"),
+        "F1": f1_score(y_test, y_pred, average="macro"),
+    })
+results_df = pd.DataFrame(results)
+
+# 4. Best model: confusion matrix + classification_report
+best_clf = ...  # select from results_df
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+print(classification_report(y_test, y_pred))
+
+# 5. Cross-validation
+kfold = KFold(n_splits=10, shuffle=True, random_state=42)
+scores = cross_val_score(best_clf, X_scaled, y, cv=kfold)
+print(f"Mean: {scores.mean():.2%}, Std: {scores.std():.2%}")
+```
+
+The classification task: given a user's feature profile and a movie's
+feature vector, predict whether the user would rate the movie as
+"liked" (rating >= 60) or "disliked" (rating < 60). This is a binary
+classification problem.
 
 ---
 
@@ -295,3 +396,147 @@ Each stage is idempotent and can be re-run independently.
 | SVD reduction | ~4 GB |
 | Emotion classifier (batched) | ~2 GB (GPU) or ~4 GB (CPU) |
 | Final .npy arrays in memory | ~3 GB |
+
+---
+
+## Online Pipeline (per request at runtime)
+
+The online pipeline scores candidate movies for a user. It runs on
+every Discover request when sort="Personalized Score".
+
+**Files:**
+
+| File | Responsibility |
+|---|---|
+| `app/utils/scoring.py` | Scoring formula, dynamic weights, cosine similarity, batch scoring |
+| `app/utils/filters.py` | TMDB API parameter builder from UI state, local mood filter |
+| `app/utils/user_profile.py` | User profile computation from ratings (weighted avg of .npy vectors) |
+
+**Data flow:**
+
+```
+User clicks "Discover" with filters
+    |
+    v
+1. filters.py: Build TMDB API params from UI state
+   GET /3/discover/movie?with_genres=...&certification=...&...
+   -> 100-500 candidate movie IDs
+    |
+    v
+2. filters.py: Local mood filter (if mood selected)
+   mood_scores.npy[movie_id_index[id]] > threshold
+   -> Filter down to mood-matching candidates
+    |
+    v
+3. user_profile.py: Build user profile (cached after each rating)
+   For each rated movie: look up .npy vectors, weight by rating
+   -> user_keyword_vec, user_director_vec, user_actor_vec,
+      user_decade_vec, user_language_vec, user_runtime_pref,
+      user_implicit_mood, user_contra_vec
+    |
+    v
+4. scoring.py: Batch-score all candidates (numpy vectorized, ~50ms)
+   final_score = weighted sum of 9 similarity components
+   Weights shift by rating count (cold start -> quality-heavy,
+   50+ ratings -> personalization-heavy)
+   -> Sorted top-20
+    |
+    v
+5. TMDB API: Fetch details for top-20 (parallel)
+   GET /3/movie/{id}?append_to_response=watch/providers,videos,
+       release_dates,credits
+```
+
+---
+
+## Files To Create
+
+| File | Content | Priority |
+|---|---|---|
+| `app/utils/scoring.py` | Scoring formula, dynamic weights, cosine similarity, batch scoring | High |
+| `app/utils/filters.py` | TMDB API parameter builder from UI state, local mood filter | High |
+| `app/utils/user_profile.py` | User profile computation from ratings (weighted avg of .npy vectors) | High |
+| `pipeline/01_extract_features.py` | Stage 1: tmdb.db -> SVD/onehot -> .npy | High (prerequisite) |
+| `pipeline/02_predict_moods.py` | Stage 2: genre/keyword mapping + emotion classifier -> mood_scores.npy | High |
+| `pipeline/03_quality_scores.py` | Stage 3: Bayesian average -> quality_scores.npy | Medium |
+| `pipeline/04_build_index.py` | Stage 4: movie_id_index.json + SVD .pkl saving | Medium |
+| `model/genre_mood_map.json` | 19 genre -> mood rules (manual) | High |
+| `model/keyword_mood_map.json` | Top-500 keyword -> mood rules (manual) | Medium |
+
+---
+
+## ML Evaluation (Requirement 5 deliverable)
+
+The ML evaluation proves that the personalized scoring model works
+better than random chance. It follows the exact workflow taught in
+the course (lectures 10-11, assignments 10-11).
+
+### Classification Problem Definition
+
+- **Task:** Binary classification -- predict whether a user would rate
+  a movie as "liked" (>= 60/100) or "disliked" (< 60/100)
+- **Features (X):** For each (user, movie) pair, compute the 9 scoring
+  components as a feature vector:
+  `[keyword_sim, mood_match, director_sim, actor_sim, decade_sim,
+   language_sim, runtime_sim, quality_score, contra_penalty]`
+- **Labels (y):** Binary, derived from actual user ratings
+  (`1` = liked, `0` = disliked)
+- **Data source:** All entries in `user_ratings` table
+
+### Evaluation Workflow
+
+1. **Data split:** `train_test_split(test_size=0.2, stratify=y,
+   random_state=42)` -- stratified to preserve liked/disliked ratio
+
+2. **Scaling:** `RobustScaler().fit(X_train)` then transform both
+   train and test. RobustScaler chosen because similarity scores may
+   have outliers.
+
+3. **Classifier comparison (5+ classifiers):**
+
+   | Classifier | sklearn Class | Key Params |
+   |---|---|---|
+   | KNN | `KNeighborsClassifier` | `n_neighbors=5` |
+   | SVM | `SVC` | `gamma="scale"` |
+   | Naive Bayes | `GaussianNB` | -- |
+   | Logistic Regression | `LogisticRegression` | `max_iter=1000` |
+   | Neural Network | `MLPClassifier` | `hidden_layer_sizes=[64, 64]` |
+   | Baseline (frequent) | `DummyClassifier` | `strategy="most_frequent"` |
+   | Baseline (stratified) | `DummyClassifier` | `strategy="stratified"` |
+
+4. **Metrics per classifier (DataFrame):**
+   - Accuracy, Precision (macro), Recall (macro), F1 (macro)
+   - Compare scaled vs unscaled (following assignment-11 pattern)
+
+5. **Best classifier deep dive:**
+   - `ConfusionMatrixDisplay.from_predictions(y_test, y_pred)`
+   - `classification_report(y_test, y_pred)`
+
+6. **Cross-validation:**
+   - `KFold(n_splits=10, shuffle=True, random_state=42)`
+   - `cross_val_score(best_clf, X, y, cv=kfold)`
+   - Report mean accuracy +/- std
+
+7. **Hyperparameter tuning (optional):**
+   - KNN: vary k from 1 to 20, plot accuracy vs k with error bars
+   - Select optimal k
+
+### Where to Show This
+
+Two options (both acceptable):
+
+- **Option A:** Dedicated "ML Evaluation" section on the Statistics page
+  (Streamlit, visible in the app demo)
+- **Option B:** Separate Jupyter notebook `notebooks/ml_evaluation.ipynb`
+  (submitted with code, referenced in video)
+
+Option A is preferred because it is visible during the video demo and
+shows the ML evaluation as part of the running application.
+
+### Cold Start Handling
+
+With 0 ratings, the classifier cannot run. The scoring falls back to:
+- Quality score (Bayesian average) + mood match (if selected)
+- No personalization signals until >= 1 rating
+- Dynamic weight table shifts from quality-heavy to
+  personalization-heavy as ratings accumulate (see MIGRATION.md)
