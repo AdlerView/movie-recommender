@@ -1,0 +1,330 @@
+# FILTER.md
+
+Discovery filters for the movie recommender. All filters except Mood
+are passed directly to the TMDB `discover/movie` API. Mood filtering
+runs locally against precomputed model files.
+
+**Created:** 2026-03-26
+**Updated:** 2026-03-26
+
+---
+
+## Filter Overview
+
+| # | Filter | UI Element | TMDB API Parameter | Source | Required |
+|---|---|---|---|---|---|
+| 1 | Mood | 7 toggle buttons | -- (local) | Hardcoded | Optional, multi-select |
+| 2 | Sort | Dropdown (4 options) | `sort_by` | Hardcoded | Default: Personalized Score |
+| 3 | Genre | 19 toggle buttons | `with_genres` | `GET /3/genre/movie/list` | Required, min 1 |
+| 4 | Certification | Toggle buttons (per country) | `certification_country` + `certification.lte` | `GET /3/certification/movie/list` | Optional |
+| 5 | Release date from | Year input | `primary_release_date.gte` | -- | Optional |
+| 6 | Release date to | Year input | `primary_release_date.lte` | -- | Optional |
+| 7 | Language | Dropdown | `with_original_language` | `GET /3/configuration/languages` | Optional |
+| 8 | Runtime | Range slider 0-360 min | `with_runtime.gte` + `with_runtime.lte` | -- | Optional, default 0-360 |
+| 9 | User score | Range slider 0-10 | `vote_average.gte` + `vote_average.lte` | -- | Optional, default 0-10 |
+| 10 | Min user votes | Slider 0-500 | `vote_count.gte` | -- | Optional, default 50 |
+| 11 | Keywords | Text + autocomplete | `with_keywords` | `GET /3/search/keyword` | Optional |
+| 12 | Streaming country | Dropdown | `watch_region` | `GET /3/configuration/countries` | Optional |
+| 13 | Streaming providers | Multi-toggle | `with_watch_providers` | `GET /3/watch/providers/movie` | Optional |
+| 14 | Only my subscriptions | Checkbox | `with_watch_providers` (filtered) | Local `user_subscriptions` DB | Optional |
+
+---
+
+## Filter Details
+
+---
+
+### Mood (local, not TMDB API)
+
+7 toggle buttons: Happy, Interested, Surprised, Sad, Disgusted,
+Afraid, Angry. Multi-select.
+
+This is the only filter that runs locally. The TMDB API has no mood
+concept. After the API returns candidates, each candidate's mood
+scores are looked up from `mood_scores.npy` and filtered:
+
+```python
+threshold = 0.3
+keep = [m for m in candidates if mood_scores[m][selected_mood] > threshold]
+
+# Fallback for rare moods: lower threshold stepwise
+for t in [0.2, 0.1, 0.0]:
+    if len(keep) >= 20:
+        break
+    threshold = t
+    keep = [m for m in candidates if mood_scores[m][selected_mood] > threshold]
+```
+
+If no mood is selected, no mood filtering occurs. The implicit mood
+from the user's rating history still influences the personalized
+scoring (see SCORING.md).
+
+---
+
+### Sort
+
+Dropdown with 4 options:
+
+| Option | TMDB `sort_by` | ML Scoring |
+|---|---|---|
+| Personalized Score (default) | `popularity.desc` | Yes (full scoring) |
+| Popularity | `popularity.desc` | No |
+| Rating | `vote_average.desc` | No |
+| Release Date | `primary_release_date.desc` | No |
+
+For "Personalized Score", the API sorts by popularity (to get a
+reasonable candidate pool), then the local scoring pipeline re-ranks
+the results. For all other options, the API sort order is final --
+only mood filtering is applied locally.
+
+---
+
+### Genre
+
+19 toggle buttons loaded from `GET /3/genre/movie/list`.
+
+Required: at least 1 genre must be selected. Multiple genres use AND
+logic (comma-separated in the API: `with_genres=53,18`).
+
+Full genre list:
+
+| ID | Name |
+|---|---|
+| 28 | Action |
+| 12 | Adventure |
+| 16 | Animation |
+| 35 | Comedy |
+| 80 | Crime |
+| 99 | Documentary |
+| 18 | Drama |
+| 10751 | Family |
+| 14 | Fantasy |
+| 36 | History |
+| 27 | Horror |
+| 10402 | Music |
+| 9648 | Mystery |
+| 10749 | Romance |
+| 878 | Science Fiction |
+| 10770 | TV Movie |
+| 53 | Thriller |
+| 10752 | War |
+| 37 | Western |
+
+---
+
+### Certification
+
+Toggle buttons whose values change based on the selected streaming
+country. Loaded from `GET /3/certification/movie/list`.
+
+Examples:
+
+| Country | Values |
+|---|---|
+| DE | 0, 6, 12, 16, 18 |
+| US | G, PG, PG-13, R, NC-17 |
+| GB | U, PG, 12A, 15, 18 |
+| FR | TP, 12, 16, 18 |
+
+API parameters:
+
+```
+certification_country=DE
+certification.lte=16          # shows 0, 6, 12, 16
+```
+
+The `.lte` (less than or equal) parameter uses the `order` field from
+the certification list, not the numeric value. So `certification.lte=16`
+in Germany means order <= 4 (which includes 0, 6, 12, 16).
+
+---
+
+### Release Date
+
+Two year inputs: "from" and "to".
+
+API parameters:
+
+```
+primary_release_date.gte=2000-01-01
+primary_release_date.lte=2025-12-31
+```
+
+If only "from" is set, "to" defaults to today. If only "to" is set,
+"from" is omitted (no lower bound).
+
+---
+
+### Language
+
+Dropdown loaded from `GET /3/configuration/languages`. Shows
+`english_name` to the user, sends `iso_639_1` to the API.
+
+API parameter:
+
+```
+with_original_language=ko
+```
+
+Default: all languages (parameter omitted).
+
+---
+
+### Runtime
+
+Range slider with two handles, 0 to 360 minutes.
+
+API parameters:
+
+```
+with_runtime.gte=90
+with_runtime.lte=180
+```
+
+Default: full range (parameters omitted).
+
+---
+
+### User Score
+
+Range slider with two handles, 0.0 to 10.0.
+
+API parameters:
+
+```
+vote_average.gte=6.0
+vote_average.lte=10.0
+```
+
+Default: full range (parameters omitted).
+
+---
+
+### Min User Votes
+
+Single slider, 0 to 500.
+
+API parameter:
+
+```
+vote_count.gte=100
+```
+
+Default: 50. This filters out obscure movies with very few ratings,
+which tend to have unreliable vote averages.
+
+---
+
+### Keywords
+
+Text field with autocomplete. Each keystroke (debounced 300ms) triggers:
+
+```
+GET /3/search/keyword?query={text}&page=1
+```
+
+Returns keyword IDs and names. Selected keywords are passed to
+discover:
+
+```
+with_keywords=10349|285685       # pipe = OR logic
+with_keywords=10349,285685       # comma = AND logic
+```
+
+Default behavior: OR logic (any of the selected keywords).
+
+---
+
+### Streaming Country
+
+Dropdown loaded from `GET /3/configuration/countries`. Determines
+which streaming providers are shown and which watch region the API
+uses.
+
+When changed, the provider list is re-fetched:
+
+```
+GET /3/watch/providers/movie?watch_region=DE&language=en
+```
+
+Default: user's locale or DE.
+
+---
+
+### Streaming Providers
+
+Multi-toggle buttons loaded from the watch providers API (filtered by
+selected country). Shows provider logos.
+
+API parameters:
+
+```
+watch_region=DE
+with_watch_providers=8|337                     # Netflix OR Disney+
+with_watch_monetization_types=flatrate         # subscription only
+```
+
+Pipe-separated for OR logic. The `monetization_types` parameter
+controls whether to include rent/buy options or only subscriptions.
+
+---
+
+### Only My Subscriptions
+
+Checkbox. When checked, the provider filter is automatically set to
+the user's saved subscriptions from `user_subscriptions` table:
+
+```sql
+SELECT provider_id FROM user_subscriptions
+WHERE iso_3166_1 = :selected_country
+```
+
+This pre-selects the provider toggles and adds
+`with_watch_monetization_types=flatrate` to the API call.
+
+---
+
+## API Call Construction
+
+All filters are combined into a single `discover/movie` call:
+
+```
+GET /3/discover/movie
+    ?with_genres=53,18
+    &certification_country=DE
+    &certification.lte=16
+    &primary_release_date.gte=2000-01-01
+    &primary_release_date.lte=2025-12-31
+    &with_original_language=en
+    &with_runtime.gte=90
+    &with_runtime.lte=180
+    &vote_average.gte=6
+    &vote_count.gte=100
+    &with_keywords=10349
+    &watch_region=DE
+    &with_watch_providers=8|337
+    &with_watch_monetization_types=flatrate
+    &sort_by=popularity.desc
+    &page=1
+```
+
+Optional parameters are only included when the user has set them.
+The API ignores absent parameters (no filtering on that dimension).
+
+Already-rated movies are excluded locally after the API returns
+results (the TMDB API has no parameter for this).
+
+---
+
+## Configuration Caching
+
+The following API calls are made once at app startup and cached for
+24 hours:
+
+| Call | Cache Key | Refresh |
+|---|---|---|
+| `genre/movie/list` | `genres` | 24h TTL |
+| `configuration/languages` | `languages` | 24h TTL |
+| `certification/movie/list` | `certifications` | 24h TTL |
+| `configuration/countries` | `countries` | 24h TTL |
+| `watch/providers/movie?watch_region=XX` | `providers_{country}` | 24h TTL + on country change |
