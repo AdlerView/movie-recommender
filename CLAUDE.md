@@ -200,8 +200,8 @@ app/utils/scoring.py         -> Batch cosine similarity scoring (9 signals, ~50m
 ### Keyword-to-Mood Pipeline
 
 Two-stage supervised pipeline (replaces manual keyword tagging):
-1. Labeled: 5,000 keywords in `data/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,697 single, 2,047 multi, 1,256 none)
-2. Train on single-label subset (1,697) using EmbeddingGemma-300M embeddings, infer remaining 70K+
+1. Labeled: 5,000 keywords in `data/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single, 1,634 multi, 2,317 none after manual review)
+2. Train on single-label subset (1,049) using EmbeddingGemma-300M embeddings, infer remaining 70K+
 Script: `pipeline/keyword_mood_classifier.py`
 
 ### ML Evaluation (Course Requirement 5)

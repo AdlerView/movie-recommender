@@ -348,7 +348,7 @@ dominates.
 
 | Rated Films | Keyword | Mood | Director | Actor | Decade | Language | Runtime | Quality | Contra |
 |---|---|---|---|---|---|---|---|---|---|
-| 0 (cold start) | 0.00 | 0.35 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.60 | 0.00 |
+| 0 (cold start) | 0.00 | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.60 | 0.00 |
 | 1-9 | 0.10 | 0.25 | 0.05 | 0.03 | 0.02 | 0.01 | 0.01 | 0.50 | 0.03 |
 | 10-49 | 0.20 | 0.22 | 0.12 | 0.08 | 0.04 | 0.02 | 0.02 | 0.20 | 0.10 |
 | 50+ (full) | 0.25 | 0.20 | 0.15 | 0.10 | 0.05 | 0.03 | 0.02 | 0.10 | 0.10 |
@@ -391,16 +391,19 @@ sad, disgusted, afraid, angry).
 
 **Signal 1: Genre -> Mood mapping (19 manual rules)**
 
+Independent scores per genre (not normalized to 1.0). Canonical
+source: `model/genre_mood_map.json`.
+
 ```
-Comedy    -> {happy: 0.8, surprised: 0.2}
-Horror    -> {afraid: 0.8, disgusted: 0.3}
-Drama     -> {sad: 0.5, interested: 0.4}
-Thriller  -> {surprised: 0.5, afraid: 0.4, interested: 0.3}
-Romance   -> {happy: 0.6, sad: 0.3}
-War       -> {angry: 0.5, sad: 0.5}
-Crime     -> {angry: 0.4, interested: 0.4}
-Documentary -> {interested: 0.8}
-...
+Comedy      -> {happy: 0.8, surprised: 0.2}
+Horror      -> {afraid: 0.7, disgusted: 0.3}
+Drama       -> {sad: 0.5, interested: 0.4}
+Thriller    -> {afraid: 0.5, interested: 0.4, surprised: 0.2}
+Romance     -> {happy: 0.6, sad: 0.3}
+War         -> {angry: 0.5, sad: 0.5, afraid: 0.2}
+Crime       -> {angry: 0.4, interested: 0.4, afraid: 0.2}
+Documentary -> {interested: 0.6, sad: 0.2, angry: 0.1}
+...           (full list in genre_mood_map.json)
 ```
 
 **Signal 2: Keyword -> Mood mapping (supervised pipeline, ~70K
@@ -529,7 +532,7 @@ Script: `pipeline/keyword_mood_classifier.py`
    - user_language_vec = weighted_avg(language_vec[rated], ratings)
    - user_runtime_pref = weighted_avg(runtimes[rated], positive_ratings)
    - user_implicit_mood = normalized mood tag frequencies
-   - user_contra_vec   = avg(keyword_svd[rated where rating <= 3])
+   - user_contra_vec   = avg(keyword_svd[rated where rating < 40])
 
 4. Batch-score all candidates (numpy, vectorized, ~50ms)
 
@@ -744,7 +747,7 @@ idempotent and can be re-run independently.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 1a.1 | Create `genre_mood_map.json` (19 genre-to-mood rules) | `model/genre_mood_map.json` | -- | `PENDING` |
+| 1a.1 | Create `genre_mood_map.json` (19 genre-to-mood rules) | `model/genre_mood_map.json` | -- | `DONE` |
 | 1a.2 | Feature extraction: keyword TF-IDF/SVD, director/actor SVD, genre/decade/language onehot, runtime | `pipeline/01_extract_features.py` -> 7 `.npy` + `movie_id_index.json` + `.pkl` | `data/tmdb.db` | `PENDING` |
 | 1a.3 | Quality scores: Bayesian average, normalize to [0,1] | `pipeline/03_quality_scores.py` -> `quality_scores.npy` | `data/tmdb.db` | `PENDING` |
 | 1a.4 | Mood prediction: 4 signals (genre + keyword + overview emotion + review emotion), dynamic weighting | `pipeline/02_predict_moods.py` -> `mood_scores.npy` | 1a.1, 1b.1, `data/tmdb.db` | `PENDING` |
@@ -804,7 +807,7 @@ filter UI.
 
 **Graceful degradation:** When `model/` is not populated, the app
 MUST fall back to quality + mood only (cold-start weight table row 0:
-0.60 quality + 0.35 mood + 0.05 padding). Personalized scoring is
+0.60 quality + 0.40 mood). Personalized scoring is
 disabled until `model/` exists.
 
 ---

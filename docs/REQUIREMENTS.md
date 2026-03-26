@@ -43,7 +43,7 @@
 
 > The application visualizes some data that serves the use case.
 
-**Our approach:** Statistics dashboard with KPI metrics (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 5 Altair charts (genre distribution, decade distribution, language distribution, rating distribution histogram, user vs TMDB scatter plot, rating history line chart), top 5 directors + actors rankings, and sortable rated movies table with poster thumbnails. All data from normalized SQLite tables (zero API calls). Movie details + keywords eagerly cached on rating save + backfilled on startup.
+**Our approach:** Statistics dashboard with KPI metrics (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 7 Altair charts (genre distribution, decade distribution, language distribution, rating distribution histogram, user vs TMDB scatter plot, rating history line chart, mood distribution), top 5 directors + actors rankings, and sortable rated movies table with poster thumbnails. All data from normalized SQLite tables (zero API calls). Movie details + keywords eagerly cached on rating save + backfilled on startup.
 
 **Status:** in progress (proof of concept — charts and data pipeline functional, layout and polish pending)
 

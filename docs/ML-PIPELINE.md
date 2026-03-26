@@ -132,7 +132,7 @@ model/ (~3 GB, shipped to production)
     quality_scores.npy          1.17M x 1     float32
     movie_id_index.json         1.17M entries
     genre_mood_map.json         19 entries
-    keyword_mood_map.json       ~500 entries
+    keyword_mood_map.json       ~70K entries
     svd_models/
       keyword_svd.pkl
       director_svd.pkl
@@ -202,28 +202,31 @@ happy, interested, surprised, sad, disgusted, afraid, angry.
 
 ### Signal 1: Genre -> Mood Mapping
 
-19 manual rules mapping each genre to mood weights.
+19 manual rules mapping each genre to mood weights. Weights are
+independent scores (not normalized to 1.0) representing the strength
+of each mood signal for the genre. Canonical source:
+`model/genre_mood_map.json`.
 
 ```
-Action      -> {afraid: 0.2, surprised: 0.3, interested: 0.3}
-Adventure   -> {happy: 0.4, interested: 0.4, surprised: 0.3}
-Animation   -> {happy: 0.6, interested: 0.2}
-Comedy      -> {happy: 0.8, surprised: 0.2}
-Crime       -> {angry: 0.4, interested: 0.4, afraid: 0.2}
-Documentary -> {interested: 0.8}
-Drama       -> {sad: 0.5, interested: 0.4}
-Family      -> {happy: 0.7}
-Fantasy     -> {interested: 0.5, surprised: 0.3, happy: 0.2}
-History     -> {interested: 0.6, sad: 0.3}
-Horror      -> {afraid: 0.8, disgusted: 0.3, surprised: 0.2}
-Music       -> {happy: 0.6, interested: 0.3}
-Mystery     -> {interested: 0.5, surprised: 0.4, afraid: 0.2}
-Romance     -> {happy: 0.6, sad: 0.3}
+Action          -> {interested: 0.5, afraid: 0.3}
+Adventure       -> {happy: 0.4, interested: 0.4, surprised: 0.3}
+Animation       -> {happy: 0.5, sad: 0.2, interested: 0.2}
+Comedy          -> {happy: 0.8, surprised: 0.2}
+Crime           -> {angry: 0.4, interested: 0.4, afraid: 0.2}
+Documentary     -> {interested: 0.6, sad: 0.2, angry: 0.1}
+Drama           -> {sad: 0.5, interested: 0.4}
+Family          -> {happy: 0.5, sad: 0.2}
+Fantasy         -> {interested: 0.5, surprised: 0.3, happy: 0.2}
+History         -> {interested: 0.6, sad: 0.3, angry: 0.1}
+Horror          -> {afraid: 0.7, disgusted: 0.3}
+Music           -> {happy: 0.6, interested: 0.3, sad: 0.1}
+Mystery         -> {interested: 0.5, surprised: 0.4, afraid: 0.2}
+Romance         -> {happy: 0.6, sad: 0.3}
 Science Fiction -> {interested: 0.5, surprised: 0.3, afraid: 0.2}
-TV Movie    -> {interested: 0.3}
-Thriller    -> {surprised: 0.5, afraid: 0.4, interested: 0.3}
-War         -> {angry: 0.5, sad: 0.5, afraid: 0.2}
-Western     -> {interested: 0.3, angry: 0.2}
+TV Movie        -> {}
+Thriller        -> {afraid: 0.5, interested: 0.4, surprised: 0.2}
+War             -> {angry: 0.5, sad: 0.5, afraid: 0.2}
+Western         -> {interested: 0.4, happy: 0.2, angry: 0.2}
 ```
 
 For multi-genre movies, mood scores are averaged across genres.
@@ -244,9 +247,12 @@ Source: `data/tmdb-keyword-frequencies_labeled_top5000.tsv`
 
 | Assignment Type | Count | Description |
 |---|---|---|
-| single | 1,697 | Exactly one mood assigned |
-| multi | 2,047 | Multiple moods assigned |
-| none | 1,256 | Not mood-relevant (metadata, format, identity tags) |
+| single | 1,697 → 1,049 after review | Exactly one mood assigned |
+| multi | 2,047 → 1,634 after review | Multiple moods assigned |
+| none | 1,256 → 2,317 after review | Not mood-relevant (metadata, format, identity tags) |
+
+Post-review counts reflect ~666 corrections (see [MOOD.md](MOOD.md) Stage 2).
+The single-label subset (1,049) is the actual training set for Stage B.
 
 Single-label class distribution:
 
@@ -266,8 +272,9 @@ form (Angry: 537, Disgusted: 236, Surprised: 254).
 
 **Stage B: Supervised classification (course-compliant)**
 
-Training uses the single-label subset only (1,697 keywords). This
-gives a methodologically clean 7-class classification problem.
+Training uses the single-label subset only (1,049 keywords after
+manual review). This gives a methodologically clean 7-class
+classification problem.
 
 1. **Features:** EmbeddingGemma-300M sentence embeddings (256-dim)
    per keyword. Model cached at
@@ -395,7 +402,7 @@ Saves the final mappings:
   arrays). Required to look up vectors for movies returned by the
   TMDB API.
 - `model/genre_mood_map.json` -- 19 genre -> mood rules
-- `model/keyword_mood_map.json` -- ~500 keyword -> mood rules
+- `model/keyword_mood_map.json` -- ~70K keyword -> mood predictions
 - `model/svd_models/*.pkl` -- saved SVD transformers for future use
 
 ---

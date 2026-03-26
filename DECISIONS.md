@@ -83,8 +83,8 @@ methodologically weak.
 Two-stage supervised pipeline:
 
 **Stage A (complete):** 5,000 keywords labeled by Claude agent in
-`data/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,697 single,
-2,047 multi, 1,256 none).
+`data/tmdb-keyword-frequencies_labeled_top5000.tsv`. After manual
+review (~666 corrections): 1,049 single, 1,634 multi, 2,317 none.
 
 **Stage B:** Course-compliant supervised classification:
 1. EmbeddingGemma-300M sentence embeddings (256-dim) as features
@@ -216,7 +216,8 @@ retained in the dataset for reference.
   benefit)
 
 ### Consequences
-- 1,697 training samples across 7 classes
-- Class imbalance exists (Interested: 910, Surprised: 17) -- must
-  use stratified splits and report macro-F1 carefully
+- 1,049 training samples across 7 classes (post-review)
+- Class imbalance exists (Interested: 332, Surprised: 36,
+  Disgusted: 31) -- must use stratified splits and report macro-F1
+  carefully
 - `class_weight='balanced'` should be used where supported
