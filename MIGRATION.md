@@ -434,7 +434,7 @@ keywords)**
 
 Produced by `pipeline/keyword_mood_classifier.py`. Two-stage process:
 1. Labeled seed: 5,000 keywords in
-   `data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single-
+   `store/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single-
    label after review, 1,634 multi, 2,317 none)
 2. Train classifier on single-label subset (1,049), infer remaining
    70K+

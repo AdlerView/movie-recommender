@@ -255,7 +255,7 @@ scientifically convincing than supervised pipeline).
 **Stage A: Labeled seed dataset (complete)**
 
 5,000 most frequent TMDB keywords labeled by Claude agent.
-Source: `data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv`
+Source: `store/tmdb-keyword-frequencies_labeled_top5000.tsv`
 
 | Assignment Type | Count | Description |
 |---|---|---|

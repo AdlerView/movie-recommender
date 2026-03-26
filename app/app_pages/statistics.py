@@ -185,11 +185,11 @@ st.subheader("ML Evaluation: Keyword-to-Mood", divider="gray")
 
 _eval_results_path = (
     __import__("pathlib").Path(__file__).resolve().parent.parent.parent
-    / "data" / "evaluation" / "keyword_classifier_results.csv"
+    / "evaluation" / "keyword_classifier_results.csv"
 )
 _eval_cm_path = (
     __import__("pathlib").Path(__file__).resolve().parent.parent.parent
-    / "data" / "evaluation" / "keyword_classifier_confusion_matrix.png"
+    / "evaluation" / "keyword_classifier_confusion_matrix.png"
 )
 
 if _eval_results_path.exists():
@@ -236,7 +236,7 @@ if _eval_results_path.exists():
         # Load keyword data and embeddings (same as pipeline)
         _tsv_path = (
             Path(__file__).resolve().parent.parent.parent
-            / "data" / "labeled"
+            / "store"
             / "tmdb-keyword-frequencies_labeled_top5000.tsv"
         )
         if _tsv_path.exists():

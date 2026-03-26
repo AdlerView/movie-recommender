@@ -9,7 +9,7 @@ Phase 1b: Build / Train / Select / Infer (productive pipeline).
 Phase 3 reuses the same workflow for academic evaluation (notebook, plots).
 
 Data flow:
-    data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv  (1,049 single-label)
+    store/tmdb-keyword-frequencies_labeled_top5000.tsv  (1,049 single-label)
         -> sentence embeddings (EmbeddingGemma-300M, 768-dim)
         -> 80/10/10 split (train/val/test, stratified, random_state=13)
         -> scaled + unscaled classifier comparison (macro-F1)
@@ -442,8 +442,8 @@ def main() -> int:
     parser.add_argument(
         "--tsv",
         type=Path,
-        default=Path("data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv"),
-        help="Path to labeled keyword TSV (default: data/labeled/...labeled_top5000.tsv)",
+        default=Path("store/tmdb-keyword-frequencies_labeled_top5000.tsv"),
+        help="Path to labeled keyword TSV (default: store/...labeled_top5000.tsv)",
     )
     parser.add_argument(
         "--db",
@@ -466,8 +466,8 @@ def main() -> int:
     parser.add_argument(
         "--eval-dir",
         type=Path,
-        default=Path("data/evaluation"),
-        help="Directory for evaluation outputs (default: data/evaluation)",
+        default=Path("evaluation"),
+        help="Directory for evaluation outputs (default: evaluation/)",
     )
     parser.add_argument(
         "--batch-size",

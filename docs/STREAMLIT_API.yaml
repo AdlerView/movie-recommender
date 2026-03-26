@@ -1584,11 +1584,7 @@ api:
           kwarg_only: true
         default:
           type: Iterable of V, V, or None
-          description: >-
-            The value of the widget when it first renders. If the
-            selection_mode is multi, this can be a list of values, a
-            single value, or None. If the selection_mode is
-            "single", this can be a single value or None.
+          description: 'The initial value. For selection_mode="multi": list of values, single value, or None. For "single": single value or None.'
           default: None
           kwarg_only: true
         format_func:
@@ -1786,11 +1782,7 @@ api:
           kwarg_only: true
         default:
           type: Iterable of V, V, or None
-          description: >-
-            The value of the widget when it first renders. If the
-            selection_mode is multi, this can be a list of values, a
-            single value, or None. If the selection_mode is
-            "single", this can be a single value or None.
+          description: 'The initial value. For selection_mode="multi": list of values, single value, or None. For "single": single value or None.'
           default: None
           kwarg_only: true
         format_func:
@@ -1892,19 +1884,11 @@ api:
           default: ()
         value:
           type: a supported type or a tuple/list of supported types or None
-          description: >-
-            The value of the slider when it first renders. If a tuple/list
-            of two values is passed here, then a range slider with those lower
-            and upper bounds is rendered. For example, if set to (1, 10) the
-            slider will have a selectable range between 1 and 10.
-            Defaults to first option.
+          description: The value when first rendered. A tuple/list of two values creates a range slider (e.g. (1,10)). Defaults to first option.
           default: None
         format_func:
           type: function
-          description: >-
-            Function to modify the display of the labels from the options.
-            argument. It receives the option as an argument and its output
-            will be cast to str.
+          description: Function to modify the display of option labels. Receives the option, output cast to str.
           default: special_internal_function
         key:
           type: str, int, or None
@@ -2110,14 +2094,7 @@ api:
           default: None
         value:
           type: a supported type or a tuple/list of supported types or None
-          description: >-
-            The value of the slider when it first renders. If a tuple/list
-            of two values is passed here, then a range slider with those lower
-            and upper bounds is rendered. For example, if set to (1, 10) the
-            slider will have a selectable range between 1 and 10.
-            This defaults to min_value. If the type is not otherwise
-            specified in any of the numeric parameters, the widget will have an
-            integer value.
+          description: The value when first rendered. A tuple/list of two values creates a range slider (e.g. (1,10)). Defaults to min_value. If type not specified in numeric params, defaults to integer.
           default: None
         step:
           type: int, float, timedelta, or None
@@ -2836,11 +2813,7 @@ api:
           kwarg_only: true
         horizontal:
           type: bool
-          description: >-
-            Whether to make the bars horizontal. If this is False
-            (default), the bars display vertically. If this is True,
-            Streamlit swaps the x-axis and y-axis and the bars display
-            horizontally.
+          description: Whether to make the bars horizontal. False (default) displays vertically. True swaps axes and displays horizontally.
           default: 'False'
           kwarg_only: true
         sort:
@@ -3367,14 +3340,7 @@ api:
           kwarg_only: true
         use_container_width:
           type: bool
-          description: >-
-            Whether to override the figure's native width with the width of
-            the parent container. If use_container_width is True
-            (default), Streamlit sets the width of the figure to match the
-            width of the parent container. If use_container_width is
-            False, Streamlit sets the width of the chart to fit its
-            contents according to the plotting library, up to the width of the
-            parent container.
+          description: 'Override figure native width. True (default): matches parent container. False: fits contents up to parent width.'
           default: None
           kwarg_only: true
         '**kwargs':
@@ -5086,9 +5052,7 @@ api:
           kwarg_only: true
         step:
           type: int or None
-          description: >-
-            The stepping interval in days. If this is None (default), the step
-            will be 1 day.
+          description: The stepping interval in days. If None (default), the step is 1 day.
           default: None
           kwarg_only: true
     streamlit.column_config.DatetimeColumn:
@@ -5437,9 +5401,7 @@ api:
       parameters:
         label:
           type: str or None
-          description: >-
-            The label shown at the top of the column. If None (default),
-            the column name is used.
+          description: The label shown at the top of the column. If None (default), the column name is used.
           default: None
         width:
           type: '"small", "medium", "large", or None'
@@ -5458,9 +5420,7 @@ api:
           kwarg_only: true
         required:
           type: bool or None
-          description: >-
-            Whether edited cells in the column need to have a value. If True, an edited cell
-            can only be submitted if it has a value other than None. Defaults to False.
+          description: Whether edited cells need a value. True requires non-None value for submission. Defaults to False.
           default: None
           kwarg_only: true
         pinned:
@@ -5505,12 +5465,7 @@ api:
           kwarg_only: true
         format_func:
           type: function or None
-          description: >-
-            Function to modify the display of the options. It receives
-            the raw option defined in options as an argument and should output
-            the label to be shown for that option. When used in st.data_editor,
-            this has no impact on the returned value. If this is None
-            (default), the raw option is used as the label.
+          description: Function to modify option display. Receives raw option, outputs display label. No impact on return value in st.data_editor. None (default) uses raw option.
           default: None
           kwarg_only: true
     streamlit.column_config.NumberColumn:
@@ -5749,19 +5704,12 @@ api:
           kwarg_only: true
         options:
           type: Iterable[str, int, float, bool] or None
-          description: >-
-            The options that can be selected during editing. If this is None
-            (default), the options will be inferred from the underlying dataframe
-            column if its dtype is "category". For more information, see Pandas docs).
+          description: 'The options that can be selected during editing. If None (default), inferred from dataframe column dtype "category".'
           default: None
           kwarg_only: true
         format_func:
           type: function or None
-          description: >-
-            Function to modify the display of the options. It receives
-            the raw option defined in options as an argument and should output
-            the label to be shown for that option. If this is None (default),
-            the raw option is used as the label.
+          description: Function to modify option display. Receives raw option, outputs display label. None (default) uses raw option as label.
           default: None
           kwarg_only: true
     streamlit.column_config.TextColumn:
@@ -6390,11 +6338,7 @@ api:
           kwarg_only: true
         default:
           type: str or None
-          description: >-
-            The default tab to select. If this is None (default), the first
-            tab is selected. If this is a string, it must be one of the tab
-            labels. If two tabs have the same label as default, the first
-            one is selected.
+          description: The default tab to select. None (default) selects the first tab. If a string, must match a tab label. Duplicate labels select the first match.
           default: None
           kwarg_only: true
         key:
@@ -6570,31 +6514,15 @@ api:
           default: None
         clamp:
           type: bool
-          description: >-
-            Whether to clamp image pixel values to a valid range (0-255 per
-            channel). This is only used for byte array images; the parameter is
-            ignored for image URLs and files. If this is False (default)
-            and an image has an out-of-range value, a RuntimeError will be
-            raised.
+          description: Whether to clamp image pixel values to 0-255. Only for byte array images (ignored for URLs/files). False (default) raises RuntimeError on out-of-range values.
           default: 'False'
         channels:
           type: '"RGB" or "BGR"'
-          description: >-
-            The color format when image is an nd.array. This is ignored
-            for other image types. If this is "RGB" (default),
-            image[:, :, 0] is the red channel, image[:, :, 1] is the
-            green channel, and image[:, :, 2] is the blue channel. For
-            images coming from libraries like OpenCV, you should set this to
-            "BGR" instead.
+          description: 'Color format for nd.array images (ignored for URLs/files). "RGB" (default): standard channel order. "BGR": for OpenCV images.'
           default: '"RGB"'
         output_format:
           type: '"JPEG", "PNG", or "auto"'
-          description: >-
-            The output format to use when transferring the image data. If this
-            is "auto" (default), Streamlit identifies the compression type
-            based on the type and format of the image. Photos should use the
-            "JPEG" format for lossy compression while diagrams should use
-            the "PNG" format for lossless compression.
+          description: 'Image output format. "auto" (default): Streamlit picks based on image type. "JPEG": lossy (for photos). "PNG": lossless (for diagrams).'
           default: '"auto"'
         use_container_width:
           type: bool
@@ -6603,12 +6531,7 @@ api:
           kwarg_only: true
         link:
           type: str or None
-          description: >-
-            The URL to open when a user clicks on the image. This can be an
-            external URL like "https://streamlit.io" or a relative path
-            like "/my_page". If link is None (default), the
-            image will not include a hyperlink.
-            This parameter is only supported when displaying a single image.
+          description: 'URL to open on click (e.g. "https://streamlit.io" or "/my_page"). None (default) means no hyperlink. Only for single images.'
           default: None
           kwarg_only: true
     streamlit.logo:
@@ -6900,13 +6823,7 @@ api:
       parameters:
         text:
           type: str
-          description: >-
-            The text to display next to the spinner. This defaults to
-            "In progress...".
-            The text can optionally contain GitHub-flavored Markdown. Syntax
-            information can be found at: https://github.github.com/gfm.
-            See the body parameter of st.markdown for additional, supported
-            Markdown directives.
+          description: 'Text displayed next to the spinner. Defaults to "In progress...". Supports GitHub-flavored Markdown.'
           default: '"In progress..."'
         show_time:
           type: bool
@@ -7411,16 +7328,11 @@ api:
           default: 'False'
         allow_output_mutation:
           type: bool
-          description: >-
-            Whether to use st.cache_data or st.cache_resource. If this is
-            False (default), the arguments are passed to st.cache_data. If
-            this is True, the arguments are passed to st.cache_resource.
+          description: Whether to use st.cache_data or st.cache_resource. False (default) uses cache_data. True uses cache_resource.
           default: 'False'
         show_spinner:
           type: bool
-          description: >-
-            Enable the spinner. Default is True to show a spinner when there is
-            a "cache miss" and the cached data is being created.
+          description: Enable the spinner. True (default) shows spinner on cache miss.
           default: 'True'
         suppress_st_warning:
           type: bool
@@ -7437,16 +7349,11 @@ api:
           default: None
         max_entries:
           type: int or None
-          description: >-
-            The maximum number of entries to keep in the cache, or None
-            for an unbounded cache. (When a new entry is added to a full cache,
-            the oldest cached entry will be removed.) The default is None.
+          description: Max cache entries. None (default) for unbounded. Oldest entry evicted when full.
           default: None
         ttl:
           type: float or None
-          description: >-
-            The maximum number of seconds to keep an entry in the cache, or
-            None if cache entries should not expire. The default is None.
+          description: Max seconds to keep a cache entry. None (default) means no expiry.
           default: None
     streamlit.cache_data:
       signature: st.cache_data(func=None, *, ttl, max_entries, show_spinner, show_time=False, persist, hash_funcs=None, scope="global")
@@ -7512,10 +7419,7 @@ api:
           kwarg_only: true
         persist:
           type: '"disk", bool, or None'
-          description: >-
-            Optional location to persist cached data to. Passing "disk" (or True)
-            will persist the cached data to the local disk. None (or False) will disable
-            persistence. The default is None.
+          description: 'Persist cached data to disk. "disk" or True persists locally. None or False (default) disables persistence.'
           default: None
           kwarg_only: true
         hash_funcs:
@@ -7578,9 +7482,7 @@ api:
       parameters:
         func:
           type: callable
-          description: >-
-            The function that creates the cached resource. Streamlit hashes the
-            function's source code.
+          description: The function that creates the cached resource. Streamlit hashes the function's source code.
         ttl:
           type: float, timedelta, str, or None
           description: >-
@@ -8097,11 +7999,7 @@ api:
       - type: None
     streamlit.connections.SQLConnection.connect:
       signature: SQLConnection.connect()
-      description: >-
-        Call .connect() on the underlying SQLAlchemy Engine, returning a new        connection object.
-        Calling this method is equivalent to calling self._instance.connect().
-        NOTE: This method should not be confused with the internal _connect method used
-        to implement a Streamlit Connection.
+      description: Call .connect() on the underlying SQLAlchemy Engine, returning a new connection object (equivalent to self._instance.connect()). Not to be confused with the internal _connect method.
       source: lib/streamlit/connections/sql_connection.py#L360
       returns:
       - type: sqlalchemy.engine.Connection
@@ -8115,9 +8013,7 @@ api:
         description: The name of the driver. For example, "pyodbc" or "psycopg2".
     streamlit.connections.SQLConnection.engine:
       signature: SQLConnection.engine
-      description: >-
-        The underlying SQLAlchemy Engine.
-        This is equivalent to accessing self._instance.
+      description: The underlying SQLAlchemy Engine (equivalent to self._instance).
       source: lib/streamlit/connections/sql_connection.py#L376
       returns:
       - type: sqlalchemy.engine.base.Engine
@@ -8270,11 +8166,7 @@ api:
       source: lib/streamlit/connections/snowflake_connection.py#L358
     streamlit.connections.SnowflakeConnection.cursor:
       signature: SnowflakeConnection.cursor()
-      description: >-
-        Create a new cursor object from this connection.
-        Snowflake Connector cursors implement the Python Database API v2.0
-        specification (PEP-249). For more information, see the
-        Snowflake Connector for Python documentation.
+      description: Create a new cursor object from this connection. Implements Python Database API v2.0 (PEP-249).
       source: lib/streamlit/connections/snowflake_connection.py#L250
       returns:
       - type: snowflake.connector.cursor.SnowflakeCursor
@@ -8327,10 +8219,7 @@ api:
         description: The result of running the query, formatted as a pandas DataFrame.
     streamlit.connections.SnowflakeConnection.raw_connection:
       signature: SnowflakeConnection.raw_connection
-      description: >-
-        Access the underlying connection object from the Snowflake        Connector for Python.
-        For information on how to use the Snowflake Connector for Python, see
-        the Snowflake Connector for Python documentation.
+      description: Access the underlying Snowflake Connector for Python connection object.
       source: lib/streamlit/connections/snowflake_connection.py#L283
       returns:
       - type: snowflake.connector.connection.SnowflakeConnection
@@ -8349,11 +8238,7 @@ api:
       - type: '"global" or "session"'
     streamlit.connections.SnowflakeConnection.session:
       signature: SnowflakeConnection.session()
-      description: >-
-        Create a new Snowpark session from this connection.
-        For information on how to use Snowpark sessions, see the
-        Snowpark developer guide
-        and Snowpark API Reference.
+      description: Create a new Snowpark session from this connection.
       source: lib/streamlit/connections/snowflake_connection.py#L322
       returns:
       - type: snowflake.snowpark.Session
@@ -8744,11 +8629,7 @@ api:
       source: lib/streamlit/user_info.py#L309
     streamlit.user.to_dict:
       signature: st.user.to_dict()
-      description: >-
-        Get user info as a dictionary.
-        This method primarily exists for internal use and is not needed for
-        most cases. st.user returns an object that inherits from
-        dict by default.
+      description: Get user info as a dictionary. Primarily for internal use; st.user already inherits from dict.
       source: lib/streamlit/user_info.py#L677
       returns:
       - type: Dict[str,str]
@@ -9194,13 +9075,7 @@ api:
   helper_classes:
     DeltaGenerator.add_rows:
       signature: element.add_rows(data=None, **kwargs)
-      description: >-
-        Concatenate a dataframe to the bottom of the current one.
-        Important
-        add_rows is deprecated and might be removed in a future version.
-        If you have a specific use-case that requires the add_rows
-        functionality, please tell us via this
-        [issue on Github](https://github.com/streamlit/streamlit/issues/13063).
+      description: 'Concatenate a dataframe to the bottom of the current one. Important: add_rows is deprecated and may be removed in a future version.'
       source: lib/streamlit/elements/arrow.py#L809
       parameters:
         data:
@@ -9214,10 +9089,7 @@ api:
           kwarg_only: true
     StatusContainer.update:
       signature: StatusContainer.update(*, label=None, expanded=None, state=None)
-      description: >-
-        Update the status container.
-        Only specified arguments are updated. Container contents and unspecified
-        arguments remain unchanged.
+      description: Update the status container. Only specified arguments are updated; contents and unspecified arguments remain unchanged.
       source: lib/streamlit/elements/lib/mutable_status_container.py#L108
       parameters:
         label:
@@ -9237,11 +9109,7 @@ api:
           kwarg_only: true
     CachedFunc.clear:
       signature: CachedFunc.clear(*args, **kwargs)
-      description: >-
-        Clear the cached function's associated cache.
-        If no arguments are passed, Streamlit will clear all values cached for
-        the function. If arguments are passed, Streamlit will clear the cached
-        value for these arguments only.
+      description: Clear the cached function's associated cache. No args clears all cached values. With args, clears only the cached value for those specific arguments.
       source: lib/streamlit/runtime/caching/cache_utils.py#L423
       parameters:
         '*args':
@@ -9553,9 +9421,7 @@ api:
   streamlit_page:
     StreamlitPage:
       signature: StreamlitPage(page, *, title=None, icon=None, url_path=None, default=False, visibility="visible")
-      description: >-
-        A page within a multipage Streamlit app.
-        Use st.Page to initialize a StreamlitPage object.
+      description: A page within a multipage Streamlit app. Use st.Page to initialize.
       source: lib/streamlit/navigation/page.py#L173
       parameters:
         icon:
@@ -9581,18 +9447,11 @@ api:
           default: '"visible"'
     StreamlitPage.icon:
       signature: StreamlitPage.icon
-      description: >-
-        The icon of the page.
-        If no icon was declared in st.Page, this property returns "".
+      description: 'The icon of the page. Returns "" if no icon declared in st.Page.'
       source: lib/streamlit/navigation/page.py#L320
     StreamlitPage.run:
       signature: StreamlitPage.run()
-      description: >-
-        Execute the page.
-        When a page is returned by st.navigation, use the .run() method
-        within your entrypoint file to render the page. You can only call this
-        method on the page returned by st.navigation. You can only call
-        this method once per run of your entrypoint file.
+      description: Execute the page. Call .run() on the page returned by st.navigation within your entrypoint file. Can only be called once per run.
       source: lib/streamlit/navigation/page.py#L354
     StreamlitPage.title:
       signature: StreamlitPage.title
@@ -9605,22 +9464,11 @@ api:
       source: lib/streamlit/navigation/page.py#L307
     StreamlitPage.url_path:
       signature: StreamlitPage.url_path
-      description: >-
-        The page's URL pathname, which is the path relative to the app's         root URL.
-        Unless declared otherwise in st.Page, the URL pathname is inferred
-        from the filename or callable name. For more information, see
-        Overview of multipage apps.
-        The default page will always have a url_path of "" to indicate
-        the root URL (e.g. homepage).
+      description: 'The page''s URL pathname relative to the app''s root URL. If not declared, inferred from filename or callable name. Default page has url_path="" (root URL).'
       source: lib/streamlit/navigation/page.py#L328
     StreamlitPage.visibility:
       signature: StreamlitPage.visibility
-      description: >-
-        The visibility of the page in the navigation menu.
-        This property returns "visible" (default) or "hidden".
-        Hidden pages are not shown in the navigation menu but can still
-        be accessed via URL or programmatically using st.switch_page
-        or st.page_link.
+      description: 'The visibility of the page in the nav menu. Returns "visible" (default) or "hidden". Hidden pages are still accessible via URL, st.switch_page, or st.page_link.'
       source: lib/streamlit/navigation/page.py#L343
   app_test:
     AppTest.button:
