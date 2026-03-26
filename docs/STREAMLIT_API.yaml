@@ -208,21 +208,7 @@ api:
           kwarg_only: true
         accept_file:
           type: bool, "multiple", or "directory"
-          description: >-
-            Whether the chat input should accept files. This can be one of the
-            following values:
-            False (default): No files are accepted and the user can only
-            submit a message.
-            True: The user can add a single file to their submission.
-            "multiple": The user can add multiple files to their
-            submission.
-            "directory": The user can add multiple files to their
-            submission by selecting a directory. If file_type is set,
-            only files matching those type(s) will be uploaded.
-            By default, uploaded files are limited to 200 MB each. You can
-            configure this using the server.maxUploadSize config option.
-            For more information on how to set config options, see
-            config.toml.
+          description: 'Whether the chat input should accept files. False (default): no files accepted. True: single file. "multiple": multiple files. "directory": select a directory (filtered by file_type if set). Uploaded files limited to 200 MB each (configurable via server.maxUploadSize).'
           default: 'False'
           kwarg_only: true
         file_type:
@@ -276,21 +262,7 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this checkbox is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this checkbox is for. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images). Images display like icons, max height equal to font height. Unsupported Markdown elements are unwrapped so only their children render. For accessibility, never set an empty label (use label_visibility to hide).'
         value:
           type: bool
           description: Preselect the checkbox when it first renders. Cast to bool internally.
@@ -402,61 +374,18 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this date input is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this date input is for. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images). For accessibility, never set an empty label (use label_visibility to hide).'
         value:
           type: '"today", datetime.date, datetime.datetime, str, list/tuple of these, or None'
-          description: >-
-            The value of this widget when it first renders. This can be one of
-            the following:
-            "today" (default): The widget initializes with the current date.
-            A datetime.date or datetime.datetime object: The widget
-            initializes with the given date, ignoring any time if included.
-            An ISO-formatted date (YYYY-MM-DD) or datetime
-            (YYYY-MM-DD hh:mm:ss) string: The widget initializes with the
-            given date, ignoring any time if included.
-            A list or tuple with up to two of the above: The widget will
-            initialize with the given date interval and return a tuple of the
-            selected interval. You can pass an empty list to initialize the
-            widget with an empty interval or a list with one value to
-            initialize only the beginning date of the iterval.
-            None: The widget initializes with no date and returns
-            None until the user selects a date.
+          description: 'The value of this widget when it first renders. "today" (default): current date. A datetime.date or datetime.datetime: given date, ignoring time. An ISO-formatted date/datetime string: parsed date. A list/tuple with up to two dates: date interval (empty list = empty interval, one value = start only). None: no initial date, returns None until user selects.'
           default: '"today"'
         min_value:
           type: '"today", datetime.date, datetime.datetime, str, or None'
-          description: >-
-            The minimum selectable date. This can be any of the date types
-            accepted by value, except list or tuple.
-            If this is None (default), the minimum selectable date is ten
-            years before the initial value. If the initial value is an
-            interval, the minimum selectable date is ten years before the start
-            date of the interval. If no initial value is set, the minimum
-            selectable date is ten years before today.
+          description: 'The minimum selectable date. Accepts same types as value except list/tuple. None (default): ten years before the initial value (or ten years before today if no initial value).'
           default: None
         max_value:
           type: '"today", datetime.date, datetime.datetime, str, or None'
-          description: >-
-            The maximum selectable date. This can be any of the date types
-            accepted by value, except list or tuple.
-            If this is None (default), the maximum selectable date is ten
-            years after the initial value. If the initial value is an interval,
-            the maximum selectable date is ten years after the end date of the
-            interval. If no initial value is set, the maximum selectable date
-            is ten years after today.
+          description: 'The maximum selectable date. Accepts same types as value except list/tuple. None (default): ten years after the initial value (or ten years after today if no initial value).'
           default: None
         key:
           type: str, int, or None
@@ -515,37 +444,10 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this datetime input is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this datetime input is for. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images). For accessibility, never set an empty label (use label_visibility to hide).'
         value:
           type: '"now", datetime.datetime, datetime.date, datetime.time, str, or None'
-          description: >-
-            The value of this widget when it first renders. This can be one of
-            the following:
-            "now" (default): The widget initializes with the current date and time.
-            A datetime.datetime object: The widget initializes with the given
-            datetime, stripping any timezone information.
-            A datetime.date object: The widget initializes with the given date
-            at 00:00.
-            A datetime.time object: The widget initializes with today's date
-            and the provided time.
-            An ISO-formatted datetime (YYYY-MM-DD hh:mm[:ss]) or date/time
-            string: The widget initializes with the parsed value.
-            None: The widget initializes with no value and returns None
-            until the user selects a datetime.
+          description: 'The value of this widget when it first renders. "now" (default): current date and time. A datetime.datetime: given datetime, timezone stripped. A datetime.date: given date at 00:00. A datetime.time: today with given time. An ISO-formatted datetime/date/time string: parsed value. None: no initial value, returns None until user selects.'
           default: '"now"'
         min_value:
           type: '"now", datetime.datetime, datetime.date, datetime.time, str, or None'
@@ -617,17 +519,7 @@ api:
       signature: st.download_button(label, data, file_name=None, mime=None, key=None, help=None, on_click="rerun", args=None,
         kwargs=None, *, type="secondary", icon=None, icon_position="left", disabled=False, use_container_width=None, width="content",
         shortcut=None)
-      description: >-
-        Display a download button widget.
-        This is useful when you would like to provide a way for your users
-        to download a file directly from your app.
-        If you pass the data directly to the data parameter, then the data
-        is stored in-memory while the user is connected. It's a good idea to
-        keep file sizes under a couple hundred megabytes to conserve memory or
-        use deferred data generation by passing a callable to the data
-        parameter.
-        If you want to prevent your app from rerunning when a user clicks the
-        download button, wrap the download button in a fragment.
+      description: 'Display a download button widget. Provides a way for users to download a file directly from the app. Data passed directly is stored in-memory while user is connected — keep under a couple hundred MB or use deferred generation via callable. Wrap in a fragment to prevent app rerun on click.'
       source: lib/streamlit/elements/widgets/button.py#L395
       parameters:
         label:
@@ -635,38 +527,14 @@ api:
           description: 'Short label for the button. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images).'
         data:
           type: str, bytes, file-like, or callable
-          description: >-
-            The contents of the file to be downloaded or a callable that
-            returns the contents of the file.
-            File contents can be a string, bytes, or file-like object.
-            File-like objects include io.BytesIO, io.StringIO, or any
-            class that implements the abstract base class io.RawIOBase.
-            If a callable is passed, it is executed when the user clicks
-            the download button and runs on a separate thread from the
-            resulting script rerun. This deferred generation is helpful for
-            large files to avoid blocking the page script. The callable can't
-            accept any arguments. If any Streamlit commands are executed inside
-            the callable, they will be ignored.
-            To prevent unnecessary recomputation, use caching when converting
-            your data for download. For more information, see the Example 1
-            below.
+          description: 'The contents of the file to be downloaded or a callable that returns the contents. File contents can be a string, bytes, or file-like object (io.BytesIO, io.StringIO, io.RawIOBase). If a callable is passed, it runs on a separate thread when the user clicks — helpful for large files to avoid blocking. The callable cannot accept arguments and any Streamlit commands inside it are ignored. Use caching to prevent unnecessary recomputation.'
         file_name:
           type: str
           description: 'Optional filename for download (e.g. "my_file.csv"). Auto-generated if not specified.'
           default: None
         mime:
           type: str or None
-          description: >-
-            The MIME type of the data. If this is None (default), Streamlit
-            sets the MIME type depending on the value of data as follows:
-            If data is a string or textual file (i.e. str or
-            io.TextIOWrapper object), Streamlit uses the "text/plain"
-            MIME type.
-            If data is a binary file or bytes (i.e. bytes,
-            io.BytesIO, io.BufferedReader, or io.RawIOBase
-            object), Streamlit uses the "application/octet-stream" MIME type.
-            For more information about MIME types, see
-            https://www.iana.org/assignments/media-types/media-types.xhtml.
+          description: 'The MIME type of the data. None (default): auto-detected — "text/plain" for strings/textual files (str, io.TextIOWrapper), "application/octet-stream" for binary data (bytes, io.BytesIO, io.BufferedReader, io.RawIOBase).'
           default: None
         key:
           type: str, int, or None
@@ -678,18 +546,7 @@ api:
           default: None
         on_click:
           type: callable, "rerun", "ignore", or None
-          description: >-
-            How the button should respond to user interaction. This controls
-            whether or not the button triggers a rerun and if a callback
-            function is called. This can be one of the following values:
-            "rerun" (default): The user downloads the file and the app
-            reruns. No callback function is called.
-            "ignore": The user downloads the file and the app doesn't
-            rerun. No callback function is called.
-            A callable: The user downloads the file and app reruns. The
-            callable is called before the rest of the app.
-            None: This is same as on_click="rerun". This value exists
-            for backwards compatibility and shouldn't be used.
+          description: 'How the button should respond to user interaction. "rerun" (default): download + app reruns, no callback. "ignore": download + no rerun, no callback. A callable: download + app reruns, callable called before rest of app. None: same as "rerun" (backwards compatibility).'
           default: '"rerun"'
         args:
           type: list or tuple
@@ -706,11 +563,7 @@ api:
           kwarg_only: true
         icon:
           type: str or None
-          description: >-
-            An optional emoji or icon to display next to the button label. If icon is None (default), no icon is displayed. If icon is a string, the following options are valid:
-            - A single-character emoji (e.g. icon="🚨" or icon="🔥"). Emoji short codes are not supported.
-            - An icon from the Material Symbols library (rounded style) in the format ":material/icon_name:" where "icon_name" is the name of the icon in snake case. Example: icon=":material/thumb_up:".
-            - "spinner": Displays a spinner as an icon.
+          description: 'Optional emoji or icon next to button label. None (default) = no icon. Options: single-character emoji, Material Symbols icon (":material/icon_name:"), or "spinner".'
           default: None
           kwarg_only: true
         icon_position:
@@ -797,21 +650,7 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this file uploader is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this file uploader is for. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images). For accessibility, never set an empty label (use label_visibility to hide).'
         type:
           type: str, list of str, or None
           description: 'Allowed file extension(s). None (default) = all allowed. String = single extension (e.g. "csv"). List = multiple (e.g. ["jpg","jpeg","png"]). Best-effort check, not a security guarantee.'
@@ -1091,14 +930,7 @@ api:
           default: None
         format:
           type: str or None
-          description: >-
-            A printf-style format string controlling how the interface should
-            display numbers. The output must be purely numeric. This does not
-            impact the return value of the widget. For more information about
-            the formatting specification, see sprintf.js.
-            For example, format="%0.1f" adjusts the displayed decimal
-            precision to only show one digit after the decimal. Use , for
-            thousand separators (e.g. "%,d" yields "1,234").
+          description: 'A printf-style format string controlling how the interface displays numbers. Output must be purely numeric. Does not impact return value. E.g. "%0.1f" for one decimal digit, "%,d" for thousand separators ("1,234"). See sprintf.js for full spec.'
           default: None
         key:
           type: str, int, or None
@@ -1156,14 +988,7 @@ api:
     streamlit.page_link:
       signature: st.page_link(page, *, label=None, icon=None, icon_position="left", help=None, disabled=False, use_container_width=None,
         width="content", query_params=None)
-      description: >-
-        Display a link to another page in a multipage app or to an external page.
-        If another page in a multipage app is specified, clicking st.page_link
-        stops the current page execution and runs the specified page as if the
-        user clicked on it in the sidebar navigation.
-        If an external page is specified, clicking st.page_link opens a new
-        tab to the specified page. The current script run will continue if not
-        complete.
+      description: 'Display a link to another page in a multipage app or to an external page. If another page in a multipage app is specified, clicking st.page_link stops the current page execution and runs the specified page as if the user clicked on it in the sidebar navigation. If an external page is specified, clicking st.page_link opens a new tab to the specified page. The current script run will continue if not complete.'
       source: lib/streamlit/elements/widgets/button.py#L965
       parameters:
         page:
@@ -1171,18 +996,7 @@ api:
           description: 'File path (relative to main script), StreamlitPage, or external URL (must start with "http://" or "https://").'
         label:
           type: str
-          description: >-
-            The label for the page link. Labels are required for external pages.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'The label for the page link. Labels are required for external pages. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
           default: None
           kwarg_only: true
         icon:
@@ -1212,17 +1026,7 @@ api:
           kwarg_only: true
         width:
           type: '"content", "stretch", or int'
-          description: >-
-            The width of the page-link button. This can be one of the following:
-            "content" (default): The width of the button matches the
-            width of its content, but doesn't exceed the width of the parent
-            container.
-            "stretch": The width of the button matches the width of the
-            parent container.
-            An integer specifying the width in pixels: The button has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the button matches the width
-            of the parent container.
+          description: '"content" (default): matches content width, capped at parent. "stretch": matches parent width. Integer: fixed width in pixels, capped at parent.'
           default: '"content"'
           kwarg_only: true
         query_params:
@@ -1314,21 +1118,7 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this radio group is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this radio group is for. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images). For accessibility, never set an empty label (use label_visibility to hide).'
         options:
           type: Iterable
           description: 'Labels for the select options (list, set, or anything supported by st.dataframe). If dataframe-like, first column used. Cast to str internally. Supports Markdown.'
@@ -1633,41 +1423,7 @@ api:
           default: None
         format:
           type: str or None
-          description: >-
-            A printf-style format string or a predefined format name controlling
-            how the interface should display values. This does not impact the
-            return value.
-            For integers and floats, you can use a printf-style format string
-            or one of the following predefined formats:
-            "plain": Show the full number without formatting (e.g. 1234.567).
-            "localized": Show the number in the user's locale format (e.g. 1,234.567).
-            "percent": Show as a percentage (e.g. 50% from 0.5).
-            "dollar": Show as US dollars (e.g. $1,234.57).
-            "euro": Show as euros (e.g. €1,234.57).
-            "yen": Show as Japanese yen (e.g. ¥1,235).
-            "compact": Show in compact notation (e.g. 1.2K).
-            "scientific": Show in scientific notation (e.g. 1.235E3).
-            "engineering": Show in engineering notation (e.g. 1.235E3).
-            "accounting": Show in accounting format with parentheses for negatives.
-            "bytes": Show in byte units (e.g. 1.2KB).
-            For information about printf-style format strings, see
-            sprintf.js.
-            For example, format="%0.1f" adjusts the displayed decimal
-            precision to only show one digit after the decimal. Use , for
-            thousand separators (e.g. "%,d" yields "1,234").
-            For datetimes, dates, and times, you can use a momentJS format string
-            or one of the following predefined formats:
-            "localized": Show in the user's locale format.
-            "distance": Show as relative time (e.g. "2 hours ago").
-            "calendar": Show as calendar time (e.g. "Tomorrow 12:00").
-            Works best with datetime values. For date-only values, displays
-            relative day names (e.g. "Yesterday"). For time-only values,
-            this format may produce unexpected results.
-            "iso8601": Show in ISO 8601 format.
-            For information about momentJS format strings, see
-            momentJS.
-            For example, format="ddd ha" adjusts the displayed datetime to
-            show the day of the week and the hour ("Tue 8pm").
+          description: 'A printf-style format string or predefined format name controlling how values are displayed. Does not impact the return value. For integers and floats, accepts a printf-style format string (e.g. "%0.1f" for one decimal, "%,d" for thousand separators yielding "1,234") or a predefined format: "plain" (1234.567), "localized" (1,234.567), "percent" (50% from 0.5), "dollar" ($1,234.57), "euro" (€1,234.57), "yen" (¥1,235), "compact" (1.2K), "scientific" (1.235E3), "engineering" (1.235E3), "accounting" (parentheses for negatives), "bytes" (1.2KB). See sprintf.js for full printf spec. For datetimes, dates, and times, accepts a momentJS format string (e.g. "ddd ha" yields "Tue 8pm") or a predefined format: "localized" (user locale), "distance" (relative time, e.g. "2 hours ago"), "calendar" (e.g. "Tomorrow 12:00", works best with datetime values, may produce unexpected results for time-only), "iso8601" (ISO 8601 format). See momentJS docs for full format spec.'
           default: None
         key:
           type: str, int, or None
@@ -1727,22 +1483,7 @@ api:
           default: '""'
         height:
           type: '"content", "stretch", int, or None'
-          description: >-
-            The height of the text area widget. This can be one of the
-            following:
-            None (default): The height of the widget fits three lines.
-            "content": The height of the widget matches the
-            height of its content.
-            "stretch": The height of the widget matches the height of
-            its content or the height of the parent container, whichever is
-            larger. If the widget is not in a parent container, the height
-            of the widget matches the height of its content.
-            An integer specifying the height in pixels: The widget has a
-            fixed height. If the content is larger than the specified
-            height, scrolling is enabled.
-            The widget's height can't be smaller than the height of two lines.
-            When label_visibility="collapsed", the minimum height is 68
-            pixels. Otherwise, the minimum height is 98 pixels.
+          description: 'The height of the text area widget. None (default): fits three lines. "content": matches content height. "stretch": matches content or parent container height, whichever is larger. Integer: fixed height in pixels with scrolling if content exceeds. Minimum height is two lines (68px when label_visibility="collapsed", 98px otherwise).'
           default: None
         max_chars:
           type: int or None
@@ -1883,34 +1624,10 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this time input is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this time input is for. Supports GitHub-flavored Markdown (Bold, Italics, Strikethroughs, Inline Code, Links, Images). For accessibility, never set an empty label (use label_visibility to hide).'
         value:
           type: '"now", datetime.time, datetime.datetime, str, or None'
-          description: >-
-            The value of this widget when it first renders. This can be one of
-            the following:
-            "now" (default): The widget initializes with the current time.
-            A datetime.time or datetime.datetime object: The widget
-            initializes with the given time, ignoring any date if included.
-            An ISO-formatted time (hh:mm[:ss.sss]) or datetime
-            (YYYY-MM-DD hh:mm[:ss]) string: The widget initializes with the
-            given time, ignoring any date if included.
-            None: The widget initializes with no time and returns
-            None until the user selects a time.
+          description: 'The value of this widget when it first renders. "now" (default): current time. A datetime.time or datetime.datetime: given time, ignoring any date. An ISO-formatted time (hh:mm[:ss.sss]) or datetime string: parsed time, ignoring date. None: no initial time, returns None until user selects.'
           default: '"now"'
         key:
           type: str, int, or None
@@ -1968,21 +1685,7 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            A short label explaining to the user what this toggle is for.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
-            For accessibility reasons, you should never set an empty label, but
-            you can hide it with label_visibility if needed. In the future,
-            we may disallow empty labels by raising an exception.
+          description: 'A short label explaining to the user what this toggle is for. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives. For accessibility reasons, you should never set an empty label, but you can hide it with label_visibility if needed. In the future, we may disallow empty labels by raising an exception.'
         value:
           type: bool
           description: Preselect the toggle when it first renders. Cast to bool internally.
@@ -2110,58 +1813,12 @@ api:
           kwarg_only: true
         color:
           type: str, tuple, Sequence of str, Sequence of tuple, or None
-          description: >-
-            The color to use for different series in this chart.
-            For an area chart with just 1 series, this can be:
-            None, to use the default color.
-            A hex string like "#ffaa00" or "#ffaa0088".
-            An RGB or RGBA tuple with the red, green, blue, and alpha
-            components specified as ints from 0 to 255 or floats from 0.0 to
-            1.0.
-            A built-in color name: "red", "orange", "yellow", "green",
-            "blue", "violet", "gray"/"grey", or "primary". These map to
-            theme colors that you can customize using theme.<color>Color
-            configuration options.
-            For an area chart with multiple series, where the dataframe is in
-            long format (that is, y is None or just one column), this can be:
-            None, to use the default colors.
-            The name of a column in the dataset. Data points will be grouped
-            into series of the same color based on the value of this column.
-            In addition, if the values in this column match one of the color
-            formats above (hex string or color tuple), then that color will
-            be used.
-            For example: if the dataset has 1000 rows, but this column only
-            contains the values "adult", "child", and "baby", then those 1000
-            datapoints will be grouped into three series whose colors will be
-            automatically selected from the default palette.
-            But, if for the same 1000-row dataset, this column contained
-            the values "#ffaa00", "#f0f", "#0000ff", then then those 1000
-            datapoints would still be grouped into 3 series, but their
-            colors would be "#ffaa00", "#f0f", "#0000ff" this time around.
-            For an area chart with multiple series, where the dataframe is in
-            wide format (that is, y is a Sequence of columns), this can be:
-            None, to use the default colors.
-            A list of string colors or color tuples to be used for each of
-            the series in the chart. This list should have the same length
-            as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"]
-            for three lines). You can also use built-in color names in the
-            list (e.g. color=["red", "blue", "green"]).
-            You can set the default colors in the theme.chartCategoryColors
-            configuration option.
+          description: 'The color to use for different series in this chart. For an area chart with just 1 series, this can be: None, to use the default color. A hex string like "#ffaa00" or "#ffaa0088". An RGB or RGBA tuple with the red, green, blue, and alpha components specified as ints from 0 to 255 or floats from 0.0 to 1.0. A built-in color name: "red", "orange", "yellow", "green", "blue", "violet", "gray"/"grey", or "primary". These map to theme colors that you can customize using theme.<color>Color configuration options. For an area chart with multiple series, where the dataframe is in long format (that is, y is None or just one column), this can be: None, to use the default colors. The name of a column in the dataset. Data points will be grouped into series of the same color based on the value of this column. In addition, if the values in this column match one of the color formats above (hex string or color tuple), then that color will be used. For example: if the dataset has 1000 rows, but this column only contains the values "adult", "child", and "baby", then those 1000 datapoints will be grouped into three series whose colors will be automatically selected from the default palette. But, if for the same 1000-row dataset, this column contained the values "#ffaa00", "#f0f", "#0000ff", then those 1000 datapoints would still be grouped into 3 series, but their colors would be "#ffaa00", "#f0f", "#0000ff" this time around. For an area chart with multiple series, where the dataframe is in wide format (that is, y is a Sequence of columns), this can be: None, to use the default colors. A list of string colors or color tuples to be used for each of the series in the chart. This list should have the same length as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"] for three lines). You can also use built-in color names in the list (e.g. color=["red", "blue", "green"]). You can set the default colors in the theme.chartCategoryColors configuration option.'
           default: None
           kwarg_only: true
         stack:
           type: bool, "normalize", "center", or None
-          description: >-
-            Whether to stack the areas. If this is None (default),
-            Streamlit uses Vega's default. Other values can be as follows:
-            True: The areas form a non-overlapping, additive stack within
-            the chart.
-            False: The areas overlap each other without stacking.
-            "normalize": The areas are stacked and the total height is
-            normalized to 100% of the height of the chart.
-            "center": The areas are stacked and shifted to center their
-            baseline, which creates a steamgraph.
+          description: 'Whether to stack the areas. If this is None (default), Streamlit uses Vega''s default. Other values can be as follows: True: The areas form a non-overlapping, additive stack within the chart. False: The areas overlap each other without stacking. "normalize": The areas are stacked and the total height is normalized to 100% of the height of the chart. "center": The areas are stacked and shifted to center their baseline, which creates a steamgraph.'
           default: None
           kwarg_only: true
         width:
@@ -2211,43 +1868,7 @@ api:
           kwarg_only: true
         color:
           type: str, tuple, Sequence of str, Sequence of tuple, or None
-          description: >-
-            Color for different series. For a single series:
-            None, to use the default color.
-            A hex string like "#ffaa00" or "#ffaa0088".
-            An RGB or RGBA tuple with the red, green, blue, and alpha
-            components specified as ints from 0 to 255 or floats from 0.0 to
-            1.0.
-            A built-in color name: "red", "orange", "yellow", "green",
-            "blue", "violet", "gray"/"grey", or "primary". These map to
-            theme colors that you can customize using theme.<color>Color
-            configuration options.
-            For a bar chart with multiple series, where the dataframe is in
-            long format (that is, y is None or just one column), this can be:
-            None, to use the default colors.
-            The name of a column in the dataset. Data points will be grouped
-            into series of the same color based on the value of this column.
-            In addition, if the values in this column match one of the color
-            formats above (hex string or color tuple), then that color will
-            be used.
-            For example: if the dataset has 1000 rows, but this column only
-            contains the values "adult", "child", and "baby", then those 1000
-            datapoints will be grouped into three series whose colors will be
-            automatically selected from the default palette.
-            But, if for the same 1000-row dataset, this column contained
-            the values "#ffaa00", "#f0f", "#0000ff", then then those 1000
-            datapoints would still be grouped into 3 series, but their
-            colors would be "#ffaa00", "#f0f", "#0000ff" this time around.
-            For a bar chart with multiple series, where the dataframe is in
-            wide format (that is, y is a Sequence of columns), this can be:
-            None, to use the default colors.
-            A list of string colors or color tuples to be used for each of
-            the series in the chart. This list should have the same length
-            as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"]
-            for three lines). You can also use built-in color names in the
-            list (e.g. color=["red", "blue", "green"]).
-            You can set the default colors in the theme.chartCategoryColors
-            configuration option.
+          description: 'Color for different series. For a single series: None, to use the default color. A hex string like "#ffaa00" or "#ffaa0088". An RGB or RGBA tuple with the red, green, blue, and alpha components specified as ints from 0 to 255 or floats from 0.0 to 1.0. A built-in color name: "red", "orange", "yellow", "green", "blue", "violet", "gray"/"grey", or "primary". These map to theme colors that you can customize using theme.<color>Color configuration options. For a bar chart with multiple series, where the dataframe is in long format (that is, y is None or just one column), this can be: None, to use the default colors. The name of a column in the dataset. Data points will be grouped into series of the same color based on the value of this column. In addition, if the values in this column match one of the color formats above (hex string or color tuple), then that color will be used. For example: if the dataset has 1000 rows, but this column only contains the values "adult", "child", and "baby", then those 1000 datapoints will be grouped into three series whose colors will be automatically selected from the default palette. But, if for the same 1000-row dataset, this column contained the values "#ffaa00", "#f0f", "#0000ff", then those 1000 datapoints would still be grouped into 3 series, but their colors would be "#ffaa00", "#f0f", "#0000ff" this time around. For a bar chart with multiple series, where the dataframe is in wide format (that is, y is a Sequence of columns), this can be: None, to use the default colors. A list of string colors or color tuples to be used for each of the series in the chart. This list should have the same length as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"] for three lines). You can also use built-in color names in the list (e.g. color=["red", "blue", "green"]). You can set the default colors in the theme.chartCategoryColors configuration option.'
           default: None
           kwarg_only: true
         horizontal:
@@ -2257,32 +1878,12 @@ api:
           kwarg_only: true
         sort:
           type: bool or str
-          description: >-
-            How to sort the bars. This can be one of the following:
-            True (default): The bars are sorted automatically along the
-            independent/categorical axis with Altair's default sorting. This
-            also correctly sorts ordered categorical columns
-            (pd.Categorical).
-            False: The bars are shown in data order without sorting.
-            The name of a column (e.g. "col1"): The bars are sorted by
-            that column in ascending order.
-            The name of a column with a minus-sign prefix (e.g. "-col1"):
-            The bars are sorted by that column in descending order.
+          description: 'How to sort the bars. This can be one of the following: True (default): The bars are sorted automatically along the independent/categorical axis with Altair''s default sorting. This also correctly sorts ordered categorical columns (pd.Categorical). False: The bars are shown in data order without sorting. The name of a column (e.g. "col1"): The bars are sorted by that column in ascending order. The name of a column with a minus-sign prefix (e.g. "-col1"): The bars are sorted by that column in descending order.'
           default: 'True'
           kwarg_only: true
         stack:
           type: bool, "normalize", "center", "layered", or None
-          description: >-
-            Whether to stack the bars. If this is None (default),
-            Streamlit uses Vega's default. Other values can be as follows:
-            True: The bars form a non-overlapping, additive stack within
-            the chart.
-            False: The bars display side by side.
-            "layered": The bars overlap each other without stacking.
-            "normalize": The bars are stacked and the total height is
-            normalized to 100% of the height of the chart.
-            "center": The bars are stacked and shifted to center the
-            total height around an axis.
+          description: 'Whether to stack the bars. If this is None (default), Streamlit uses Vega''s default. Other values can be as follows: True: The bars form a non-overlapping, additive stack within the chart. False: The bars display side by side. "layered": The bars overlap each other without stacking. "normalize": The bars are stacked and the total height is normalized to 100% of the height of the chart. "center": The bars are stacked and shifted to center the total height around an axis.'
           default: None
           kwarg_only: true
         width:
@@ -2314,17 +1915,7 @@ api:
           default: None
         width:
           type: '"content", "stretch", or int'
-          description: >-
-            The width of the chart element. This can be one of the following:
-            "content" (default): The width of the element matches the
-            width of its content, but doesn't exceed the width of the parent
-            container.
-            "stretch": The width of the element matches the width of the
-            parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"content" (default): The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. "stretch": The width of the element matches the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"content"'
           kwarg_only: true
         height:
@@ -2364,44 +1955,7 @@ api:
           kwarg_only: true
         color:
           type: str, tuple, Sequence of str, Sequence of tuple, or None
-          description: >-
-            The color to use for different lines in this chart.
-            For a line chart with just one line, this can be:
-            None, to use the default color.
-            A hex string like "#ffaa00" or "#ffaa0088".
-            An RGB or RGBA tuple with the red, green, blue, and alpha
-            components specified as ints from 0 to 255 or floats from 0.0 to
-            1.0.
-            A built-in color name: "red", "orange", "yellow", "green",
-            "blue", "violet", "gray"/"grey", or "primary". These map to
-            theme colors that you can customize using theme.<color>Color
-            configuration options.
-            For a line chart with multiple lines, where the dataframe is in
-            long format (that is, y is None or just one column), this can be:
-            None, to use the default colors.
-            The name of a column in the dataset. Data points will be grouped
-            into lines of the same color based on the value of this column.
-            In addition, if the values in this column match one of the color
-            formats above (hex string or color tuple), then that color will
-            be used.
-            For example: if the dataset has 1000 rows, but this column only
-            contains the values "adult", "child", and "baby", then those 1000
-            datapoints will be grouped into three lines whose colors will be
-            automatically selected from the default palette.
-            But, if for the same 1000-row dataset, this column contained
-            the values "#ffaa00", "#f0f", "#0000ff", then then those 1000
-            datapoints would still be grouped into three lines, but their
-            colors would be "#ffaa00", "#f0f", "#0000ff" this time around.
-            For a line chart with multiple lines, where the dataframe is in
-            wide format (that is, y is a Sequence of columns), this can be:
-            None, to use the default colors.
-            A list of string colors or color tuples to be used for each of
-            the lines in the chart. This list should have the same length
-            as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"]
-            for three lines). You can also use built-in color names in the
-            list (e.g. color=["red", "blue", "green"]).
-            You can set the default colors in the theme.chartCategoryColors
-            configuration option.
+          description: 'The color to use for different lines in this chart. For a line chart with just one line, this can be: None, to use the default color. A hex string like "#ffaa00" or "#ffaa0088". An RGB or RGBA tuple with the red, green, blue, and alpha components specified as ints from 0 to 255 or floats from 0.0 to 1.0. A built-in color name: "red", "orange", "yellow", "green", "blue", "violet", "gray"/"grey", or "primary". These map to theme colors that you can customize using theme.<color>Color configuration options. For a line chart with multiple lines, where the dataframe is in long format (that is, y is None or just one column), this can be: None, to use the default colors. The name of a column in the dataset. Data points will be grouped into lines of the same color based on the value of this column. In addition, if the values in this column match one of the color formats above (hex string or color tuple), then that color will be used. For example: if the dataset has 1000 rows, but this column only contains the values "adult", "child", and "baby", then those 1000 datapoints will be grouped into three lines whose colors will be automatically selected from the default palette. But, if for the same 1000-row dataset, this column contained the values "#ffaa00", "#f0f", "#0000ff", then those 1000 datapoints would still be grouped into three lines, but their colors would be "#ffaa00", "#f0f", "#0000ff" this time around. For a line chart with multiple lines, where the dataframe is in wide format (that is, y is a Sequence of columns), this can be: None, to use the default colors. A list of string colors or color tuples to be used for each of the lines in the chart. This list should have the same length as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"] for three lines). You can also use built-in color names in the list (e.g. color=["red", "blue", "green"]). You can set the default colors in the theme.chartCategoryColors configuration option.'
           default: None
           kwarg_only: true
         width:
@@ -2422,24 +1976,7 @@ api:
     streamlit.map:
       signature: st.map(data=None, *, latitude=None, longitude=None, color=None, size=None, zoom=None, width="stretch", height=500,
         use_container_width=None)
-      description: >-
-        Display a map with a scatterplot overlaid onto it.
-        This is a wrapper around st.pydeck_chart to quickly create
-        scatterplot charts on top of a map, with auto-centering and auto-zoom.
-        When using this command, a service called Carto provides the map tiles to render
-        map content. If you're using advanced PyDeck features you may need to obtain
-        an API key from Carto first. You can do that as
-        pydeck.Deck(api_keys={"carto": YOUR_KEY}) or by setting the CARTO_API_KEY
-        environment variable. See PyDeck's documentation for more information.
-        Another common provider for map tiles is Mapbox. If you prefer to use that,
-        you'll need to create an account at https://mapbox.com and specify your Mapbox
-        key when creating the pydeck.Deck object. You can do that as
-        pydeck.Deck(api_keys={"mapbox": YOUR_KEY}) or by setting the MAPBOX_API_KEY
-        environment variable.
-        Carto and Mapbox are third-party products and Streamlit accepts no responsibility
-        or liability of any kind for Carto or Mapbox, or for any content or information
-        made available by Carto or Mapbox. The use of Carto or Mapbox is governed by
-        their respective Terms of Use.
+      description: 'Display a map with a scatterplot overlaid onto it. This is a wrapper around st.pydeck_chart to quickly create scatterplot charts on top of a map, with auto-centering and auto-zoom. When using this command, a service called Carto provides the map tiles to render map content. If you''re using advanced PyDeck features you may need to obtain an API key from Carto first. You can do that as pydeck.Deck(api_keys={"carto": YOUR_KEY}) or by setting the CARTO_API_KEY environment variable. See PyDeck''s documentation for more information. Another common provider for map tiles is Mapbox. If you prefer to use that, you''ll need to create an account at https://mapbox.com and specify your Mapbox key when creating the pydeck.Deck object. You can do that as pydeck.Deck(api_keys={"mapbox": YOUR_KEY}) or by setting the MAPBOX_API_KEY environment variable. Carto and Mapbox are third-party products and Streamlit accepts no responsibility or liability of any kind for Carto or Mapbox, or for any content or information made available by Carto or Mapbox. The use of Carto or Mapbox is governed by their respective Terms of Use.'
       source: lib/streamlit/elements/map.py#L89
       parameters:
         data:
@@ -2544,34 +2081,7 @@ api:
     streamlit.pydeck_chart:
       signature: st.pydeck_chart(pydeck_obj=None, *, width="stretch", use_container_width=None, height=500, selection_mode="single-object",
         on_select="ignore", key=None)
-      description: >-
-        Draw a chart using the PyDeck library.
-        This supports 3D maps, point clouds, and more! More info about PyDeck
-        at https://deckgl.readthedocs.io/en/latest/.
-        These docs are also quite useful:
-        DeckGL docs: https://github.com/uber/deck.gl/tree/master/docs
-        DeckGL JSON docs: https://github.com/uber/deck.gl/tree/master/modules/json
-        When using this command, a service called Carto provides the map tiles to render
-        map content. If you're using advanced PyDeck features you may need to obtain
-        an API key from Carto first. You can do that as
-        pydeck.Deck(api_keys={"carto": YOUR_KEY}) or by setting the CARTO_API_KEY
-        environment variable. See PyDeck's documentation for more information.
-        Another common provider for map tiles is Mapbox. If you prefer to use that,
-        you'll need to create an account at https://mapbox.com and specify your Mapbox
-        key when creating the pydeck.Deck object. You can do that as
-        pydeck.Deck(api_keys={"mapbox": YOUR_KEY}) or by setting the MAPBOX_API_KEY
-        environment variable.
-        Carto and Mapbox are third-party products and Streamlit accepts no responsibility
-        or liability of any kind for Carto or Mapbox, or for any content or information
-        made available by Carto or Mapbox. The use of Carto or Mapbox is governed by
-        their respective Terms of Use.
-        Note
-        Pydeck uses two WebGL contexts per chart, and different browsers
-        have different limits on the number of WebGL contexts per page.
-        If you exceed this limit, the oldest contexts will be dropped to
-        make room for the new ones. To avoid this limitation in most
-        browsers, don't display more than eight Pydeck charts on a single
-        page.
+      description: 'Draw a chart using the PyDeck library. This supports 3D maps, point clouds, and more! More info about PyDeck at https://deckgl.readthedocs.io/en/latest/. These docs are also quite useful: DeckGL docs: https://github.com/uber/deck.gl/tree/master/docs, DeckGL JSON docs: https://github.com/uber/deck.gl/tree/master/modules/json. When using this command, a service called Carto provides the map tiles to render map content. If you''re using advanced PyDeck features you may need to obtain an API key from Carto first. You can do that as pydeck.Deck(api_keys={"carto": YOUR_KEY}) or by setting the CARTO_API_KEY environment variable. See PyDeck''s documentation for more information. Another common provider for map tiles is Mapbox. If you prefer to use that, you''ll need to create an account at https://mapbox.com and specify your Mapbox key when creating the pydeck.Deck object. You can do that as pydeck.Deck(api_keys={"mapbox": YOUR_KEY}) or by setting the MAPBOX_API_KEY environment variable. Carto and Mapbox are third-party products and Streamlit accepts no responsibility or liability of any kind for Carto or Mapbox, or for any content or information made available by Carto or Mapbox. The use of Carto or Mapbox is governed by their respective Terms of Use. Note: Pydeck uses two WebGL contexts per chart, and different browsers have different limits on the number of WebGL contexts per page. If you exceed this limit, the oldest contexts will be dropped to make room for the new ones. To avoid this limitation in most browsers, don''t display more than eight Pydeck charts on a single page.'
       source: lib/streamlit/elements/deck_gl_json_chart.py#L300
       parameters:
         pydeck_obj:
@@ -2670,40 +2180,7 @@ api:
           kwarg_only: true
         color:
           type: str, tuple, Sequence of str, Sequence of tuple, or None
-          description: >-
-            The color of the circles representing each datapoint.
-            This can be:
-            None, to use the default color.
-            A hex string like "#ffaa00" or "#ffaa0088".
-            An RGB or RGBA tuple with the red, green, blue, and alpha
-            components specified as ints from 0 to 255 or floats from 0.0 to
-            1.0.
-            A built-in color name: "red", "orange", "yellow", "green",
-            "blue", "violet", "gray"/"grey", or "primary". These map to
-            theme colors that you can customize using theme.<color>Color
-            configuration options.
-            The name of a column in the dataset where the color of that
-            datapoint will come from.
-            If the values in this column are in one of the color formats
-            above (hex string or color tuple), then that color will be used.
-            Otherwise, the color will be automatically picked from the
-            default palette.
-            For example: if the dataset has 1000 rows, but this column only
-            contains the values "adult", "child", and "baby", then those 1000
-            datapoints be shown using three colors from the default palette.
-            But if this column only contains floats or ints, then those
-            1000 datapoints will be shown using a colors from a continuous
-            color gradient.
-            Finally, if this column only contains the values "#ffaa00",
-            "#f0f", "#0000ff", then then each of those 1000 datapoints will
-            be assigned "#ffaa00", "#f0f", or "#0000ff" as appropriate.
-            If the dataframe is in wide format (that is, y is a Sequence of
-            columns), this can also be:
-            A list of string colors or color tuples to be used for each of
-            the series in the chart. This list should have the same length
-            as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"]
-            for three series). You can also use built-in color names in the
-            list (e.g. color=["red", "blue", "green"]).
+          description: 'The color of the circles representing each datapoint. This can be: None, to use the default color. A hex string like "#ffaa00" or "#ffaa0088". An RGB or RGBA tuple with the red, green, blue, and alpha components specified as ints from 0 to 255 or floats from 0.0 to 1.0. A built-in color name: "red", "orange", "yellow", "green", "blue", "violet", "gray"/"grey", or "primary". These map to theme colors that you can customize using theme.<color>Color configuration options. The name of a column in the dataset where the color of that datapoint will come from. If the values in this column are in one of the color formats above (hex string or color tuple), then that color will be used. Otherwise, the color will be automatically picked from the default palette. For example: if the dataset has 1000 rows, but this column only contains the values "adult", "child", and "baby", then those 1000 datapoints will be shown using three colors from the default palette. But if this column only contains floats or ints, then those 1000 datapoints will be shown using colors from a continuous color gradient. Finally, if this column only contains the values "#ffaa00", "#f0f", "#0000ff", then each of those 1000 datapoints will be assigned "#ffaa00", "#f0f", or "#0000ff" as appropriate. If the dataframe is in wide format (that is, y is a Sequence of columns), this can also be: A list of string colors or color tuples to be used for each of the series in the chart. This list should have the same length as the number of y values (e.g. color=["#fd0", "#f0f", "#04f"] for three series). You can also use built-in color names in the list (e.g. color=["red", "blue", "green"]).'
           default: None
           kwarg_only: true
         size:
@@ -2772,16 +2249,7 @@ api:
           kwarg_only: true
         selection_mode:
           type: str or Iterable of str
-          description: >-
-            The selection parameters Streamlit should use. If
-            selection_mode is None (default), Streamlit will use all
-            selection parameters defined in the chart's Vega-Lite spec.
-            When Streamlit uses a selection parameter, selections from that
-            parameter will trigger a rerun and be included in the selection
-            state. When Streamlit does not use a selection parameter,
-            selections from that parameter will not trigger a rerun and not be
-            included in the selection state.
-            Selection parameters are identified by their name property.
+          description: 'The selection parameters Streamlit should use. If selection_mode is None (default), Streamlit will use all selection parameters defined in the chart''s Vega-Lite spec. When Streamlit uses a selection parameter, selections from that parameter will trigger a rerun and be included in the selection state. When Streamlit does not use a selection parameter, selections from that parameter will not trigger a rerun and not be included in the selection state. Selection parameters are identified by their name property.'
           default: None
           kwarg_only: true
         '**kwargs':
@@ -2799,14 +2267,7 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            The label to display in the badge. The label can optionally contain
-            GitHub-flavored Markdown of the following types: Bold, Italics,
-            Strikethroughs, Inline Code.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives. Because this command escapes square
-            brackets ([ ]) in this parameter, any directive requiring
-            square brackets is not supported.
+          description: 'The label to display in the badge. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code. See the body parameter of st.markdown for additional supported Markdown directives. Because this command escapes square brackets ([ ]) in this parameter, any directive requiring square brackets is not supported.'
         icon:
           type: str or None
           description: 'Optional emoji or icon next to badge label. None (default) = no icon. Options: single-character emoji, Material Symbols icon (":material/icon_name:"), or "spinner".'
@@ -2846,16 +2307,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the caption element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         text_alignment:
@@ -2887,37 +2339,12 @@ api:
           kwarg_only: true
         height:
           type: '"content", "stretch", or int'
-          description: >-
-            The height of the code block element. This can be one of the following:
-            "content" (default): The height of the element matches the
-            height of its content.
-            "stretch": The height of the element matches the height of
-            its content or the height of the parent container, whichever is
-            larger. If the element is not in a parent container, the height
-            of the element matches the height of its content.
-            An integer specifying the height in pixels: The element has a
-            fixed height. If the content is larger than the specified
-            height, scrolling is enabled.
-            Note
-            Use scrolling containers sparingly. If you use scrolling
-            containers, avoid heights that exceed 500 pixels. Otherwise,
-            the scroll surface of the container might cover the majority of
-            the screen on mobile devices, which makes it hard to scroll the
-            rest of the app.
+          description: '"content" (default): The height of the element matches the height of its content. "stretch": The height of the element matches the height of its content or the height of the parent container, whichever is larger. If the element is not in a parent container, the height of the element matches the height of its content. An integer specifying the height in pixels: The element has a fixed height. If the content is larger than the specified height, scrolling is enabled. Note: Use scrolling containers sparingly. If you use scrolling containers, avoid heights that exceed 500 pixels. Otherwise, the scroll surface of the container might cover the majority of the screen on mobile devices, which makes it hard to scroll the rest of the app.'
           default: '"content"'
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the code block element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
     streamlit.divider:
@@ -2954,16 +2381,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the header element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         text_alignment:
@@ -2988,49 +2406,15 @@ api:
           kwarg_only: true
     streamlit.html:
       signature: st.html(body, *, width="stretch", unsafe_allow_javascript=False)
-      description: >-
-        Insert HTML into your app.
-        Adding custom HTML to your app impacts safety, styling, and
-        maintainability. We sanitize HTML with DOMPurify, but inserting HTML remains a
-        developer risk. Passing untrusted code to st.html or dynamically
-        loading external code can increase the risk of vulnerabilities in your
-        app.
-        st.html content is not iframed. By default, JavaScript is
-        ignored. To execute JavaScript contained in your HTML, set
-        unsafe_allow_javascript=True. Use this with caution and never pass
-        untrusted input.
+      description: 'Insert HTML into your app. Adding custom HTML to your app impacts safety, styling, and maintainability. We sanitize HTML with DOMPurify, but inserting HTML remains a developer risk. Passing untrusted code to st.html or dynamically loading external code can increase the risk of vulnerabilities in your app. st.html content is not iframed. By default, JavaScript is ignored. To execute JavaScript contained in your HTML, set unsafe_allow_javascript=True. Use this with caution and never pass untrusted input.'
       source: lib/streamlit/elements/html.py#L39
       parameters:
         body:
           type: any
-          description: >-
-            The HTML code to insert. This can be one of the following:
-            A string of HTML code.
-            A path to a local file with HTML code. The path can be a str
-            or Path object. Paths can be absolute or relative to the
-            working directory (where you execute streamlit run).
-            Any object. If body is not a string or path, Streamlit will
-            convert the object to a string. body._repr_html_() takes
-            precedence over str(body) when available.
-            If the resulting HTML content is empty, Streamlit will raise an
-            error.
-            If body is a path to a CSS file, Streamlit will wrap the CSS
-            content in <style> tags automatically. When the resulting HTML
-            content only contains style tags, Streamlit will send the content
-            to the event container instead of the main container to avoid
-            taking up space in the app.
+          description: 'The HTML code to insert. This can be one of the following: A string of HTML code. A path to a local file with HTML code. The path can be a str or Path object. Paths can be absolute or relative to the working directory (where you execute streamlit run). Any object. If body is not a string or path, Streamlit will convert the object to a string. body._repr_html_() takes precedence over str(body) when available. If the resulting HTML content is empty, Streamlit will raise an error. If body is a path to a CSS file, Streamlit will wrap the CSS content in <style> tags automatically. When the resulting HTML content only contains style tags, Streamlit will send the content to the event container instead of the main container to avoid taking up space in the app.'
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the HTML element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         unsafe_allow_javascript:
@@ -3053,16 +2437,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the LaTeX element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
     streamlit.markdown:
@@ -3084,20 +2459,7 @@ api:
           kwarg_only: true
         width:
           type: '"auto", "stretch", "content", or int'
-          description: >-
-            The width of the Markdown element. This can be one of the following:
-            "auto" (default): The width of the element adapts based on
-            the container flex layout. In vertical containers, the element
-            uses "stretch" width. In horizontal containers, the element
-            uses "content" width.
-            "stretch": The width of the element matches the width of
-            the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"auto" (default): The width of the element adapts based on the container flex layout. In vertical containers, the element uses "stretch" width. In horizontal containers, the element uses "content" width. "stretch": The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"auto"'
           kwarg_only: true
         text_alignment:
@@ -3129,16 +2491,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the subheader element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         text_alignment:
@@ -3161,17 +2514,7 @@ api:
           kwarg_only: true
         width:
           type: '"content", "stretch", or int'
-          description: >-
-            The width of the text element. This can be one of the following:
-            "content" (default): The width of the element matches the
-            width of its content, but doesn't exceed the width of the parent
-            container.
-            "stretch": The width of the element matches the width of the
-            parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"content" (default): The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. "stretch": The width of the element matches the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"content"'
           kwarg_only: true
         text_alignment:
@@ -3198,16 +2541,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the title element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         text_alignment:
@@ -3225,59 +2559,15 @@ api:
       parameters:
         data:
           type: Anything supported by st.dataframe
-          description: >-
-            The data to edit in the data editor.
-            Note
-            Styles from pandas.Styler will only be applied to non-editable columns.
-            Text and number formatting from column_config always takes
-            precedence over text and number formatting from pandas.Styler.
-            If your dataframe starts with an empty column, you should set
-            the column datatype in the underlying dataframe to ensure your
-            intended datatype, especially for integers versus floats.
-            Mixing data types within a column can make the column uneditable.
-            Additionally, the following data types are not yet supported for editing:
-            complex, tuple, bytes, bytearray,
-            memoryview, dict, set, frozenset,
-            fractions.Fraction, pandas.Interval, and
-            pandas.Period.
-            To prevent overflow in JavaScript, columns containing
-            datetime.timedelta and pandas.Timedelta values will
-            default to uneditable, but this can be changed through column
-            configuration.
+          description: 'The data to edit in the data editor. Note: Styles from pandas.Styler will only be applied to non-editable columns. Text and number formatting from column_config always takes precedence over text and number formatting from pandas.Styler. If your dataframe starts with an empty column, you should set the column datatype in the underlying dataframe to ensure your intended datatype, especially for integers versus floats. Mixing data types within a column can make the column uneditable. Additionally, the following data types are not yet supported for editing: complex, tuple, bytes, bytearray, memoryview, dict, set, frozenset, fractions.Fraction, pandas.Interval, and pandas.Period. To prevent overflow in JavaScript, columns containing datetime.timedelta and pandas.Timedelta values will default to uneditable, but this can be changed through column configuration.'
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the data editor. This can be one of the following:
-            "stretch" (default): The width of the editor matches the
-            width of the parent container.
-            "content": The width of the editor matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The editor has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the editor matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the editor matches the width of the parent container. "content": The width of the editor matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The editor has a fixed width. If the specified width is greater than the width of the parent container, the width of the editor matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         height:
           type: '"auto", "content", "stretch", or int'
-          description: >-
-            The height of the data editor. This can be one of the following:
-            "auto" (default): Streamlit sets the height to show at most
-            ten rows.
-            "content": The height of the editor matches the height of
-            its content. The height is capped at 10,000 pixels to prevent
-            performance issues with very large dataframes.
-            "stretch": The height of the editor expands to fill the
-            available vertical space in its parent container. When multiple
-            elements with stretch height are in the same container, they
-            share the available vertical space evenly. The editor will
-            maintain a minimum height to display up to three rows, but
-            otherwise won't exceed the available height in its parent
-            container.
-            An integer specifying the height in pixels: The editor has a
-            fixed height.
-            Vertical scrolling within the editor is enabled when the height
-            does not accommodate all rows.
+          description: '"auto" (default): Streamlit sets the height to show at most ten rows. "content": The height of the editor matches the height of its content. The height is capped at 10,000 pixels to prevent performance issues with very large dataframes. "stretch": The height of the editor expands to fill the available vertical space in its parent container. When multiple elements with stretch height are in the same container, they share the available vertical space evenly. The editor will maintain a minimum height to display up to three rows, but otherwise won''t exceed the available height in its parent container. An integer specifying the height in pixels: The editor has a fixed height. Vertical scrolling within the editor is enabled when the height does not accommodate all rows.'
           default: '"auto"'
           kwarg_only: true
         use_container_width:
@@ -3351,68 +2641,15 @@ api:
       parameters:
         data:
           type: dataframe-like, collection-like, or None
-          description: >-
-            The data to display.
-            Dataframe-like objects include dataframe and series objects from
-            popular libraries like Dask, Modin, Numpy, pandas, Polars, PyArrow,
-            Snowpark, Xarray, and more. You can use database cursors and
-            clients that comply with the
-            Python Database API Specification v2.0 (PEP 249). Additionally, you can use
-            anything that supports the Python dataframe interchange protocol.
-            For example, you can use the following:
-            pandas.DataFrame, pandas.Series, pandas.Index,
-            pandas.Styler, and pandas.Array
-            polars.DataFrame, polars.LazyFrame, and polars.Series
-            snowflake.snowpark.dataframe.DataFrame,
-            snowflake.snowpark.table.Table
-            If a data type is not recognized, Streamlit will convert the object
-            to a pandas.DataFrame or pyarrow.Table using a
-            .to_pandas() or .to_arrow() method, respectively, if
-            available.
-            If data is a pandas.Styler, it will be used to style its
-            underlying pandas.DataFrame. Streamlit supports custom cell
-            values, colors, and font weights. It does not support some of the
-            more exotic styling options, like bar charts, hovering, and
-            captions. For these styling options, use column configuration
-            instead. Text and number formatting from column_config always
-            takes precedence over text and number formatting from pandas.Styler.
-            Collection-like objects include all Python-native Collection
-            types, such as dict, list, and set.
-            If data is None, Streamlit renders an empty table.
+          description: 'The data to display. Dataframe-like objects include dataframe and series objects from popular libraries like Dask, Modin, Numpy, pandas, Polars, PyArrow, Snowpark, Xarray, and more. You can use database cursors and clients that comply with the Python Database API Specification v2.0 (PEP 249). Additionally, you can use anything that supports the Python dataframe interchange protocol. For example, you can use the following: pandas.DataFrame, pandas.Series, pandas.Index, pandas.Styler, and pandas.Array; polars.DataFrame, polars.LazyFrame, and polars.Series; snowflake.snowpark.dataframe.DataFrame, snowflake.snowpark.table.Table. If a data type is not recognized, Streamlit will convert the object to a pandas.DataFrame or pyarrow.Table using a .to_pandas() or .to_arrow() method, respectively, if available. If data is a pandas.Styler, it will be used to style its underlying pandas.DataFrame. Streamlit supports custom cell values, colors, and font weights. It does not support some of the more exotic styling options, like bar charts, hovering, and captions. For these styling options, use column configuration instead. Text and number formatting from column_config always takes precedence over text and number formatting from pandas.Styler. Collection-like objects include all Python-native Collection types, such as dict, list, and set. If data is None, Streamlit renders an empty table.'
           default: None
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the dataframe element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
         height:
           type: '"auto", "content", "stretch", or int'
-          description: >-
-            The height of the dataframe element. This can be one of the following:
-            "auto" (default): Streamlit sets the height to show at most
-            ten rows.
-            "content": The height of the element matches the height of
-            its content. The height is capped at 10,000 pixels to prevent
-            performance issues with very large dataframes.
-            "stretch": The height of the element expands to fill the
-            available vertical space in its parent container. When multiple
-            elements with stretch height are in the same container, they
-            share the available vertical space evenly. The dataframe will
-            maintain a minimum height to display up to three rows, but
-            otherwise won't exceed the available height in its parent
-            container.
-            An integer specifying the height in pixels: The element has a
-            fixed height.
-            Vertical scrolling within the dataframe element is enabled when the
-            height does not accommodate all rows.
+          description: '"auto" (default): Streamlit sets the height to show at most ten rows. "content": The height of the element matches the height of its content. The height is capped at 10,000 pixels to prevent performance issues with very large dataframes. "stretch": The height of the element expands to fill the available vertical space in its parent container. When multiple elements with stretch height are in the same container, they share the available vertical space evenly. The dataframe will maintain a minimum height to display up to three rows, but otherwise won''t exceed the available height in its parent container. An integer specifying the height in pixels: The element has a fixed height. Vertical scrolling within the dataframe element is enabled when the height does not accommodate all rows.'
           default: '"auto"'
         use_container_width:
           type: bool
@@ -3431,24 +2668,7 @@ api:
           kwarg_only: true
         column_config:
           type: dict or None
-          description: >-
-            Configuration to customize how columns are displayed. If this is
-            None (default), columns are styled based on the underlying data
-            type of each column.
-            Column configuration can modify column names, visibility, type,
-            width, format, and more. If this is a dictionary, the keys are
-            column names (strings) and/or positional column indices (integers),
-            and the values are one of the following:
-            None to hide the column.
-            A string to set the display label of the column.
-            One of the column types defined under st.column_config. For
-            example, to show a column as dollar amounts, use
-            st.column_config.NumberColumn("Dollar values", format="$ %d").
-            See more info on the available column types and config options
-            here.
-            To configure the index column(s), use "_index" as the column
-            name, or use a positional column index where 0 refers to the
-            first index column.
+          description: 'Configuration to customize how columns are displayed. If this is None (default), columns are styled based on the underlying data type of each column. Column configuration can modify column names, visibility, type, width, format, and more. If this is a dictionary, the keys are column names (strings) and/or positional column indices (integers), and the values are one of the following: None to hide the column. A string to set the display label of the column. One of the column types defined under st.column_config. For example, to show a column as dollar amounts, use st.column_config.NumberColumn("Dollar values", format="$ %d"). See more info on the available column types and config options here. To configure the index column(s), use "_index" as the column name, or use a positional column index where 0 refers to the first index column.'
           default: None
           kwarg_only: true
         key:
@@ -3464,20 +2684,7 @@ api:
         selection_mode:
           type: '"single-row", "multi-row", "single-column",             "multi-column", "single-cell", "multi-cell", or Iterable
             of these'
-          description: >-
-            The types of selections Streamlit should allow when selections are
-            enabled with on_select. This can be one of the following:
-            "multi-row" (default): Multiple rows can be selected at a time.
-            "single-row": Only one row can be selected at a time.
-            "multi-column": Multiple columns can be selected at a time.
-            "single-column": Only one column can be selected at a time.
-            "multi-cell": A rectangular range of cells can be selected.
-            "single-cell": Only one cell can be selected at a time.
-            An Iterable of the above options: The table will allow
-            selection based on the modes specified. For example, to allow the
-            user to select multiple rows and multiple cells, use
-            ["multi-row", "multi-cell"].
-            When column selections are enabled, column sorting is disabled.
+          description: 'The types of selections Streamlit should allow when selections are enabled with on_select. This can be one of the following: "multi-row" (default): Multiple rows can be selected at a time. "single-row": Only one row can be selected at a time. "multi-column": Multiple columns can be selected at a time. "single-column": Only one column can be selected at a time. "multi-cell": A rectangular range of cells can be selected. "single-cell": Only one cell can be selected at a time. An Iterable of the above options: The table will allow selection based on the modes specified. For example, to allow the user to select multiple rows and multiple cells, use ["multi-row", "multi-cell"]. When column selections are enabled, column sorting is disabled.'
           default: '"multi-row"'
           kwarg_only: true
         row_height:
@@ -3503,16 +2710,7 @@ api:
           description: The object to print as JSON. All referenced objects must be JSON-serializable. Strings are assumed to contain serialized JSON.
         expanded:
           type: bool or int
-          description: >-
-            The initial expansion state of the JSON element. This can be one
-            of the following:
-            True (default): The element is fully expanded.
-            False: The element is fully collapsed.
-            An integer: The element is expanded to the depth specified. The
-            integer must be non-negative. expanded=0 is equivalent to
-            expanded=False.
-            Regardless of the initial expansion state, users can collapse or
-            expand any key-value pair to show or hide any part of the object.
+          description: 'The initial expansion state of the JSON element. This can be one of the following: True (default): The element is fully expanded. False: The element is fully collapsed. An integer: The element is expanded to the depth specified. The integer must be non-negative. expanded=0 is equivalent to expanded=False. Regardless of the initial expansion state, users can collapse or expand any key-value pair to show or hide any part of the object.'
           default: 'True'
           kwarg_only: true
         width:
@@ -3528,49 +2726,17 @@ api:
       parameters:
         label:
           type: str
-          description: >-
-            The header or title for the metric. The label can optionally
-            contain GitHub-flavored Markdown of the following types: Bold, Italics,
-            Strikethroughs, Inline Code, Links, and Images. Images display like
-            icons, with a max height equal to the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'The header or title for the metric. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
         value:
           type: int, float, decimal.Decimal, str, or None
           description: Value of the metric. None renders as a long dash. Supports GitHub-flavored Markdown (same as label).
         delta:
           type: int, float, decimal.Decimal, str, or None
-          description: >-
-            Amount or indicator of change in the metric. An arrow is shown next
-            to the delta, oriented according to its sign:
-            If the delta is None or an empty string, no arrow is shown.
-            If the delta is a negative number or starts with a minus sign,
-            the arrow points down and the delta is red.
-            Otherwise, the arrow points up and the delta is green.
-            You can modify the display, color, and orientation of the arrow
-            using the delta_color and delta_arrow parameters.
-            The delta can optionally contain GitHub-flavored Markdown, subject
-            to the same limitations described in the label parameter.
+          description: 'Amount or indicator of change in the metric. An arrow is shown next to the delta, oriented according to its sign: If the delta is None or an empty string, no arrow is shown. If the delta is a negative number or starts with a minus sign, the arrow points down and the delta is red. Otherwise, the arrow points up and the delta is green. You can modify the display, color, and orientation of the arrow using the delta_color and delta_arrow parameters. The delta can optionally contain GitHub-flavored Markdown, subject to the same limitations described in the label parameter.'
           default: None
         delta_color:
           type: str
-          description: >-
-            The color of the delta and chart. This can be one of the following:
-            "normal" (default): The color is red when the delta is
-            negative and green otherwise.
-            "inverse": The color is green when the delta is negative and
-            red otherwise. This is useful when a negative change is
-            considered good, like a decrease in cost.
-            "off": The color is gray regardless of the delta.
-            A named color from the basic palette: The chart and delta are the
-            specified color regardless of their value. This can be one of the
-            following: "red", "orange", "yellow", "green",
-            "blue", "violet", "gray"/"grey", or
-            "primary".
+          description: 'The color of the delta and chart. This can be one of the following: "normal" (default): The color is red when the delta is negative and green otherwise. "inverse": The color is green when the delta is negative and red otherwise. This is useful when a negative change is considered good, like a decrease in cost. "off": The color is gray regardless of the delta. A named color from the basic palette: The chart and delta are the specified color regardless of their value. This can be one of the following: "red", "orange", "yellow", "green", "blue", "violet", "gray"/"grey", or "primary".'
           default: '"normal"'
         help:
           type: str or None
@@ -3589,44 +2755,17 @@ api:
           kwarg_only: true
         height:
           type: '"content", "stretch", or int'
-          description: >-
-            The height of the metric element. This can be one of the following:
-            "content" (default): The height of the element matches the
-            height of its content.
-            "stretch": The height of the element matches the height of
-            its content or the height of the parent container, whichever is
-            larger. If the element is not in a parent container, the height
-            of the element matches the height of its content.
-            An integer specifying the height in pixels: The element has a
-            fixed height. If the content is larger than the specified
-            height, scrolling is enabled.
+          description: '"content" (default): The height of the element matches the height of its content. "stretch": The height of the element matches the height of its content or the height of the parent container, whichever is larger. If the element is not in a parent container, the height of the element matches the height of its content. An integer specifying the height in pixels: The element has a fixed height. If the content is larger than the specified height, scrolling is enabled.'
           default: '"content"'
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the metric element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         chart_data:
           type: Iterable or None
-          description: >-
-            A sequence of numeric values to display as a sparkline chart. If
-            this is None (default), no chart is displayed. The sequence can
-            be anything supported by st.dataframe, including a list or
-            set. If the sequence is dataframe-like, the first column will
-            be used. Each value will be cast to float internally by
-            default.
-            The chart uses the color of the delta indicator, which can be
-            modified using the delta_color parameter.
+          description: 'A sequence of numeric values to display as a sparkline chart. If this is None (default), no chart is displayed. The sequence can be anything supported by st.dataframe, including a list or set. If the sequence is dataframe-like, the first column will be used. Each value will be cast to float internally by default. The chart uses the color of the delta indicator, which can be modified using the delta_color parameter.'
           default: None
           kwarg_only: true
         chart_type:
@@ -3636,41 +2775,12 @@ api:
           kwarg_only: true
         delta_arrow:
           type: '"auto", "up", "down", or "off"'
-          description: >-
-            Controls the direction of the delta indicator arrow. This can be
-            one of the following strings:
-            "auto" (default): The arrow direction follows the sign of
-            delta.
-            "up" or "down": The arrow is forced to point in the
-            specified direction.
-            "off": No arrow is shown, but the delta value remains
-            visible.
+          description: 'Controls the direction of the delta indicator arrow. This can be one of the following strings: "auto" (default): The arrow direction follows the sign of delta. "up" or "down": The arrow is forced to point in the specified direction. "off": No arrow is shown, but the delta value remains visible.'
           default: '"auto"'
           kwarg_only: true
         format:
           type: str or None
-          description: >-
-            A format string controlling how numbers are displayed for value
-            and delta. The format is only applied if the value or delta is
-            numeric. If the value or delta is a string with non-numeric
-            characters, the format is ignored. The format can be one of the
-            following values:
-            None (default): No formatting is applied.
-            "plain": Show the full number without any formatting (e.g. "1234.567").
-            "localized": Show the number in the default locale format (e.g. "1,234.567").
-            "percent": Show the number as a percentage (e.g. "123456.70%").
-            "dollar": Show the number as a dollar amount (e.g. "$1,234.57").
-            "euro": Show the number as a euro amount (e.g. "€1,234.57").
-            "yen": Show the number as a yen amount (e.g. "¥1,235").
-            "accounting": Show the number in an accounting format (e.g. "1,234.00").
-            "bytes": Show the number in a byte format (e.g. "1.2KB").
-            "compact": Show the number in a compact format (e.g. "1.2K").
-            "scientific": Show the number in scientific notation (e.g. "1.235E3").
-            "engineering": Show the number in engineering notation (e.g. "1.235E3").
-            printf-style format string: Format the number with a printf
-            specifier, like "%d" to show a signed integer (e.g. "1234") or
-            "%.2f" to show a float with 2 decimal places. Use , for
-            thousand separators (e.g. "%,d" yields "1,234").
+          description: 'A format string controlling how numbers are displayed for value and delta. The format is only applied if the value or delta is numeric. If the value or delta is a string with non-numeric characters, the format is ignored. The format can be one of the following values: None (default): No formatting is applied. "plain": Show the full number without any formatting (e.g. "1234.567"). "localized": Show the number in the default locale format (e.g. "1,234.567"). "percent": Show the number as a percentage (e.g. "123456.70%"). "dollar": Show the number as a dollar amount (e.g. "$1,234.57"). "euro": Show the number as a euro amount (e.g. "€1,234.57"). "yen": Show the number as a yen amount (e.g. "¥1,235"). "accounting": Show the number in an accounting format (e.g. "1,234.00"). "bytes": Show the number in a byte format (e.g. "1.2KB"). "compact": Show the number in a compact format (e.g. "1.2K"). "scientific": Show the number in scientific notation (e.g. "1.235E3"). "engineering": Show the number in engineering notation (e.g. "1.235E3"). printf-style format string: Format the number with a printf specifier, like "%d" to show a signed integer (e.g. "1234") or "%.2f" to show a float with 2 decimal places. Use , for thousand separators (e.g. "%,d" yields "1,234").'
           default: None
           kwarg_only: true
         delta_description:
@@ -3694,33 +2804,12 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the table element. This can be one of the following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            "content": The width of the element matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
-            Row index columns are sticky only when the content overflows a
-            specified integer width. Otherwise, they aren't sticky.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. "content": The width of the element matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container. Row index columns are sticky only when the content overflows a specified integer width. Otherwise, they aren''t sticky.'
           default: '"stretch"'
           kwarg_only: true
         height:
           type: '"stretch", "content", or int'
-          description: >-
-            The height of the table element. This can be one of the following:
-            "content" (default): The height of the element matches the
-            height of its content, showing all rows.
-            "stretch": The height of the element expands to fill the
-            available vertical space in its parent container. When multiple
-            elements with stretch height are in the same container, they
-            share the available vertical space evenly.
-            An integer specifying the height in pixels: The element has a
-            fixed height. If the table content exceeds this height,
-            scrolling is enabled with sticky headers.
+          description: '"content" (default): The height of the element matches the height of its content, showing all rows. "stretch": The height of the element expands to fill the available vertical space in its parent container. When multiple elements with stretch height are in the same container, they share the available vertical space evenly. An integer specifying the height in pixels: The element has a fixed height. If the table content exceeds this height, scrolling is enabled with sticky headers.'
           default: '"content"'
           kwarg_only: true
   column_config:
@@ -3920,23 +3009,7 @@ api:
           kwarg_only: true
         format:
           type: str, "localized", "distance", "iso8601", or None
-          description: >-
-            A format string controlling how dates are displayed.
-            This can be one of the following values:
-            None (default): Show the date in "YYYY-MM-DD" format (e.g.
-            "2025-03-04").
-            "localized": Show the date in the default locale format (e.g.
-            "Mar 4, 2025" in the America/Los_Angeles timezone).
-            "distance": Show the date in a relative format (e.g.
-            "a few seconds ago").
-            "iso8601": Show the date in ISO 8601 format (e.g.
-            "2025-03-04").
-            A momentJS format string: Format the date with a string, like
-            "ddd, MMM Do" to show "Tue, Mar 4th". For available formats, see
-            momentJS.
-            Formatting from column_config always takes precedence over
-            formatting from pandas.Styler. The formatting does not impact the
-            return value when used in st.data_editor.
+          description: 'A format string controlling how dates are displayed. This can be one of the following values: None (default): Show the date in "YYYY-MM-DD" format (e.g. "2025-03-04"). "localized": Show the date in the default locale format (e.g. "Mar 4, 2025" in the America/Los_Angeles timezone). "distance": Show the date in a relative format (e.g. "a few seconds ago"). "iso8601": Show the date in ISO 8601 format (e.g. "2025-03-04"). A momentJS format string: Format the date with a string, like "ddd, MMM Do" to show "Tue, Mar 4th". For available formats, see momentJS. Formatting from column_config always takes precedence over formatting from pandas.Styler. The formatting does not impact the return value when used in st.data_editor.'
           default: None
           kwarg_only: true
         min_value:
@@ -3996,25 +3069,7 @@ api:
           kwarg_only: true
         format:
           type: str, "localized", "distance", "calendar", "iso8601", or None
-          description: >-
-            A format string controlling how datetimes are displayed.
-            This can be one of the following values:
-            None (default): Show the datetime in "YYYY-MM-DD HH:mm:ss"
-            format (e.g. "2025-03-04 20:00:00").
-            "localized": Show the datetime in the default locale format (e.g.
-            "Mar 4, 2025, 12:00:00 PM" in the America/Los_Angeles timezone).
-            "distance": Show the datetime in a relative format (e.g.
-            "a few seconds ago").
-            "calendar": Show the datetime in a calendar format (e.g.
-            "Today at 8:00 PM").
-            "iso8601": Show the datetime in ISO 8601 format (e.g.
-            "2025-03-04T20:00:00.000Z").
-            A momentJS format string: Format the datetime with a string, like
-            "ddd ha" to show "Tue 8pm". For available formats, see
-            momentJS.
-            Formatting from column_config always takes precedence over
-            formatting from pandas.Styler. The formatting does not impact the
-            return value when used in st.data_editor.
+          description: 'A format string controlling how datetimes are displayed. This can be one of the following values: None (default): Show the datetime in "YYYY-MM-DD HH:mm:ss" format (e.g. "2025-03-04 20:00:00"). "localized": Show the datetime in the default locale format (e.g. "Mar 4, 2025, 12:00:00 PM" in the America/Los_Angeles timezone). "distance": Show the datetime in a relative format (e.g. "a few seconds ago"). "calendar": Show the datetime in a calendar format (e.g. "Today at 8:00 PM"). "iso8601": Show the datetime in ISO 8601 format (e.g. "2025-03-04T20:00:00.000Z"). A momentJS format string: Format the datetime with a string, like "ddd ha" to show "Tue 8pm". For available formats, see momentJS. Formatting from column_config always takes precedence over formatting from pandas.Styler. The formatting does not impact the return value when used in st.data_editor.'
           default: None
           kwarg_only: true
         min_value:
@@ -4039,17 +3094,7 @@ api:
           kwarg_only: true
     streamlit.column_config.ImageColumn:
       signature: st.column_config.ImageColumn(label=None, *, width=None, help=None, pinned=None)
-      description: >-
-        Configure an image column in st.dataframe or st.data_editor.
-        The cell values need to be one of:
-        A URL to fetch the image from. This can also be a relative URL of an image
-        deployed via static file serving.
-        Note that you can NOT use an arbitrary local image if it is not available through
-        a public URL.
-        A data URL containing an SVG XML like data:image/svg+xml;utf8,<svg xmlns=...</svg>.
-        A data URL containing a Base64 encoded image like data:image/png;base64,iVBO....
-        Image columns are not editable at the moment. This command needs to be used in the
-        column_config parameter of st.dataframe or st.data_editor.
+      description: 'Configure an image column in st.dataframe or st.data_editor. The cell values need to be one of: A URL to fetch the image from. This can also be a relative URL of an image deployed via static file serving. Note that you can NOT use an arbitrary local image if it is not available through a public URL. A data URL containing an SVG XML like data:image/svg+xml;utf8,<svg xmlns=...</svg>. A data URL containing a Base64 encoded image like data:image/png;base64,iVBO.... Image columns are not editable at the moment. This command needs to be used in the column_config parameter of st.dataframe or st.data_editor.'
       source: lib/streamlit/elements/lib/column_types.py#L1517
       parameters:
         label:
@@ -4187,36 +3232,13 @@ api:
           kwarg_only: true
         display_text:
           type: str or None
-          description: >-
-            The text that is displayed in the cell. This can be one of the
-            following:
-            None (default) to display the URL itself.
-            A string that is displayed in every cell, e.g. "Open link".
-            A Material icon that is displayed in every cell, e.g. ":material/open_in_new:".
-            A JS-flavored regular expression (detected by usage of parentheses)
-            to extract a part of the URL via a capture group. For example, use
-            "https://(.*?)\.example\.com" to extract the display text
-            "foo" from the URL "https://foo.example.com".
-            For more complex cases, you may use Pandas Styler's format
-            function on the underlying dataframe. Note that this makes the app slow,
-            doesn't work with editable columns, and might be removed in the future.
-            Text formatting from column_config always takes precedence over
-            text formatting from pandas.Styler.
+          description: 'The text that is displayed in the cell. This can be one of the following: None (default) to display the URL itself. A string that is displayed in every cell, e.g. "Open link". A Material icon that is displayed in every cell, e.g. ":material/open_in_new:". A JS-flavored regular expression (detected by usage of parentheses) to extract a part of the URL via a capture group. For example, use "https://(.*?)\.example\.com" to extract the display text "foo" from the URL "https://foo.example.com". For more complex cases, you may use Pandas Styler''s format function on the underlying dataframe. Note that this makes the app slow, doesn''t work with editable columns, and might be removed in the future. Text formatting from column_config always takes precedence over text formatting from pandas.Styler.'
           default: None
           kwarg_only: true
     streamlit.column_config.ListColumn:
       signature: st.column_config.ListColumn(label=None, *, width=None, help=None, pinned=None, disabled=None, required=None,
         default=None)
-      description: >-
-        Configure a list column in st.dataframe or st.data_editor.
-        This is the default column type for list-like values. This command needs to
-        be used in the column_config parameter of st.dataframe or
-        st.data_editor. When used with st.data_editor, users can freely
-        type in new options and remove existing ones.
-        Note
-        Editing for non-string or mixed type lists can cause issues with Arrow
-        serialization. We recommend that you disable editing for these columns
-        or convert all list values to strings.
+      description: 'Configure a list column in st.dataframe or st.data_editor. This is the default column type for list-like values. This command needs to be used in the column_config parameter of st.dataframe or st.data_editor. When used with st.data_editor, users can freely type in new options and remove existing ones. Note: Editing for non-string or mixed type lists can cause issues with Arrow serialization. We recommend that you disable editing for these columns or convert all list values to strings.'
       source: lib/streamlit/elements/lib/column_types.py#L1612
       parameters:
         label:
@@ -4316,22 +3338,7 @@ api:
           kwarg_only: true
         color:
           type: str, Iterable of str, or None
-          description: >-
-            The color to use for different options. This can be:
-            None (default): The options are displayed without color.
-            "auto": The options are colored based on the configured categorical chart colors.
-            A single color value that is used for all options. This can be one of
-            the following strings:
-            "primary" to use the primary theme color.
-            A CSS named color name like "darkBlue" or "maroon".
-            A hex color code like "#483d8b" or "#6A5ACD80".
-            An RGB or RGBA color code like "rgb(255,0,0)" or
-            "RGB(70, 130, 180, .7)".
-            An HSL or HSLA color code like "hsl(248, 53%, 58%)"
-            or "HSL(147, 50%, 47%, .3)".
-            An iterable of color values that are mapped to the options. The colors
-            are applied in sequence, cycling through the iterable if there are
-            more options than colors.
+          description: 'The color to use for different options. This can be: None (default): The options are displayed without color. "auto": The options are colored based on the configured categorical chart colors. A single color value that is used for all options. This can be one of the following strings: "primary" to use the primary theme color. A CSS named color name like "darkBlue" or "maroon". A hex color code like "#483d8b" or "#6A5ACD80". An RGB or RGBA color code like "rgb(255,0,0)" or "RGB(70, 130, 180, .7)". An HSL or HSLA color code like "hsl(248, 53%, 58%)" or "HSL(147, 50%, 47%, .3)". An iterable of color values that are mapped to the options. The colors are applied in sequence, cycling through the iterable if there are more options than colors.'
           default: None
           kwarg_only: true
         format_func:
@@ -4382,31 +3389,7 @@ api:
         format:
           type: str, "plain", "localized", "percent", "dollar", "euro", "yen", "accounting", "compact", "scientific", "engineering",
             or None
-          description: >-
-            A format string controlling how numbers are displayed.
-            This can be one of the following values:
-            None (default): Streamlit infers the formatting from the data.
-            "plain": Show the full number without any formatting (e.g. "1234.567").
-            "localized": Show the number in the default locale format (e.g. "1,234.567").
-            "percent": Show the number as a percentage (e.g. "123456.70%").
-            "dollar": Show the number as a dollar amount (e.g. "$1,234.57").
-            "euro": Show the number as a euro amount (e.g. "€1,234.57").
-            "yen": Show the number as a yen amount (e.g. "¥1,235").
-            "accounting": Show the number in an accounting format (e.g. "1,234.00").
-            "bytes": Show the number in a byte format (e.g. "1.2KB").
-            "compact": Show the number in a compact format (e.g. "1.2K").
-            "scientific": Show the number in scientific notation (e.g. "1.235E3").
-            "engineering": Show the number in engineering notation (e.g. "1.235E3").
-            printf-style format string: Format the number with a printf
-            specifier, like "%d" to show a signed integer (e.g. "1234") or
-            "%X" to show an unsigned hexadecimal integer (e.g. "4D2"). You
-            can also add prefixes and suffixes. To show British pounds, use
-            "£ %.2f" (e.g. "£ 1234.57"). Use , for thousand separators
-            (e.g. "%,d" yields "1,234"). For more information, see
-            sprintf-js.
-            Formatting from column_config always takes precedence over
-            formatting from pandas.Styler. The formatting does not impact the
-            return value when used in st.data_editor.
+          description: 'A format string controlling how numbers are displayed. This can be one of the following values: None (default): Streamlit infers the formatting from the data. "plain": Show the full number without any formatting (e.g. "1234.567"). "localized": Show the number in the default locale format (e.g. "1,234.567"). "percent": Show the number as a percentage (e.g. "123456.70%"). "dollar": Show the number as a dollar amount (e.g. "$1,234.57"). "euro": Show the number as a euro amount (e.g. "€1,234.57"). "yen": Show the number as a yen amount (e.g. "¥1,235"). "accounting": Show the number in an accounting format (e.g. "1,234.00"). "bytes": Show the number in a byte format (e.g. "1.2KB"). "compact": Show the number in a compact format (e.g. "1.2K"). "scientific": Show the number in scientific notation (e.g. "1.235E3"). "engineering": Show the number in engineering notation (e.g. "1.235E3"). printf-style format string: Format the number with a printf specifier, like "%d" to show a signed integer (e.g. "1234") or "%X" to show an unsigned hexadecimal integer (e.g. "4D2"). You can also add prefixes and suffixes. To show British pounds, use "£ %.2f" (e.g. "£ 1234.57"). Use , for thousand separators (e.g. "%,d" yields "1,234"). For more information, see sprintf-js. Formatting from column_config always takes precedence over formatting from pandas.Styler. The formatting does not impact the return value when used in st.data_editor.'
           default: None
           kwarg_only: true
         min_value:
@@ -4421,15 +3404,7 @@ api:
           kwarg_only: true
         step:
           type: int, float, or None
-          description: >-
-            The precision of numbers that can be entered. If this None
-            (default), integer columns will have a step of 1 and float columns will
-            have unrestricted precision. In this case, some floats may display like
-            integers. Setting step for float columns will ensure a consistent
-            number of digits after the decimal are displayed.
-            If format is a predefined format like "dollar", step
-            overrides the display precision. If format is a printf-style format
-            string, step will not change the display precision.
+          description: 'The precision of numbers that can be entered. If this is None (default), integer columns will have a step of 1 and float columns will have unrestricted precision. In this case, some floats may display like integers. Setting step for float columns will ensure a consistent number of digits after the decimal are displayed. If format is a predefined format like "dollar", step overrides the display precision. If format is a printf-style format string, step will not change the display precision.'
           default: None
           kwarg_only: true
     streamlit.column_config.ProgressColumn:
@@ -4455,31 +3430,7 @@ api:
         format:
           type: str, "plain", "localized", "percent", "dollar", "euro", "yen", "accounting", "compact", "scientific", "engineering",
             or None
-          description: >-
-            A format string controlling how the numbers are displayed.
-            This can be one of the following values:
-            None (default): Streamlit infers the formatting from the data.
-            "plain": Show the full number without any formatting (e.g. "1234.567").
-            "localized": Show the number in the default locale format (e.g. "1,234.567").
-            "percent": Show the number as a percentage (e.g. "123456.70%").
-            "dollar": Show the number as a dollar amount (e.g. "$1,234.57").
-            "euro": Show the number as a euro amount (e.g. "€1,234.57").
-            "yen": Show the number as a yen amount (e.g. "¥1,235").
-            "accounting": Show the number in an accounting format (e.g. "1,234.00").
-            "bytes": Show the number in a byte format (e.g. "1.2KB").
-            "compact": Show the number in a compact format (e.g. "1.2K").
-            "scientific": Show the number in scientific notation (e.g. "1.235E3").
-            "engineering": Show the number in engineering notation (e.g. "1.235E3").
-            printf-style format string: Format the number with a printf
-            specifier, like "%d" to show a signed integer (e.g. "1234") or
-            "%X" to show an unsigned hexadecimal integer (e.g. "4D2"). You
-            can also add prefixes and suffixes. To show British pounds, use
-            "£ %.2f" (e.g. "£ 1234.57"). Use , for thousand separators
-            (e.g. "%,d" yields "1,234"). For more information, see
-            sprintf-js.
-            Number formatting from column_config always takes precedence over
-            number formatting from pandas.Styler. The number formatting does
-            not impact the return value when used in st.data_editor.
+          description: 'A format string controlling how the numbers are displayed. This can be one of the following values: None (default): Streamlit infers the formatting from the data. "plain": Show the full number without any formatting (e.g. "1234.567"). "localized": Show the number in the default locale format (e.g. "1,234.567"). "percent": Show the number as a percentage (e.g. "123456.70%"). "dollar": Show the number as a dollar amount (e.g. "$1,234.57"). "euro": Show the number as a euro amount (e.g. "€1,234.57"). "yen": Show the number as a yen amount (e.g. "¥1,235"). "accounting": Show the number in an accounting format (e.g. "1,234.00"). "bytes": Show the number in a byte format (e.g. "1.2KB"). "compact": Show the number in a compact format (e.g. "1.2K"). "scientific": Show the number in scientific notation (e.g. "1.235E3"). "engineering": Show the number in engineering notation (e.g. "1.235E3"). printf-style format string: Format the number with a printf specifier, like "%d" to show a signed integer (e.g. "1234") or "%X" to show an unsigned hexadecimal integer (e.g. "4D2"). You can also add prefixes and suffixes. To show British pounds, use "£ %.2f" (e.g. "£ 1234.57"). Use , for thousand separators (e.g. "%,d" yields "1,234"). For more information, see sprintf-js. Number formatting from column_config always takes precedence over number formatting from pandas.Styler. The number formatting does not impact the return value when used in st.data_editor.'
           default: None
           kwarg_only: true
         pinned:
@@ -4781,23 +3732,7 @@ api:
           kwarg_only: true
         height:
           type: '"content", "stretch", or int'
-          description: >-
-            The height of the container. This can be one of the following:
-            "content" (default): The height of the container matches the
-            height of its content.
-            "stretch": The height of the container matches the height of
-            its content or the height of the parent container, whichever is
-            larger. If the container is not in a parent container, the height
-            of the container matches the height of its content.
-            An integer specifying the height in pixels: The container has a
-            fixed height. If the content is larger than the specified
-            height, scrolling is enabled.
-            Note
-            Use scrolling containers sparingly. If you use scrolling
-            containers, avoid heights that exceed 500 pixels. Otherwise,
-            the scroll surface of the container might cover the majority of
-            the screen on mobile devices, which makes it hard to scroll the
-            rest of the app.
+          description: '"content" (default): The height of the container matches the height of its content. "stretch": The height of the container matches the height of its content or the height of the parent container, whichever is larger. If the container is not in a parent container, the height of the container matches the height of its content. An integer specifying the height in pixels: The container has a fixed height. If the content is larger than the specified height, scrolling is enabled. Note: Use scrolling containers sparingly. If you use scrolling containers, avoid heights that exceed 500 pixels. Otherwise, the scroll surface of the container might cover the majority of the screen on mobile devices, which makes it hard to scroll the rest of the app.'
           default: '"content"'
           kwarg_only: true
         horizontal:
@@ -5328,15 +4263,7 @@ api:
             Raw bytes data.
         height:
           type: int or "stretch"
-          description: >-
-            The height of the PDF viewer. This can be one of the following:
-            An integer specifying the height in pixels: The viewer has a
-            fixed height. If the content is larger than the specified
-            height, scrolling is enabled. This is 500 by default.
-            "stretch": The height of the viewer matches the height of
-            its content or the height of the parent container, whichever is
-            larger. If the viewer is not in a parent container, the height
-            of the viewer matches the height of its content.
+          description: 'An integer specifying the height in pixels: The viewer has a fixed height. If the content is larger than the specified height, scrolling is enabled. This is 500 by default. "stretch": The height of the viewer matches the height of its content or the height of the parent container, whichever is larger. If the viewer is not in a parent container, the height of the viewer matches the height of its content.'
           default: '500'
           kwarg_only: true
     streamlit.video:
@@ -5816,23 +4743,7 @@ api:
           kwarg_only: true
         height:
           type: '"content", "stretch", or int'
-          description: >-
-            The height of the form container. This can be one of the following:
-            "content" (default): The height of the container matches the
-            height of its content.
-            "stretch": The height of the container matches the height of
-            its content or the height of the parent container, whichever is
-            larger. If the container is not in a parent container, the height
-            of the container matches the height of its content.
-            An integer specifying the height in pixels: The container has a
-            fixed height. If the content is larger than the specified
-            height, scrolling is enabled.
-            Note
-            Use scrolling containers sparingly. If you use scrolling
-            containers, avoid heights that exceed 500 pixels. Otherwise,
-            the scroll surface of the container might cover the majority of
-            the screen on mobile devices, which makes it hard to scroll the
-            rest of the app.
+          description: '"content" (default): The height of the container matches the height of its content. "stretch": The height of the container matches the height of its content or the height of the parent container, whichever is larger. If the container is not in a parent container, the height of the container matches the height of its content. An integer specifying the height in pixels: The container has a fixed height. If the content is larger than the specified height, scrolling is enabled. Note: Use scrolling containers sparingly. If you use scrolling containers, avoid heights that exceed 500 pixels. Otherwise, the scroll surface of the container might cover the majority of the screen on mobile devices, which makes it hard to scroll the rest of the app.'
           default: '"content"'
           kwarg_only: true
     streamlit.fragment:

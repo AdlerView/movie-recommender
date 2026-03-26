@@ -17,7 +17,7 @@ At the start of every new session, read ALL of the following files before doing 
 - `CLAUDE.md`, `README.md`, `docs/TODO.md`, `docs/MIGRATION.md`
 - `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
 - `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
-- `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
+- `docs/OPEN_ISSUES.md`, `docs/archive/cs-project.md`
 
 **Config:**
 - `.streamlit/config.toml`
@@ -138,18 +138,15 @@ movie-recommender/
 │   ├── TODO.md                             # Task tracking with deadlines
 │   ├── CONTRIBUTION.md                     # Team contribution matrix
 │   ├── REQUIREMENTS.md                     # Grading requirements checklist
+│   ├── OPEN_ISSUES.md                     # Conceptual gaps and pending decisions
 │   ├── STREAMLIT_API.yaml                  # Streamlit API reference
-│   ├── concept/                            # Original project concept
-│   │   ├── cs-project.md
-│   │   ├── cs-project.docx
-│   │   ├── OPEN_ISSUES.md
-│   │   └── prototype-movie-recommender.jpg
-│   └── references/                         # Course reference materials
-│       ├── group-project.pdf
-│       ├── group-project.mp4
-│       ├── 02-exercises.pdf
-│       ├── 04-prep-streamlit.mp4
-│       └── writing-with-ai.md
+│   └── archive/                            # Static/historical artifacts
+│       ├── cs-project.md                   # Original project concept
+│       ├── prototype-movie-recommender.jpg # UI prototype sketch
+│       ├── group-project.pdf               # Course assignment brief
+│       ├── 02-exercises.pdf                # Course exercises
+│       ├── writing-with-ai.md              # HSG GenAI citation rules
+│       └── checkpoint.md                   # Pre-restructuring session checkpoint
 │
 ├── .streamlit/                             # PARTIAL — Config tracked, secrets gitignored
 │   ├── config.toml                         # Cinema Gold theme + fontFaces + server config

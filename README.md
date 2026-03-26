@@ -97,17 +97,17 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 | [TODO.md](docs/TODO.md) | Actionable tasks with owners and deadlines |
 | [REQUIREMENTS.md](docs/REQUIREMENTS.md) | Grading criteria with status tracking |
 | [CONTRIBUTION.md](docs/CONTRIBUTION.md) | Team contribution matrix |
-| [OPEN_ISSUES.md](docs/concept/OPEN_ISSUES.md) | Conceptual gaps and pending decisions |
-| [cs-project.md](docs/concept/cs-project.md) | Original project concept |
-| [Wireframe](docs/concept/prototype-movie-recommender.jpg) | UI prototype sketch |
+| [OPEN_ISSUES.md](docs/OPEN_ISSUES.md) | Conceptual gaps and pending decisions |
+| [cs-project.md](docs/archive/cs-project.md) | Original project concept |
+| [Wireframe](docs/archive/prototype-movie-recommender.jpg) | UI prototype sketch |
 
-Course reference material is in [docs/references/](docs/references/).
+Historical artifacts and course references are in [docs/archive/](docs/archive/).
 
 ---
 
 ## GenAI Citation Policy
 
-Using AI (ChatGPT, Claude, etc.) to **learn concepts** does not require citation. Having AI **write larger code blocks** requires citing the source in a comment. AI-generated code without citation is plagiarism. Full AI-generated programs are fine from a plagiarism perspective if cited, but hurt the contribution grade. See [HSG GenAI rules](https://universitaetstgallen.sharepoint.com/sites/PruefungenDE/SitePages/Arbeiten-mit-KI.aspx) ([local copy](docs/references/writing-with-ai.md)).
+Using AI (ChatGPT, Claude, etc.) to **learn concepts** does not require citation. Having AI **write larger code blocks** requires citing the source in a comment. AI-generated code without citation is plagiarism. Full AI-generated programs are fine from a plagiarism perspective if cited, but hurt the contribution grade. See [HSG GenAI rules](https://universitaetstgallen.sharepoint.com/sites/PruefungenDE/SitePages/Arbeiten-mit-KI.aspx) ([local copy](docs/archive/writing-with-ai.md)).
 
 ---
 
