@@ -27,7 +27,7 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-# Database path: project_root/data/ (two levels up from utils/)
+# Database path: project_root/data/ (three levels up: utils/ → app/ → root)
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 DB_PATH = _DATA_DIR / "user.sqlite"
 
