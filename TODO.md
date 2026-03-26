@@ -2,12 +2,14 @@
 
 > Actionable tasks with owners and deadlines.
 > Last updated: 2026-03-26
+>
+> **Rule:** When a task is checked off (`[x]`), it MUST be moved to the **Done** section (with completion date) or **Superseded** section (with replacement note). Completed tasks MUST NOT remain in In Progress, Upcoming, or Backlog.
 
 ## In Progress
 
 - [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Phase 1 cleanup done: old keyword/mood code removed from all files, app functional with genre-only discovery)*
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
-- [ ] Keyword-to-mood supervised pipeline — label seed dataset, train classifier, infer full 70K+ keywords (Req 5)
+- [ ] Keyword-to-mood supervised pipeline — train classifier on labeled seed (1,049 single-label), infer full 70K+ keywords (Req 5) *(seed labeling done: 5,000 keywords in data/tmdb-keyword-frequencies_labeled_top5000.tsv)*
 
 ## Upcoming
 
@@ -18,16 +20,13 @@
 - [ ] Switch to new architecture: TMDB API for filters/discovery, precomputed .npy arrays for scoring, user SQLite for ratings/moods (see MIGRATION.md)
 - [ ] Discover: 14 filter controls (genre, mood, certification, year, language, runtime, score, votes, keywords, streaming)
 - [ ] Discover: personalized sort option (ML scoring from rating history)
-- [ ] Rate: add 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry)
 - [ ] Watchlist: add mood reactions to "Mark as watched" dialog
-- [ ] DB schema: migrate `ratings` (REAL 0-10) → `user_ratings` (INTEGER 0-100), add `user_rating_moods`, `user_subscriptions`, `user_profile_cache` tables
 - [ ] Statistics: add mood distribution chart from user reactions
 
 ### Week 08 — 2026-04-23 (Coaching: 20.04)
 
 - [ ] Optional: MVP presentation II
 - [ ] Offline pipeline Stage 1: feature extraction (keyword/director/actor TF-IDF → SVD, genre/decade/language onehot)
-- [ ] Keyword seed dataset — label top ~1K keywords from tmdb-keyword-frequencies.tsv with 7 moods (single/multi/none)
 - [ ] Keyword mood classifier — sentence embeddings + supervised pipeline (KNN/SVC/NB/LR/MLP comparison), infer remaining 70K+
 - [ ] Offline pipeline Stage 2: mood scores per film (genre→mood + keyword→mood mapping + emotion classifier on overview/reviews)
 - [ ] Offline pipeline Stage 3: quality scores (Bayesian average)
@@ -96,6 +95,9 @@
 - [x] Comprehensive TMDB database — tmdb-build-db.py fetches all 1.17M movies with keywords, credits, genres (2026-03-25)
 - [x] Doc consistency fixes — normalized all ML stats, removed outdated status block, fixed .gitignore (2026-03-25)
 - [x] Phase 1 cleanup — removed old keyword/mood pipeline code from all app files (db.py, discover.py, rate.py, watchlist.py, streamlit_app.py), app functional with genre-only discovery (2026-03-26)
+- [x] DB schema v5 — migrate `ratings` (REAL 0-10) → `user_ratings` (INTEGER 0-100), add `user_rating_moods`, `user_subscriptions`, `user_profile_cache` tables (2026-03-26)
+- [x] Rate: 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry) on rating dialog (2026-03-26)
+- [x] Keyword seed dataset — 5,000 keywords labeled + reviewed (1,049 single-label, 1,634 multi, 2,317 none — see docs/MOOD.md) (2026-03-26)
 
 ## Superseded
 

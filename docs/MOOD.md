@@ -39,7 +39,14 @@ All 5000 keywords were reviewed against 3 real film overviews per keyword (from 
 
 ### Stage 3: Classifier Training
 
-The single-label subset of labeled keywords trains a classifier (EmbeddingGemma-300M sentence embeddings) that infers moods for the remaining ~65K unlabeled keywords. See `pipeline/keyword_mood_classifier.py`.
+The single-label subset (1,049 keywords) trains a classifier
+(EmbeddingGemma-300M sentence embeddings) that infers moods for the
+remaining ~65K unlabeled keywords. See `pipeline/keyword_mood_classifier.py`.
+
+Training uses single-label only for a methodologically clean 7-class
+problem. Alternatives considered: multi-label with one-vs-rest (more
+data but harder to evaluate with standard metrics), both approaches
+compared in notebook (added complexity for marginal benefit).
 
 ---
 

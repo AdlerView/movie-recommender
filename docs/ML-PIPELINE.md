@@ -240,6 +240,13 @@ Stored in: `model/genre_mood_map.json`
 TMDB has 70K+ unique keywords. Manual tagging is infeasible. Instead,
 a two-stage supervised pipeline produces the mapping.
 
+Alternatives considered and rejected: manual tagging of top-500
+(infeasible at scale, not reproducible), zero-shot classifier alone
+(fragile for short keyword phrases), Claude API batch tagging
+(expensive, less reproducible), NRC Emotion Lexicon (poor fit for
+film keyword taxonomy), sentence embeddings + seed words only (less
+scientifically convincing than supervised pipeline).
+
 **Stage A: Labeled seed dataset (complete)**
 
 5,000 most frequent TMDB keywords labeled by Claude agent.
@@ -583,7 +590,9 @@ Both follow the same course-compliant evaluation workflow.
 
 ### Where to Show This
 
-Both locations, with shared logic:
+Both locations, with shared logic. Alternatives considered: Statistics
+page only (not detailed enough for academic evaluation), notebook only
+(not visible during video demo).
 
 - **Shared utility:** `app/utils/ml_eval.py` contains all evaluation
   logic (`evaluate_classifiers()`, `best_model_report()`,

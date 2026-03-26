@@ -316,15 +316,33 @@ results (the TMDB API has no parameter for this).
 
 ---
 
-## Configuration Caching
+## Caching Strategy
 
-The following API calls are made once at app startup and cached for
-24 hours:
+### Configuration (app startup, rarely changes)
 
-| Call | Cache Key | Refresh |
+| Call | Cache Key | TTL |
 |---|---|---|
-| `genre/movie/list` | `genres` | 24h TTL |
-| `configuration/languages` | `languages` | 24h TTL |
-| `certification/movie/list` | `certifications` | 24h TTL |
-| `configuration/countries` | `countries` | 24h TTL |
-| `watch/providers/movie?watch_region=XX` | `providers_{country}` | 24h TTL + on country change |
+| `configuration` | `config` | 24h |
+| `genre/movie/list` | `genres` | 24h |
+| `configuration/languages` | `languages` | 24h |
+| `certification/movie/list` | `certifications` | 24h |
+| `configuration/countries` | `countries` | 24h |
+| `watch/providers/movie?watch_region=XX` | `providers_{country}` | 24h + on country change |
+| `watch/providers/regions` | `provider_regions` | 24h |
+
+### Per-request (changes frequently)
+
+| Call | Cache Key | TTL | Rationale |
+|---|---|---|---|
+| `trending/movie/{window}` | `trending_{window}_{page}` | 30m | Updates daily, bounded key space |
+| `discover/movie?...` | filter params + page | 30m | Bounded key space (genre combos) |
+| `search/movie?query=...` | `search_{query}_{page}` | 5m | Unbounded key space (free text) |
+| `search/keyword?query=...` | `kw_{query}` | 5m | Unbounded key space (free text) |
+
+### Per-movie (stable data, fetched on demand)
+
+| Call | Cache Key | TTL | Rationale |
+|---|---|---|---|
+| `movie/{id}` (details) | `movie_{id}` | 1h | Votes change slowly |
+| `movie/{id}/keywords` | `keywords_{id}` | 24h | Keywords rarely change |
+| `movie/{id}/watch/providers` | `providers_{id}_{region}` | 1h | Licensing changes weekly |

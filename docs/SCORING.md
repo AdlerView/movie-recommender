@@ -210,6 +210,16 @@ contra_penalty = -cosine_sim(contra_vector, candidate_keyword_vector)
 user rated poorly. If a user gave 10/100 to romantic comedies, other
 romantic comedies get penalized.
 
+Sources for the contra vector:
+- Movies with ratings below 40/100 (ratings 0-30)
+- Dismissed movies ("not interested") — treated as negative signal
+
+Threshold alternatives considered: below 60 (too aggressive, includes
+lukewarm "Decent" ratings), tunable parameter (deferred complexity).
+Dismiss alternatives considered: cosmetic only (simpler but loses
+useful signal), immediate implementation (rejected — Phase 0 should
+not depend on scoring.py).
+
 **Data source:** `keyword_svd_vectors.npy` + `user_ratings`
 
 ---

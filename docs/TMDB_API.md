@@ -758,13 +758,13 @@ without any provider data.
 ### App startup (7 calls, cached 24h)
 
 ```
-GET /3/configuration
-GET /3/genre/movie/list?language=en
-GET /3/configuration/languages
-GET /3/certification/movie/list
-GET /3/watch/providers/movie?watch_region=DE&language=en
-GET /3/watch/providers/regions?language=en
-GET /3/configuration/countries?language=en
+GET /3/configuration                                    24h TTL
+GET /3/genre/movie/list?language=en                     24h TTL
+GET /3/configuration/languages                          24h TTL
+GET /3/certification/movie/list                         24h TTL
+GET /3/watch/providers/movie?watch_region=DE&language=en 24h TTL + on country change
+GET /3/watch/providers/regions?language=en               24h TTL
+GET /3/configuration/countries?language=en               24h TTL
 ```
 
 The provider call is re-fetched when the user changes their streaming
@@ -774,9 +774,9 @@ country. `watch/providers/regions` is preferred over
 ### Flow 1: Rate a movie (3 calls)
 
 ```
-GET /3/search/movie?query={text}&language=en-US&page=1
-GET /3/movie/{id}?language=en-US
-GET /3/movie/{id}/keywords
+GET /3/search/movie?query={text}&language=en-US&page=1  5m TTL (free text, unbounded key space)
+GET /3/movie/{id}?language=en-US                        1h TTL (votes change slowly)
+GET /3/movie/{id}/keywords                              24h TTL (keywords rarely change)
 ```
 
 Keywords are fetched separately on rating save for caching in the local
@@ -784,9 +784,9 @@ database (used for keyword badges and ML pipeline).
 
 ### Flow 2: Discover a movie (~25 calls)
 
-1. **Keyword autocomplete** (debounced 300ms): `GET /3/search/keyword?query={text}&page=1`
-2. **Discover** (1-5 pages): `GET /3/discover/movie?with_genres=53,18&certification_country=DE&certification.lte=16&...&page=1`
-3. **Details for top-20** (parallel): `GET /3/movie/{id}?append_to_response=watch/providers,videos,release_dates,credits`
+1. **Keyword autocomplete** (debounced 300ms): `GET /3/search/keyword?query={text}&page=1` — 5m TTL
+2. **Discover** (1-5 pages): `GET /3/discover/movie?with_genres=53,18&...&page=1` — 30m TTL
+3. **Details for top-20** (parallel): `GET /3/movie/{id}?append_to_response=watch/providers,videos,release_dates,credits` — 1h TTL
 
 Step 3 returns everything needed for the result cards: streaming
 providers, trailers, certifications, director + top cast -- all in

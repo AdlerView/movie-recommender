@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 At the start of every new session, read ALL of the following files before doing any work:
 
 **Documentation (all `.md` files):**
-- `CLAUDE.md`, `README.md`, `TODO.md`, `MIGRATION.md`, `DECISIONS.md`
+- `CLAUDE.md`, `README.md`, `TODO.md`, `MIGRATION.md`
 - `docs/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
 - `docs/tmdb-schema.mmd`, `docs/ML-PIPELINE.md`, `docs/FILTER.md`, `docs/MOOD.md`, `docs/SCORING.md`
 - `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
@@ -103,7 +103,6 @@ movie-recommender/
 │   ├── secrets.toml              # API keys (gitignored)
 │   └── secrets.toml.example
 ├── CLAUDE.md
-├── DECISIONS.md
 ├── README.md
 ├── TODO.md
 └── requirements.txt
@@ -152,76 +151,52 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 
 - Streamlit files: no `if __name__ == "__main__"` (whole file runs on every interaction)
 - Utility modules: `if __name__ == "__main__"` allowed for quick testing
-- Imports relative to `app/`: `from utils.tmdb import get_genres`, `from utils.scoring import compute_scores`, `from utils.user_profile import build_profile`
+- Imports relative to `app/`: `from utils.tmdb import get_genres`
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Each tab has one responsibility. Poster grids on Rate and Watchlist, click → detail dialog overlay (`@st.dialog`)
-- Discover: Filter + personalized recommendation flow. 14 filter controls: Genre (19 TMDB genres, toggle, required), Mood (7 categories, toggle, optional), Certification (country-dependent, e.g. DE: 0/6/12/16/18, US: G/PG/PG-13/R/NC-17), Release Year (from/to), Language (dropdown), Runtime (range slider 0-360), User Score (range slider 0-10), Min Votes (slider 0-500), Keywords (autocomplete via TMDB API `search/keyword`), Streaming Country (dropdown), Streaming Provider (multi-toggle, filtered by country), Only My Subscriptions (checkbox), Sort (personalized score / popularity / rating / release date). All filters are passed as parameters to the TMDB API `/discover/movie` endpoint. Mood filter and personalized scoring run locally against precomputed `.npy` arrays. When sort=personalized: ML scoring ranks candidates by keyword similarity, mood match, director/actor/decade/language/runtime similarity, quality score, and contra-penalty from rating history. Results displayed as card-based one-at-a-time flow or poster grid. Movie cards show Genre and Keyword badges, predicted mood, runtime, streaming providers, and score. Already-rated, dismissed, and watchlisted movies filtered out. Toast feedback on watchlist add and dismiss.
-- Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending + "Based on your interests" personalized poster grid (identical layout to trending, powered by scoring.py; falls back to trending when no ratings or model/ not populated). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). Mood reactions are optional and multi-select, saved alongside the numeric rating in `user_ratings` + `user_rating_moods` tables, and used as ML training signal for personalized recommendations. Already-rated movies excluded from trending grid but shown in search results (allows re-rating). "Search results" / "Trending movies" subtitles.
-- Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (user's selected country), "Remove from watchlist" and "Mark as watched" (with rating slider + 7 mood reaction buttons). Rating removes movie from watchlist.
-- Statistics: KPIs, Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution from user reactions), top directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
-- Pagination: Automatic page advancement on Discover (up to 10 pages from TMDB API, then local scoring of top-20), "Load more" button on Rate
+
+### Page Descriptions (current state)
+
+- **Discover:** Genre-only filter + card-based one-at-a-time browsing. 19 TMDB genre toggle buttons (AND logic), automatic pagination up to 10 pages, already-rated/dismissed/watchlisted movies filtered out. Toast feedback on watchlist add and dismiss.
+- **Rate:** Pure action tab. TMDB text search + Netflix-style clickable poster grid (trending). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Mood reactions are optional and multi-select, saved alongside the numeric rating. Already-rated movies excluded from trending grid but shown in search results (allows re-rating).
+- **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (CH, flatrate only). Actions: "Remove from watchlist" or "Mark as watched" (rating slider, no mood reactions yet).
+- **Statistics:** KPIs (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 7 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution), top 5 directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
+
+### UI Patterns
+
 - Rating: Slider 0-100 in steps of 10, color-coded track (gray/red/orange/green), dot tick marks at each step, dynamic sentiment label. Save button disabled until slider is moved (prevents accidental 0-ratings). `on_change` callback sets `_*_touched_` flag in session state; flag cleaned up on save.
 - TMDB rating display: Always 1 decimal (`:.1f`) across all pages for consistency.
 - Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script (dialogs cannot be triggered from callbacks directly)
-- Movie details: Fetched from TMDB API via `append_to_response=watch/providers,videos,release_dates,credits` for top-20 scored results. Eagerly cached in user SQLite on rating save.
+- Movie details: Fetched from TMDB API via `append_to_response=credits,videos,watch/providers`. Eagerly cached in user SQLite on rating save.
 - Navigation: 4 pages — Discover, Rate, Watchlist (left-aligned), Statistics (right-aligned via CSS)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 - Headers: All page headers use `text_alignment="center"`. Section headers use `st.subheader` with `label_visibility="collapsed"` on the associated widget.
-- Movie detail badges: Genre = `:gray-badge`, Keywords = `:gray-badge`, predicted Mood tags. Section headers via `st.caption("**Genre**")` etc. Sections only shown when data exists.
+- Movie detail badges: Genre = `:gray-badge`, Keywords = `:gray-badge`. Section headers via `st.caption("**Genre**")` etc. Sections only shown when data exists.
 - Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
 - Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `app/static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
 
 ---
 
-## ML Pipeline & Evaluation
+## Planned Features (authoritative source: MIGRATION.md)
 
-Full architecture: [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md). Scoring formula + dynamic weights: [MIGRATION.md](MIGRATION.md).
+**All planned features, architecture decisions, scoring formulas, ML pipeline details, and implementation roadmap are defined in [MIGRATION.md](MIGRATION.md).** That file is the single source of truth for all Soll-Zustand. Consult it before implementing any new feature.
 
-### Offline Pipeline (run once, produces model/ directory)
+Supporting docs (referenced by MIGRATION.md):
+- [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md) — offline pipeline stages, ML evaluation spec
+- [docs/SCORING.md](docs/SCORING.md) — scoring formula, dynamic weights, component details
+- [docs/FILTER.md](docs/FILTER.md) — 14 discovery filters, API parameter mapping, caching
+- [docs/MOOD.md](docs/MOOD.md) — keyword-to-mood classification, labeling methodology
 
-```
-data/tmdb.db (8.2 GB)
-  -> pipeline/01_extract_features.py -> .npy feature arrays
-  -> pipeline/02_predict_moods.py    -> mood_scores.npy
-  -> pipeline/03_quality_scores.py   -> quality_scores.npy
-  -> pipeline/04_build_index.py      -> movie_id_index.json + .pkl models
-```
-
-### Online Scoring (per Discover request)
-
-```
-app/utils/filters.py        -> TMDB API params from UI + local mood filter
-app/utils/user_profile.py   -> User profile vectors from ratings + .npy arrays
-app/utils/scoring.py         -> Batch cosine similarity scoring (9 signals, ~50ms)
-```
-
-### Keyword-to-Mood Pipeline
-
-Two-stage supervised pipeline (replaces manual keyword tagging):
-1. Labeled: 5,000 keywords in `data/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single, 1,634 multi, 2,317 none after manual review)
-2. Train on single-label subset (1,049) using EmbeddingGemma-300M embeddings, infer remaining 70K+
-Script: `pipeline/keyword_mood_classifier.py`
-
-### ML Evaluation (Course Requirement 5)
-
-Two classification tasks, both following the same course-compliant workflow:
-1. **User preference:** Binary -- predict "liked" (>= 60) vs "disliked" (< 60) from 9 scoring features
-2. **Keyword-to-mood:** Multi-class -- predict mood from keyword embeddings (70K+ keywords, 7 moods)
-
-Shared utility: `app/utils/ml_eval.py` (called by Statistics page + `notebooks/ml_evaluation.ipynb`)
-
-The course (lectures 10-11, assignments 10-11) mandates a specific sklearn workflow. All of these must be present:
-
-- `train_test_split(stratify=y, random_state=42)` -- reproducible, stratified
-- `RobustScaler` -- fit on train only, transform train + test
-- 5+ classifiers compared in a DataFrame: KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier
-- `DummyClassifier` baselines (most_frequent + stratified)
-- `classification_report` + `ConfusionMatrixDisplay` for best model
-- `KFold(n_splits=10)` + `cross_val_score` -- report mean +/- std
-- Scaled vs unscaled comparison
-- KNN hyperparameter tuning (k=1..20 plot)
+Key planned changes (see MIGRATION.md for full details):
+- Discover: 14 filter controls + personalized ML scoring (Phase 2 + 4)
+- Rate: "Based on your interests" personalized poster grid (Phase 4)
+- Watchlist: mood reactions in "Mark as watched" dialog (Phase 4)
+- Statistics: ML evaluation section + mood distribution chart (Phase 3 + 4)
+- Offline pipeline: feature extraction, mood prediction, quality scores (Phase 1a)
+- Keyword-to-mood classifier: supervised pipeline on 1,049 labeled keywords (Phase 1b)
+- Online scoring: user profile + 9-signal cosine similarity (Phase 2)
 
 ### sklearn Imports Reference
 
@@ -317,9 +292,9 @@ Key gotchas:
 |---|------------|--------|
 | 1 | Problem statement | Defined |
 | 2 | Data via API | TMDB + SQLite integrated |
-| 3 | Data visualization | In progress (PoC: KPIs, 6 charts, rankings, table) |
-| 4 | User interaction | Implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | In progress (personalized recommendations: content-based scoring with keyword/director/actor/mood similarity from user ratings, sklearn pipeline with 5+ classifier comparison, confusion matrix, DummyClassifier baseline) |
+| 3 | Data visualization | In progress (PoC: KPIs, 7 charts, rankings, table) |
+| 4 | User interaction | Implemented (genre discover, rate + mood reactions, dismiss, watchlist, search) |
+| 5 | Machine learning | In progress — see [MIGRATION.md](MIGRATION.md) Phase 1-3 |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |
 | 8 | 4-min video | Not started |

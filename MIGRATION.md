@@ -116,14 +116,16 @@ implemented.*
 
 ### App Startup (cached, 24h TTL) `PARTIAL`
 
-5 calls, executed once and cached:
+7 calls, executed once and cached:
 
 ```
-GET /3/genre/movie/list?language=en             DONE (used by Discover)
-GET /3/configuration/languages                  PENDING
-GET /3/certification/movie/list                 PENDING
-GET /3/watch/providers/movie?watch_region=DE    PARTIAL (used by Watchlist, not Discover)
-GET /3/configuration/countries?language=en       PENDING
+GET /3/configuration                            24h   PENDING
+GET /3/genre/movie/list?language=en             24h   DONE (used by Discover)
+GET /3/configuration/languages                  24h   PENDING
+GET /3/certification/movie/list                 24h   PENDING
+GET /3/watch/providers/movie?watch_region=DE    24h   PARTIAL (used by Watchlist, not Discover)
+GET /3/watch/providers/regions?language=en       24h   PENDING
+GET /3/configuration/countries?language=en       24h   PENDING
 ```
 
 The provider call is re-fetched when the user changes their streaming
@@ -134,12 +136,13 @@ country.
 ### Flow 1: Rate a Movie `DONE`
 
 ```
-GET /3/search/movie?query={text}&language=en-US&page=1
-GET /3/movie/{id}?language=en-US
+GET /3/search/movie?query={text}&language=en-US&page=1   5m
+GET /3/movie/{id}?language=en-US                         1h
+GET /3/movie/{id}/keywords                               24h
 ```
 
-2 calls per rating action. No `append_to_response` needed here since
-only basic display data is required.
+3 calls per rating action. Keywords are fetched on save for caching
+in the local database (used for keyword badges and ML pipeline).
 
 ---
 
@@ -763,7 +766,7 @@ idempotent and can be re-run independently.
 
 ---
 
-### Phase 1b: Keyword-to-Mood Classifier `PENDING`
+### Phase 1b: Keyword-to-Mood Classifier `DONE`
 
 Supervised pipeline: train on labeled keywords, infer moods for 70K+
 unlabeled keywords. This is the productive build step -- academic
@@ -771,7 +774,7 @@ evaluation belongs in Phase 3.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 1b.1 | Keyword classifier: load TSV, filter single-label (1,049), extract features (embeddings and/or TF-IDF), train 5+ classifiers, select best by macro-F1, infer 70K+, export | `pipeline/keyword_mood_classifier.py` -> `model/keyword_mood_map.json` | `data/tmdb-keyword-frequencies_labeled_top5000.tsv` | `PENDING` |
+| 1b.1 | Keyword classifier: load TSV, filter single-label (1,049), extract features (embeddings and/or TF-IDF), train 5+ classifiers, select best by macro-F1, infer 70K+, export | `pipeline/keyword_mood_classifier.py` -> `model/keyword_mood_map.json` | `data/tmdb-keyword-frequencies_labeled_top5000.tsv` | `DONE` |
 
 **Detail breakdown for 1b.1:**
 
