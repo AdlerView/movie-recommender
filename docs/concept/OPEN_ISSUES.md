@@ -41,7 +41,7 @@
 
 - [x] `#011` **[unclear]** — "Based on your stream" data source
   - Context: The wireframe shows a "based on your interests" section with poster-style recommendations. No streaming platform integration is planned.
-  - Decision (2026-03-25): "Based on your interests" section on the Rate page, displayed as a poster grid identical to the trending movies layout. Powered by the personalized scoring system (Layer 2). Shows top-N recommended movies based on user's rating history. Requires store/ directory to be populated; falls back to trending when no ratings exist.
+  - Decision (2026-03-25): "Based on your interests" section on the Rate page, displayed as a poster grid identical to the trending movies layout. Powered by the personalized scoring system (Layer 2). Shows top-N recommended movies based on user's rating history. Requires data/output/ directory to be populated; falls back to trending when no ratings exist.
   - Found: 2026-03-18 | Resolved: 2026-03-25
 
 ## Resolved

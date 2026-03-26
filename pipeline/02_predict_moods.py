@@ -25,11 +25,11 @@ classification is not taught in the course (mentioned on lecture 10
 slide 40 but never used practically).
 
 Data flow:
-    store/tmdb.sqlite (movies.overview, movies.tagline, movie_reviews)
-    store/genre_mood_map.json (19 rules)
-    store/keyword_mood_map.json (~70K entries)
+    data/input/tmdb.sqlite (movies.overview, movies.tagline, movie_reviews)
+    data/input/genre_mood_map.json (19 rules)
+    data/output/keyword_mood_map.json (~70K entries)
         → 4 signal arrays combined with dynamic weights
-        → store/mood_scores.npy (1.17M × 7, float32)
+        → data/output/mood_scores.npy (1.17M × 7, float32)
 
 Row ordering: SELECT id FROM movies ORDER BY id (same as Stage 1).
 """
@@ -375,20 +375,20 @@ def main() -> int:
         description="Predict mood scores for all movies from 4 signals.",
     )
     parser.add_argument(
-        "--db", type=Path, default=Path("store/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
+        "--db", type=Path, default=Path("data/input/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("store"),
-        help="Output directory for mood_scores.npy (default: store/)",
+        "--output", type=Path, default=Path("data/output"),
+        help="Output directory for mood_scores.npy (default: data/output/)",
     )
     parser.add_argument(
-        "--genre-map", type=Path, default=Path("store/genre_mood_map.json"),
-        help="Path to genre mood map JSON (default: store/genre_mood_map.json)",
+        "--genre-map", type=Path, default=Path("data/input/genre_mood_map.json"),
+        help="Path to genre mood map JSON (default: data/input/genre_mood_map.json)",
     )
     parser.add_argument(
-        "--keyword-map", type=Path, default=Path("store/keyword_mood_map.json"),
-        help="Path to keyword mood map JSON (default: store/keyword_mood_map.json)",
+        "--keyword-map", type=Path, default=Path("data/output/keyword_mood_map.json"),
+        help="Path to keyword mood map JSON (default: data/output/keyword_mood_map.json)",
     )
     parser.add_argument(
         "--batch-size", type=int, default=64,

@@ -11,7 +11,7 @@ enables efficient SQL aggregations for the Statistics dashboard without
 re-fetching from TMDB.
 
 Database file (gitignored):
-- store/user.sqlite: App runtime database (ratings, watchlist, dismissed, details).
+- data/user.sqlite: App runtime database (ratings, watchlist, dismissed, details).
   Schema version: 5 (managed via PRAGMA user_version).
 
 Schema v5 changes (from v4):
@@ -27,16 +27,16 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-# Database path: project_root/store/ (two levels up from utils/)
-_STORE_DIR = Path(__file__).resolve().parent.parent.parent / "store"
-DB_PATH = _STORE_DIR / "user.sqlite"
+# Database path: project_root/data/ (two levels up from utils/)
+_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+DB_PATH = _DATA_DIR / "user.sqlite"
 
 
 @contextmanager
 def _connection():
     """Open a connection to the SQLite database.
 
-    Creates the store/ directory and database file if they don't exist.
+    Creates the data/ directory and database file if they don't exist.
     Uses WAL journal mode for better concurrent read performance.
 
     Yields:

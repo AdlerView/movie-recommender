@@ -23,10 +23,10 @@ Beyond-course extension: Bayesian averaging is not taught in the
 course but solves a real data quality problem in TMDB vote data.
 
 Data flow:
-    store/tmdb.sqlite (movies.vote_average, movies.vote_count)
+    data/input/tmdb.sqlite (movies.vote_average, movies.vote_count)
         → Bayesian average per movie (numpy vectorized)
         → normalize to [0, 1]
-        → store/quality_scores.npy (1.17M × 1, float32)
+        → data/output/quality_scores.npy (1.17M × 1, float32)
 
 Row ordering: SELECT id FROM movies ORDER BY id (same as Stage 1).
 """
@@ -61,14 +61,14 @@ def main() -> int:
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("store/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
+        default=Path("data/input/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("store"),
-        help="Output directory for quality_scores.npy (default: store/)",
+        default=Path("data/output"),
+        help="Output directory for quality_scores.npy (default: data/output/)",
     )
     args = parser.parse_args()
 

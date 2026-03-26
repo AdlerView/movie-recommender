@@ -28,9 +28,9 @@ SVD component count (default: 200):
     without clear scoring benefit. Configurable via --svd-components.
 
 Data flow:
-    store/tmdb.sqlite (1.17M movies, 30 tables)
-        → 7 .npy feature arrays in store/
-        → 3 .pkl SVD models in store/svd_models/
+    data/input/tmdb.sqlite (1.17M movies, 30 tables)
+        → 7 .npy feature arrays in data/output/
+        → 3 .pkl SVD models in data/output/svd_models/
 
 All arrays share the same row ordering: SELECT id FROM movies ORDER BY id.
 The movie_id ↔ row_index mapping is saved by Stage 4 (04_build_index.py).
@@ -416,14 +416,14 @@ def main() -> int:
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("store/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
+        default=Path("data/input/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("store"),
-        help="Output directory for .npy and .pkl files (default: store/)",
+        default=Path("data/output"),
+        help="Output directory for .npy and .pkl files (default: data/output/)",
     )
     parser.add_argument(
         "--svd-components",

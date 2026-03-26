@@ -71,9 +71,9 @@ Thumbs.db
 .streamlit/secrets.toml
 
 # Store — large files (fast to regenerate from pipeline scripts)
-store/tmdb.sqlite
-store/user.sqlite
-store/user.sqlite-shm
-store/user.sqlite-wal
-store/*_svd_vectors.npy
-store/svd_models/
+data/input/tmdb.sqlite
+data/user.sqlite
+data/user.sqlite-shm
+data/user.sqlite-wal
+data/output/*_svd_vectors.npy
+data/output/*.pkl

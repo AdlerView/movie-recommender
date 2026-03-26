@@ -6,8 +6,8 @@ precomputed feature vectors by TMDB movie ID. Verifies that all pipeline
 output files exist and have consistent row counts.
 
 Data flow:
-    store/tmdb.sqlite (SELECT id FROM movies ORDER BY id)
-        → store/movie_id_index.json (bidirectional mapping)
+    data/input/tmdb.sqlite (SELECT id FROM movies ORDER BY id)
+        → data/output/movie_id_index.json (bidirectional mapping)
 
 Row ordering: same as Stage 1-3 (canonical ORDER BY id).
 """
@@ -53,12 +53,12 @@ def main() -> int:
         description="Build movie_id_index.json and verify pipeline outputs.",
     )
     parser.add_argument(
-        "--db", type=Path, default=Path("store/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
+        "--db", type=Path, default=Path("data/input/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("store"),
-        help="Output directory (default: store/)",
+        "--output", type=Path, default=Path("data/output"),
+        help="Output directory (default: data/output/)",
     )
     args = parser.parse_args()
 

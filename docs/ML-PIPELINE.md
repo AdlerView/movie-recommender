@@ -112,7 +112,7 @@ classification problem.
 ## Architecture
 
 ```
-store/tmdb.sqlite (8.2 GB, offline only)
+data/input/tmdb.sqlite (8.2 GB, offline only)
     |
     |  pipeline/01_extract_features.py
     |  pipeline/02_predict_moods.py
@@ -120,7 +120,7 @@ store/tmdb.sqlite (8.2 GB, offline only)
     |  pipeline/04_build_index.py
     |
     v
-store/ (~3 GB, shipped to production)
+data/output/ (~3 GB, shipped to production)
     keyword_svd_vectors.npy     1.17M x 200   float32
     director_svd_vectors.npy    1.17M x 200   float32
     actor_svd_vectors.npy       1.17M x 200   float32
@@ -148,7 +148,7 @@ are loaded into memory for scoring.
 
 **Script:** `pipeline/01_extract_features.py`
 
-**Input:** `store/tmdb.sqlite`
+**Input:** `data/input/tmdb.sqlite`
 
 Extracts feature matrices from the TMDB database and reduces
 high-dimensional sparse features via SVD.
@@ -178,17 +178,17 @@ high-dimensional sparse features via SVD.
 **Output:**
 
 ```
-store/keyword_svd_vectors.npy
-store/director_svd_vectors.npy
-store/actor_svd_vectors.npy
-store/genre_vectors.npy
-store/decade_vectors.npy
-store/language_vectors.npy
-store/runtime_normalized.npy
-store/movie_id_index.json
-store/svd_models/keyword_svd.pkl
-store/svd_models/director_svd.pkl
-store/svd_models/actor_svd.pkl
+data/output/keyword_svd_vectors.npy
+data/output/director_svd_vectors.npy
+data/output/actor_svd_vectors.npy
+data/output/genre_vectors.npy
+data/output/decade_vectors.npy
+data/output/language_vectors.npy
+data/output/runtime_normalized.npy
+data/output/movie_id_index.json
+data/output/svd_models/keyword_svd.pkl
+data/output/svd_models/director_svd.pkl
+data/output/svd_models/actor_svd.pkl
 ```
 
 ---
@@ -197,8 +197,8 @@ store/svd_models/actor_svd.pkl
 
 **Script:** `pipeline/02_predict_moods.py`
 
-**Input:** `store/tmdb.sqlite` + `store/genre_mood_map.json` +
-`store/keyword_mood_map.json`
+**Input:** `data/input/tmdb.sqlite` + `data/input/genre_mood_map.json` +
+`data/output/keyword_mood_map.json`
 
 For each movie, predicts 7 mood probabilities:
 happy, interested, surprised, sad, disgusted, afraid, angry.
@@ -210,7 +210,7 @@ happy, interested, surprised, sad, disgusted, afraid, angry.
 19 manual rules mapping each genre to mood weights. Weights are
 independent scores (not normalized to 1.0) representing the strength
 of each mood signal for the genre. Canonical source:
-`store/genre_mood_map.json`.
+`data/input/genre_mood_map.json`.
 
 ```
 Action          -> {interested: 0.5, afraid: 0.3}
@@ -236,7 +236,7 @@ Western         -> {interested: 0.4, happy: 0.2, angry: 0.2}
 
 For multi-genre movies, mood scores are averaged across genres.
 
-Stored in: `store/genre_mood_map.json`
+Stored in: `data/input/genre_mood_map.json`
 
 ---
 
@@ -255,7 +255,7 @@ scientifically convincing than supervised pipeline).
 **Stage A: Labeled seed dataset (complete)**
 
 5,000 most frequent TMDB keywords labeled by Claude agent.
-Source: `store/tmdb-keyword-frequencies_labeled_top5000.tsv`
+Source: `data/input/tmdb-keyword-frequencies_labeled_top5000.tsv`
 
 | Assignment Type | Count | Description |
 |---|---|---|
@@ -307,10 +307,10 @@ This gives a reproducible, evaluable, course-compliant classification
 pipeline rather than an opaque heuristic. It also serves as a second
 ML showcase alongside the user preference classification.
 
-**Output:** `store/keyword_mood_map.json` (70K+ entries, predicted
+**Output:** `data/output/keyword_mood_map.json` (70K+ entries, predicted
 mood scores per keyword)
 
-Stored in: `store/keyword_mood_map.json`
+Stored in: `data/output/keyword_mood_map.json`
 
 ---
 
@@ -373,7 +373,7 @@ If no overview either (~15%):
 Weights always normalize to 1.0. When a signal is unavailable, its
 weight redistributes to the remaining signals.
 
-**Output:** `store/mood_scores.npy` (1.17M x 7)
+**Output:** `data/output/mood_scores.npy` (1.17M x 7)
 
 ---
 
@@ -381,7 +381,7 @@ weight redistributes to the remaining signals.
 
 **Script:** `pipeline/03_quality_scores.py`
 
-**Input:** `store/tmdb.sqlite` (`movies.vote_average`, `movies.vote_count`)
+**Input:** `data/input/tmdb.sqlite` (`movies.vote_average`, `movies.vote_count`)
 
 Bayesian average to prevent movies with very few votes from ranking
 unfairly high:
@@ -399,7 +399,7 @@ with 10,000 votes stays close to its actual average.
 
 Normalized to [0, 1] range.
 
-**Output:** `store/quality_scores.npy` (1.17M x 1)
+**Output:** `data/output/quality_scores.npy` (1.17M x 1)
 
 ---
 
@@ -409,13 +409,13 @@ Normalized to [0, 1] range.
 
 Saves the final mappings:
 
-- `store/movie_id_index.json` -- bidirectional mapping between
+- `data/output/movie_id_index.json` -- bidirectional mapping between
   `movie_id` (TMDB integer ID) and row index (position in `.npy`
   arrays). Required to look up vectors for movies returned by the
   TMDB API.
-- `store/genre_mood_map.json` -- 19 genre -> mood rules
-- `store/keyword_mood_map.json` -- ~70K keyword -> mood predictions
-- `store/svd_models/*.pkl` -- saved SVD transformers for future use
+- `data/input/genre_mood_map.json` -- 19 genre -> mood rules
+- `data/output/keyword_mood_map.json` -- ~70K keyword -> mood predictions
+- `data/output/svd_models/*.pkl` -- saved SVD transformers for future use
 
 ---
 
@@ -423,10 +423,10 @@ Saves the final mappings:
 
 ```bash
 # Full pipeline (takes several hours for mood prediction on 1.17M movies)
-python3 pipeline/01_extract_features.py --db store/tmdb.sqlite --output store/
-python3 pipeline/02_predict_moods.py --db store/tmdb.sqlite --output store/
-python3 pipeline/03_quality_scores.py --db store/tmdb.sqlite --output store/
-python3 pipeline/04_build_index.py --output store/
+python3 pipeline/01_extract_features.py --db data/input/tmdb.sqlite --output data/output/
+python3 pipeline/02_predict_moods.py --db data/input/tmdb.sqlite --output data/output/
+python3 pipeline/03_quality_scores.py --db data/input/tmdb.sqlite --output data/output/
+python3 pipeline/04_build_index.py --output data/output/
 ```
 
 Each stage is idempotent and can be re-run independently.
@@ -516,8 +516,8 @@ User clicks "Discover" with filters
 | `pipeline/03_quality_scores.py` | `DONE` | Stage 3: Bayesian average -> quality_scores.npy |
 | `pipeline/04_build_index.py` | `DONE` | Stage 4: movie_id_index.json + output verification |
 | `pipeline/keyword_mood_classifier.py` | `DONE` | Keyword-to-mood: train classifier, infer 70K+ |
-| `store/genre_mood_map.json` | `DONE` | 19 genre -> mood rules (manual) |
-| `store/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
+| `data/input/genre_mood_map.json` | `DONE` | 19 genre -> mood rules (manual) |
+| `data/output/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
 | `app/utils/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
 | `app/utils/scoring.py` | `PENDING` | Scoring formula, dynamic weights, cosine similarity |
 | `app/utils/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |

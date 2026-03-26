@@ -3,20 +3,20 @@
 
 Trains a supervised classifier on manually labeled TMDB keywords (single-label
 subset) and infers mood labels for all remaining ~70K unlabeled keywords.
-Produces store/keyword_mood_map.json for use by the mood prediction pipeline.
+Produces data/output/keyword_mood_map.json for use by the mood prediction pipeline.
 
 Phase 1b: Build / Train / Select / Infer (productive pipeline).
 Phase 3 reuses the same workflow for academic evaluation (notebook, plots).
 
 Data flow:
-    store/tmdb-keyword-frequencies_labeled_top5000.tsv  (1,049 single-label)
+    data/input/tmdb-keyword-frequencies_labeled_top5000.tsv  (1,049 single-label)
         -> sentence embeddings (EmbeddingGemma-300M, 768-dim)
         -> 80/10/10 split (train/val/test, stratified, random_state=13)
         -> scaled + unscaled classifier comparison (macro-F1)
         -> best model reported on test set (classification_report, confusion matrix)
         -> best model refitted on full single-label set
-        -> inference on 70K+ unlabeled keywords from store/tmdb.sqlite
-        -> store/keyword_mood_map.json
+        -> inference on 70K+ unlabeled keywords from data/input/tmdb.sqlite
+        -> data/output/keyword_mood_map.json
 
 Split strategy follows Assignment 11 Task 1: two successive
 train_test_split calls with stratify and fixed seed. The validation
@@ -352,7 +352,7 @@ def load_all_keywords_from_db(db_path: Path) -> pd.DataFrame:
     """Load all keywords from the TMDB database.
 
     Args:
-        db_path: Path to store/tmdb.sqlite.
+        db_path: Path to data/input/tmdb.sqlite.
 
     Returns:
         DataFrame with columns: keyword_id, keyword_name.
@@ -442,20 +442,20 @@ def main() -> int:
     parser.add_argument(
         "--tsv",
         type=Path,
-        default=Path("store/tmdb-keyword-frequencies_labeled_top5000.tsv"),
-        help="Path to labeled keyword TSV (default: store/...labeled_top5000.tsv)",
+        default=Path("data/input/tmdb-keyword-frequencies_labeled_top5000.tsv"),
+        help="Path to labeled keyword TSV (default: data/input/...labeled_top5000.tsv)",
     )
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("store/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
+        default=Path("data/input/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("store/keyword_mood_map.json"),
-        help="Output path for keyword mood map JSON (default: store/keyword_mood_map.json)",
+        default=Path("data/output/keyword_mood_map.json"),
+        help="Output path for keyword mood map JSON (default: data/output/keyword_mood_map.json)",
     )
     parser.add_argument(
         "--model",

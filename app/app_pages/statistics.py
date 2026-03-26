@@ -236,7 +236,7 @@ if _eval_results_path.exists():
         # Load keyword data and embeddings (same as pipeline)
         _tsv_path = (
             Path(__file__).resolve().parent.parent.parent
-            / "store"
+            / "data" / "input"
             / "tmdb-keyword-frequencies_labeled_top5000.tsv"
         )
         if _tsv_path.exists():

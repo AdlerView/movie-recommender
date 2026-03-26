@@ -17,7 +17,7 @@ The system has two phases with strict separation:
 
 ### Offline Phase (Training) `DONE`
 
-Uses the 8.2 GB TMDB SQLite database (`store/tmdb.sqlite`, 1.17M movies,
+Uses the 8.2 GB TMDB SQLite database (`data/input/tmdb.sqlite`, 1.17M movies,
 30 tables) to precompute feature vectors and mood scores. This database
 is never queried at runtime.
 
@@ -60,7 +60,7 @@ The user rates a movie after watching it.
 
 **After saving:** the user profile vectors are recomputed from all
 ratings using the precomputed model files. *(Profile recomputation
-not yet implemented -- requires `user_profile.py` + `store/`.)*
+not yet implemented -- requires `user_profile.py` + `data/output/`.)*
 
 ---
 
@@ -388,7 +388,7 @@ dominates.
 
 #### Stage 1: Feature Extraction `PENDING`
 
-Input: `store/tmdb.sqlite` (8.2 GB, 1.17M movies)
+Input: `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies)
 
 | Feature | Dimensions | DB Source |
 |---|---|---|
@@ -415,7 +415,7 @@ sad, disgusted, afraid, angry).
 **Signal 1: Genre -> Mood mapping (19 manual rules)**
 
 Independent scores per genre (not normalized to 1.0). Canonical
-source: `store/genre_mood_map.json`.
+source: `data/input/genre_mood_map.json`.
 
 ```
 Comedy      -> {happy: 0.8, surprised: 0.2}
@@ -434,7 +434,7 @@ keywords)**
 
 Produced by `pipeline/keyword_mood_classifier.py`. Two-stage process:
 1. Labeled seed: 5,000 keywords in
-   `store/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single-
+   `data/output/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single-
    label after review, 1,634 multi, 2,317 none)
 2. Train classifier on single-label subset (1,049), infer remaining
    70K+
@@ -490,7 +490,7 @@ Script: `pipeline/03_quality_scores.py`
 Output:
 
 ```
-store/
+data/output/
   genre_mood_map.json        19 entries
   keyword_mood_map.json      ~70K entries
   movie_id_index.json        1.17M entries
@@ -522,7 +522,7 @@ of the same workflow belongs in Phase 3.
 - Select best model by macro-F1
 - Fit best model on full single-label training set
 - Infer mood labels for all remaining 70K+ unlabeled keywords
-- Export: `store/keyword_mood_map.json`
+- Export: `data/output/keyword_mood_map.json`
 
 **Phase 3 scope (evaluate / visualize / report):**
 
@@ -574,7 +574,7 @@ Script: `pipeline/keyword_mood_classifier.py`
 ### Offline Only (not shipped to production)
 
 ```
-store/tmdb.sqlite                    8.2 GB    Full TMDB database, 30 tables, 1.17M movies
+data/input/tmdb.sqlite                    8.2 GB    Full TMDB database, 30 tables, 1.17M movies
 ```
 
 ---
@@ -582,7 +582,7 @@ store/tmdb.sqlite                    8.2 GB    Full TMDB database, 30 tables, 1.
 ### Runtime: Model Files (read-only) `PENDING`
 
 ```
-store/
+data/output/
   keyword_svd_vectors.npy       1.17M x 200    float32
   director_svd_vectors.npy      1.17M x 200    float32
   actor_svd_vectors.npy         1.17M x 200    float32
@@ -708,7 +708,7 @@ section for details.
 
 ### Phase 1a: Offline Pipeline `DONE`
 
-Completed 2026-03-26. All 5 stages produced `store/` directory with
+Completed 2026-03-26. All 5 stages produced `data/output/` directory with
 14 pipeline outputs (9 `.npy`, 2 `.json`, 3 `.pkl`). Total ~4 GB.
 Scripts: `pipeline/01_extract_features.py`, `02_predict_moods.py`,
 `03_quality_scores.py`, `04_build_index.py`. See TODO.md "Done"
@@ -726,20 +726,20 @@ See TODO.md "Done" section for details.
 
 ### Phase 2: Online Scoring `PENDING`
 
-Connects `store/` to the running app. Computes user profiles from
+Connects `data/output/` to the running app. Computes user profiles from
 ratings, scores candidate movies, builds TMDB API parameters from
 filter UI.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 2.1 | User profile: load `.npy` arrays, compute weighted-average profile vectors from ratings, cache in `user_profile_cache` | `app/utils/user_profile.py` | 1a.5 (`store/` populated) | `PENDING` |
+| 2.1 | User profile: load `.npy` arrays, compute weighted-average profile vectors from ratings, cache in `user_profile_cache` | `app/utils/user_profile.py` | 1a.5 (`data/output/` populated) | `PENDING` |
 | 2.2 | Scoring: 9-signal formula, dynamic weights by rating count, batch cosine similarity (numpy vectorized) | `app/utils/scoring.py` | 2.1 | `PENDING` |
-| 2.3 | Filters: TMDB API parameter builder from 14 filter controls, local mood filter against `mood_scores.npy` | `app/utils/filters.py` | 1a.5 (`store/` for mood filter) | `PENDING` |
+| 2.3 | Filters: TMDB API parameter builder from 14 filter controls, local mood filter against `mood_scores.npy` | `app/utils/filters.py` | 1a.5 (`data/output/` for mood filter) | `PENDING` |
 
-**Graceful degradation:** When `store/` is not populated, the app
+**Graceful degradation:** When `data/output/` is not populated, the app
 MUST fall back to quality + mood only (cold-start weight table row 0:
 0.60 quality + 0.40 mood). Personalized scoring is
-disabled until `store/` exists.
+disabled until `data/output/` exists.
 
 ---
 
