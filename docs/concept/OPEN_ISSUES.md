@@ -56,5 +56,5 @@
 - [x] `#016` **[decision]** — TMDB API key injected via `_get()` helper in `app/utils/tmdb.py` (2026-03-23)
 - [x] `#006` **[decision]** — Sort by `popularity.desc` with `vote_count.gte=100` floor, AND logic for genres, automatic pagination up to 10 pages (2026-03-24)
 - [x] `#008` **[gap]** — Flatrate streaming providers (CH) shown on Watchlist with brand-colored badges (2026-03-24)
-- [x] `#005` **[gap]** — Statistics data pipeline: normalized SQLite tables (movie_details, movie_genres, movie_cast, movie_crew, movie_countries, movie_keywords), eager fetch on rating save + backfill on startup. Dashboard PoC with KPIs, 6 Altair charts, rankings, rated movies table (2026-03-24)
+- [x] `#005` **[gap]** — Statistics data pipeline: normalized SQLite tables (movie_details, movie_genres, movie_cast, movie_crew, movie_countries, movie_keywords), eager fetch on rating save + backfill on startup. Dashboard PoC with KPIs, 7 Altair charts, rankings, rated movies table (2026-03-24)
 - [x] `#012` **[gap]** — "No movies found — try selecting fewer tags" message + back button to genre selection (2026-03-24)

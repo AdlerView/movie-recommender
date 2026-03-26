@@ -70,16 +70,5 @@ Thumbs.db
 # Streamlit
 .streamlit/secrets.toml
 
-# Data (large files)
-data/*.csv
-data/*.json
-data/*.sqlite
-data/*.db
-data/*.db-shm
-data/*.db-wal
-data/*.tsv
-data/exports/
-!data/.gitkeep
-
-# Model artifacts (precomputed feature arrays)
-model/
+# Store (all large, generated, and runtime files)
+store/

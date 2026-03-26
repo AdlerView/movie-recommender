@@ -76,7 +76,7 @@
 - [x] Dialog-based rating — @st.dialog overlay replaces full-page rating view (2026-03-24)
 - [x] Rating slider UX — dot tick marks, sentiment labels, color-coded track (2026-03-24)
 - [x] Tab restructuring — Watched -> Rate (pure action), ratings table moved to Statistics (2026-03-24)
-- [x] Statistics PoC — KPIs, 6 Altair charts, top directors + actors, rated movies table (2026-03-24)
+- [x] Statistics PoC — KPIs, 7 Altair charts, top directors + actors, rated movies table (2026-03-24)
 - [x] Cinema Gold theme — dark base, #D4A574 accent, Poppins font, toolbarMode minimal (2026-03-24)
 - [x] Keyword scoring on Discover — genre AND + keyword relevance ranking (2026-03-24)
 - [x] Keyword badges on movie cards — Genre + Keywords sections on all pages (2026-03-24)

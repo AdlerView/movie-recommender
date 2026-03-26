@@ -26,7 +26,7 @@ Keywords can be: **single** (one mood), **multi** (2-3 moods), or **none** (Unca
 
 ### Stage 1: Initial Labeling (Top 5000 Keywords)
 
-File: `data/tmdb-keyword-frequencies_labeled_top5000.tsv`
+File: `data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv`
 
 The top 5000 keywords (by movie_count) were labeled with mood assignments. Each keyword received:
 - `assigned_moods`: comma-separated mood list (canonical order: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry)
@@ -35,7 +35,7 @@ The top 5000 keywords (by movie_count) were labeled with mood assignments. Each 
 
 ### Stage 2: Manual Review (This Session)
 
-All 5000 keywords were reviewed against 3 real film overviews per keyword (from `data/tmdb-keyword-frequencies_labeled_top5000_with_movies.tsv`). The review produced **~666 corrections** across 5000 keywords (~13.3% correction rate).
+All 5000 keywords were reviewed against 3 real film overviews per keyword (from `data/labeled/tmdb-keyword-frequencies_labeled_top5000_with_movies.tsv`). The review produced **~666 corrections** across 5000 keywords (~13.3% correction rate).
 
 ### Stage 3: Classifier Training
 
@@ -327,5 +327,5 @@ The single-label class imbalance (Interested=332 vs. Disgusted=31) is structural
 
 - **Parent:** [CLAUDE.md](../CLAUDE.md)
 - **ML Pipeline:** [ML-PIPELINE.md](ML-PIPELINE.md)
-- **Labeled data:** `data/tmdb-keyword-frequencies_labeled_top5000.tsv`
+- **Labeled data:** `data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv`
 - **Classifier:** `pipeline/keyword_mood_classifier.py`

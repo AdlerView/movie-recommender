@@ -81,7 +81,7 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 |---|-------------|--------|
 | 1 | Problem clearly stated | defined |
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
-| 3 | Data visualization | in progress (PoC: KPIs, 6 charts, rankings, table) |
+| 3 | Data visualization | in progress (PoC: KPIs, 7 charts, rankings, table) |
 | 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
 | 5 | Machine learning | in progress (personalized recommendations: content-based scoring from user ratings + mood reactions, sklearn pipeline with classifier comparison) |
 | 6 | Code documentation | in progress |
