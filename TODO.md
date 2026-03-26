@@ -7,8 +7,9 @@
 
 ## In Progress
 
-- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Phase 1 cleanup done: old keyword/mood code removed from all files, app functional with genre-only discovery)*
+- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Discover sidebar + 12 filters + poster grid done; ML scoring pending Phase 2)*
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
+- [ ] Discover page visual polish — layout refinements, spacing, visual consistency pass
 
 ## Upcoming
 
@@ -102,6 +103,7 @@
 - [x] Directory restructuring — `data/` + `model/` → `data/` (tracked: labeled/, evaluation/) + `store/` (gitignored: DBs, .npy, .pkl, generated JSON). Gitignore simplified to single `store/` rule (2026-03-26)
 - [x] Feature extraction pipeline — `pipeline/01_extract_features.py`: 7 features from tmdb.db (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim), 3 SVD .pkl models. Total: ~2.9 GB in store/. Runtime: 2m39s (2026-03-26)
 - [x] Quality scores pipeline — `pipeline/03_quality_scores.py`: Bayesian average on vote_average + vote_count (m=3.0, C=5.90), normalized to [0,1]. Spot checks: Fight Club 0.83, Pulp Fiction 0.84, Dark Knight 0.84. 4.5 MB (2026-03-26)
+- [x] Discover page redesign — sidebar with 12 filters (genre, year, runtime, rating, min votes, keywords, language, certification, streaming providers), main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. New TMDB API functions in tmdb.py. Visual polish pending. (2026-03-26)
 
 ## Superseded
 

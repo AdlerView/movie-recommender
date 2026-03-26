@@ -100,31 +100,99 @@ def get_trending(time_window: str = "week", page: int = 1) -> list[dict]:
     return _get(f"/trending/movie/{time_window}", language="en-US", page=page)["results"]
 
 
-@st.cache_data(ttl="30m", show_spinner="Discovering movies...")
-def discover_movies(genre_ids: tuple[int, ...], page: int = 1) -> list[dict]:
-    """Fetch movies filtered by genres via the TMDB discover endpoint.
+@st.cache_data(ttl="10m", show_spinner=False)
+def discover_movies_filtered(
+    params: tuple[tuple[str, str], ...],
+    page: int = 1,
+) -> dict:
+    """Fetch movies via the TMDB discover endpoint with arbitrary filters.
 
-    Uses AND logic for genres so movies must match all selected genres.
-    Results are sorted by rating with a minimum vote count to filter obscure films.
+    Accepts a tuple of (key, value) pairs as parameters to ensure
+    hashability for Streamlit caching. All TMDB discover/movie parameters
+    are supported (genre, year, runtime, vote score, providers, etc.).
 
     Args:
-        genre_ids: TMDB genre IDs to filter by (AND logic).
-        page: Result page (1-500).
+        params: Tuple of (key, value) pairs for TMDB API parameters.
+        page: Result page (1-500, 20 results per page).
 
     Returns:
-        List of movie dicts matching all selected genres.
+        Full API response dict with "results", "total_results", "total_pages".
     """
-    # GET /discover/movie — genre-filtered discovery, AND logic via comma separator
-    # Sorted by popularity (composite of votes, views, watchlist adds, trending)
-    genres_param = ",".join(str(gid) for gid in genre_ids)
-    return _get(
-        "/discover/movie",
-        extra={"vote_count.gte": 100},
-        with_genres=genres_param,
-        sort_by="popularity.desc",
-        language="en-US",
-        page=page,
-    )["results"]
+    # GET /discover/movie — filtered discovery with all supported parameters
+    extra = dict(params)
+    extra["page"] = page
+    extra["language"] = "en-US"
+    return _get("/discover/movie", extra=extra)
+
+
+@st.cache_data(ttl="24h", show_spinner=False)
+def get_languages() -> list[dict]:
+    """Fetch available languages from TMDB configuration.
+
+    Returns:
+        List of language dicts with "iso_639_1", "english_name", "name".
+    """
+    # GET /configuration/languages — all TMDB-supported languages
+    return _get("/configuration/languages")
+
+
+@st.cache_data(ttl="24h", show_spinner=False)
+def get_certifications(country: str = "DE") -> list[dict]:
+    """Fetch movie certification levels for a country.
+
+    Args:
+        country: ISO 3166-1 country code (default: DE).
+
+    Returns:
+        List of certification dicts with "certification", "meaning", "order".
+    """
+    # GET /certification/movie/list — certifications per country
+    data = _get("/certification/movie/list")
+    return data.get("certifications", {}).get(country, [])
+
+
+@st.cache_data(ttl="24h", show_spinner=False)
+def get_countries() -> list[dict]:
+    """Fetch available countries from TMDB configuration.
+
+    Returns:
+        List of country dicts with "iso_3166_1", "english_name", "native_name".
+    """
+    # GET /configuration/countries — all TMDB-supported countries
+    return _get("/configuration/countries", language="en")
+
+
+@st.cache_data(ttl="24h", show_spinner=False)
+def get_watch_providers_list(region: str = "CH") -> list[dict]:
+    """Fetch available streaming providers for a region.
+
+    Args:
+        region: ISO 3166-1 country code (default: CH).
+
+    Returns:
+        List of provider dicts with "provider_id", "provider_name", "logo_path".
+    """
+    # GET /watch/providers/movie — available providers per region
+    data = _get("/watch/providers/movie", watch_region=region, language="en")
+    return data.get("results", [])
+
+
+@st.cache_data(ttl="5m", show_spinner=False)
+def search_keywords(query: str) -> list[dict]:
+    """Search for TMDB keywords by text query.
+
+    Used for keyword autocomplete in the Discover filter sidebar.
+
+    Args:
+        query: Search text (min 1 character).
+
+    Returns:
+        List of keyword dicts with "id" and "name" keys.
+    """
+    # GET /search/keyword — keyword text search for autocomplete
+    if not query or len(query.strip()) < 1:
+        return []
+    return _get("/search/keyword", query=query, page=1).get("results", [])
 
 
 @st.cache_data(ttl="5m", show_spinner=False)

@@ -793,7 +793,7 @@ reactions to Watchlist.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 4.1 | Discover: sidebar layout with 12 filter controls + main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. Provider logos via TMDB `logo_path`. Genre `st.pills` width-optimized order. Keyword autocomplete + chips. | `app/app_pages/discover.py` | -- (TMDB API filters work without pipeline) | `PENDING` |
+| 4.1 | Discover: sidebar layout with 12 filter controls + main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. Provider logos via TMDB `logo_path`. Genre `st.pills` width-optimized order. Keyword autocomplete + chips. | `app/app_pages/discover.py` | -- (TMDB API filters work without pipeline) | `DONE` |
 | 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/app_pages/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
 | 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/app_pages/rate.py` | 2.2 (scoring.py) | `PENDING` |
 | 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/app_pages/watchlist.py` | 0.1 (DB schema) | `DONE` |
