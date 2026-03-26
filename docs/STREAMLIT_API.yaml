@@ -179,10 +179,7 @@ api:
           kwarg_only: true
       returns:
       - type: None or UploadedFile
-        description: >-
-          The UploadedFile class is a subclass of BytesIO, and therefore is
-          "file-like". This means you can pass an instance of it anywhere a
-          file is expected.
+        description: 'UploadedFile is a subclass of BytesIO and therefore "file-like". Pass it anywhere a file is expected.'
     streamlit.chat_input:
       signature: st.chat_input(placeholder="Your message", *, key=None, max_chars=None, max_upload_size=None, accept_file=False,
         file_type=None, accept_audio=False, audio_sample_rate=16000, disabled=False, on_submit=None, args=None, kwargs=None,
@@ -248,24 +245,12 @@ api:
           kwarg_only: true
         accept_audio:
           type: bool
-          description: >-
-            Whether to show an audio recording button in the chat input. This
-            defaults to False. If this is True, users can record and
-            submit audio messages. Recorded audio is available as an
-            UploadedFile object with MIME type audio/wav.
+          description: Whether to show an audio recording button. False by default. If True, users can record and submit audio (available as UploadedFile, MIME type audio/wav).
           default: 'False'
           kwarg_only: true
         audio_sample_rate:
           type: int or None
-          description: >-
-            The target sample rate for audio recording in Hz when
-            accept_audio is True. This defaults to 16000, which is
-            optimal for speech recognition.
-            The following values are supported: 8000 (telephone quality),
-            11025, 16000 (speech-recognition quality), 22050,
-            24000, 32000, 44100, 48000 (high-quality), or
-            None. If this is None, the widget uses the browser's
-            default sample rate (typically 44100 or 48000 Hz).
+          description: Target sample rate for audio recording in Hz (when accept_audio=True). Defaults to 16000. Supported values: 8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000, or None (browser default).
           default: '16000'
           kwarg_only: true
         disabled:
@@ -543,10 +528,7 @@ api:
           default: None
         format:
           type: str
-          description: >-
-            A format string controlling how the interface should display dates.
-            Supports "YYYY/MM/DD" (default), "DD/MM/YYYY", or "MM/DD/YYYY".
-            You may also use a period (.) or hyphen (-) as separators.
+          description: 'Date display format. Supports "YYYY/MM/DD" (default), "DD/MM/YYYY", or "MM/DD/YYYY". Period (.) and hyphen (-) also work as separators.'
           default: '"YYYY/MM/DD"'
           kwarg_only: true
         disabled:
@@ -664,11 +646,7 @@ api:
           kwarg_only: true
         format:
           type: str
-          description: >-
-            A format string controlling how the interface displays dates.
-            Supports "YYYY/MM/DD" (default), "DD/MM/YYYY", or "MM/DD/YYYY".
-            You may also use a period (.) or hyphen (-) as separators. This
-            doesn't affect the time format.
+          description: 'Date display format. Supports "YYYY/MM/DD" (default), "DD/MM/YYYY", or "MM/DD/YYYY". Also accepts period/hyphen separators. Doesn''t affect time format.'
           default: '"YYYY/MM/DD"'
           kwarg_only: true
         step:
@@ -835,27 +813,17 @@ api:
           kwarg_only: true
         use_container_width:
           type: bool
-          description: >-
-            Whether to expand the button's width to fill its parent container.
-            - False (default): Streamlit sizes the button to fit its contents.
-            - True: The width of the button matches its parent container.
-            In both cases, if the contents are wider than the parent container, they will line wrap.
+          description: 'Whether to expand button width. False (default): sizes to fit contents. True: matches parent. Contents line wrap if wider than parent.'
           default: None
           kwarg_only: true
         width:
           type: '"content", "stretch", or int'
-          description: >-
-            The width of the download button:
-            - "content" (default): Matches content width, capped at parent container.
-            - "stretch": Matches parent container width.
-            - An integer: Fixed width in pixels, capped at parent container.
+          description: '"content" (default): matches content width, capped at parent. "stretch": matches parent width. Integer: fixed width in pixels, capped at parent.'
           default: '"content"'
           kwarg_only: true
         shortcut:
           type: str or None
-          description: >-
-            An optional keyboard shortcut that triggers the button. Same options as st.button shortcut.
-            Important: "C" and "R" are reserved. Punctuation keys are not supported.
+          description: 'An optional keyboard shortcut. Same options as st.button. "C" and "R" are reserved. Punctuation keys not supported.'
           default: None
           kwarg_only: true
       returns:
@@ -1231,26 +1199,17 @@ api:
           kwarg_only: true
         use_container_width:
           type: bool
-          description: >-
-            Whether to expand the button's width to fill its parent container.
-            - False (default): Sizes to fit contents.
-            - True: Matches parent container width.
+          description: 'Whether to expand button width. False (default): sizes to fit contents. True: matches parent.'
           default: None
           kwarg_only: true
         width:
           type: '"content", "stretch", or int'
-          description: >-
-            The width of the link button:
-            - "content" (default): Matches content width, capped at parent container.
-            - "stretch": Matches parent container width.
-            - An integer: Fixed width in pixels, capped at parent container.
+          description: '"content" (default): matches content width, capped at parent. "stretch": matches parent width. Integer: fixed width in pixels, capped at parent.'
           default: '"content"'
           kwarg_only: true
         shortcut:
           type: str or None
-          description: >-
-            An optional keyboard shortcut. Same options as st.button shortcut.
-            Important: "C" and "R" are reserved. Punctuation keys are not supported.
+          description: 'An optional keyboard shortcut. Same options as st.button. "C" and "R" are reserved. Punctuation keys not supported.'
           default: None
           kwarg_only: true
     streamlit.multiselect:
@@ -1312,10 +1271,7 @@ api:
           default: None
         max_selections:
           type: int or None
-          description: >-
-            The max selections that can be selected at a time. If this is
-            None (default), there is no limit on the number of selections.
-            If this is an integer, it must be positive.
+          description: Max selections allowed at once. None (default) means no limit. Must be a positive integer if set.
           default: None
           kwarg_only: true
         placeholder:
@@ -2363,10 +2319,7 @@ api:
           default: None
         type:
           type: '"default" or "password"'
-          description: >-
-            The type of the text input. This can be either "default" (for
-            a regular text input), or "password" (for a text input that
-            masks the user's typed value). Defaults to "default".
+          description: '"default" for regular text input, or "password" for masked input. Defaults to "default".'
           default: '"default"'
         help:
           type: str or None
@@ -2374,11 +2327,7 @@ api:
           default: None
         autocomplete:
           type: str
-          description: >-
-            An optional value that will be passed to the <input> element's
-            autocomplete property. If unspecified, this value will be set to
-            "new-password" for "password" inputs, and the empty string for
-            "default" inputs. For more details, see https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
+          description: 'Value for the HTML autocomplete property. Defaults to "new-password" for password inputs, empty string for default inputs.'
           default: None
         on_change:
           type: callable
@@ -2404,10 +2353,7 @@ api:
           kwarg_only: true
         label_visibility:
           type: '"visible", "hidden", or "collapsed"'
-          description: >-
-            The visibility of the label. The default is "visible". If this
-            is "hidden", Streamlit displays an empty spacer instead of the
-            label, which can help keep the widget aligned with other widgets.
+          description: 'The visibility of the label. Default is "visible". "hidden": empty spacer instead of label.'
           default: '"visible"'
           kwarg_only: true
         icon:
@@ -2620,10 +2566,7 @@ api:
       parameters:
         altair_chart:
           type: altair.Chart
-          description: >-
-            The Altair chart object to display. See
-            https://altair-viz.github.io/gallery/ for examples of graph
-            descriptions.
+          description: The Altair chart object to display. See https://altair-viz.github.io/gallery/ for examples.
         width:
           type: '"stretch", "content", int, or None'
           description: >-
@@ -3149,9 +3092,7 @@ api:
           kwarg_only: true
         zoom:
           type: int
-          description: >-
-            Zoom level as specified in
-            https://wiki.openstreetmap.org/wiki/Zoom_levels.
+          description: Zoom level as specified in https://wiki.openstreetmap.org/wiki/Zoom_levels.
           default: None
           kwarg_only: true
         width:
@@ -3204,19 +3145,7 @@ api:
       parameters:
         figure_or_data:
           type: plotly.graph_objs.Figure, plotly.graph_objs.Data,            or dict/list of plotly.graph_objs.Figure/Data
-          description: >-
-            The Plotly Figure or Data object to render. See
-            https://plot.ly/python/ for examples of graph descriptions.
-            Note
-            If your chart contains more than 1000 data points, Plotly will
-            use a WebGL renderer to display the chart. Different browsers
-            have different limits on the number of WebGL contexts per page.
-            If you have multiple WebGL contexts on a page, you may need to
-            switch to SVG rendering mode. You can do this by setting
-            render_mode="svg" within the figure. For example, the
-            following code defines a Plotly Express line chart that will
-            render in SVG mode when passed to st.plotly_chart:
-            px.line(df, x="x", y="y", render_mode="svg").
+          description: 'The Plotly Figure or Data object to render. Note: charts with >1000 data points use WebGL renderer. For multiple WebGL contexts per page, switch to SVG with render_mode="svg".'
         width:
           type: '"stretch", "content", or int'
           description: '"stretch" (default): matches parent container width. "content": matches content width, capped at parent. Integer: fixed width in pixels, capped at parent.'
@@ -3238,16 +3167,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string to use for giving this element a stable
-            identity. If this is None (default), the element's identity
-            will be determined based on the values of the other parameters.
-            If selections are activated and key is provided,
-            Streamlit will register the key in Session State to store the
-            selection state. The selection state is read-only. For more
-            details, see Widget behavior.
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: An optional string for stable element identity. If None (default), identity based on other parameters. If selections are activated and key is provided, selection state is stored in Session State (read-only). Also used as CSS class st-key-.
           default: None
           kwarg_only: true
         on_select:
@@ -3285,20 +3205,12 @@ api:
           kwarg_only: true
         config:
           type: dict or None
-          description: >-
-            A dictionary of Plotly configuration options. This is passed to
-            Plotly's show() function. For more information about Plotly
-            configuration options, see Plotly's documentation on Configuration
-            in Python.
+          description: A dictionary of Plotly configuration options passed to Plotly's show() function.
           default: None
           kwarg_only: true
         '**kwargs':
           type: null
-          description: >-
-            Additional arguments accepted by Plotly's plot() function.
-            This supports config, a dictionary of Plotly configuration
-            options. For more information about Plotly configuration options,
-            see Plotly's documentation on Configuration in Python.
+          description: Additional arguments accepted by Plotly's plot() function, including config for Plotly configuration options.
           kwarg_only: true
       returns:
       - type: element or dict
@@ -3401,16 +3313,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string to use for giving this element a stable
-            identity. If this is None (default), the element's identity
-            will be determined based on the values of the other parameters.
-            If selections are activated and key is provided,
-            Streamlit will register the key in Session State to store the
-            selection state. The selection state is read-only. For more
-            details, see Widget behavior.
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: An optional string for stable element identity. If None (default), identity based on other parameters. If selections are activated and key is provided, selection state is stored in Session State (read-only). Also used as CSS class st-key-.
           default: None
           kwarg_only: true
       returns:
@@ -3588,17 +3491,11 @@ api:
       parameters:
         data:
           type: Anything supported by st.dataframe
-          description: >-
-            Either the data to be plotted or a Vega-Lite spec containing the
-            data (which more closely follows the Vega-Lite API).
+          description: Either the data to be plotted or a Vega-Lite spec containing the data (closer to Vega-Lite API).
           default: None
         spec:
           type: dict or None
-          description: >-
-            The Vega-Lite spec for the chart. If spec is None (default),
-            Streamlit uses the spec passed in data. You cannot pass a spec
-            to both data and spec. See
-            https://vega.github.io/vega-lite/docs/ for more info.
+          description: The Vega-Lite spec for the chart. If None (default), uses the spec from data. Cannot pass spec to both data and spec.
           default: None
         width:
           type: '"stretch", "content", int, or None'
@@ -3642,16 +3539,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string to use for giving this element a stable
-            identity. If this is None (default), the element's identity
-            will be determined based on the values of the other parameters.
-            If selections are activated and key is provided,
-            Streamlit will register the key in Session State to store the
-            selection state. The selection state is read-only. For more
-            details, see Widget behavior.
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: An optional string for stable element identity. If None (default), identity based on other parameters. If selections are activated and key is provided, selection state is stored in Session State (read-only). Also used as CSS class st-key-.
           default: None
           kwarg_only: true
         on_select:
@@ -3701,9 +3589,7 @@ api:
           kwarg_only: true
         '**kwargs':
           type: any
-          description: >-
-            The Vega-Lite spec for the chart as keywords. This is an alternative
-            to spec.
+          description: The Vega-Lite spec for the chart as keywords. Alternative to spec parameter.
           kwarg_only: true
       returns:
       - type: element or dict
@@ -3828,13 +3714,7 @@ api:
           description: The string to display as code or monospace text.
         language:
           type: str or None
-          description: >-
-            The language that the code is written in, for syntax highlighting.
-            This defaults to "python". If this is None, the code will
-            be plain, monospace text.
-            For a list of available language values, see
-            react-syntax-highlighter
-            on GitHub.
+          description: 'The language for syntax highlighting. Defaults to "python". None for plain monospace text. See react-syntax-highlighter on GitHub for available values.'
           default: '"python"'
         line_numbers:
           type: bool
@@ -4042,10 +3922,7 @@ api:
       parameters:
         body:
           type: str or SymPy expression
-          description: >-
-            The string or SymPy expression to display as LaTeX. If str, it's
-            a good idea to use raw Python strings since LaTeX uses backslashes
-            a lot.
+          description: The string or SymPy expression to display as LaTeX. Use raw Python strings (r"...") since LaTeX uses many backslashes.
         help:
           type: str or None
           description: >-
@@ -4446,16 +4323,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string to use as the unique key for this widget.
-            If this is None (default), a key will be generated for
-            the widget based on the values of the other parameters. No
-            two widgets may have the same key.
-            A key lets you access the widget's value via
-            st.session_state[key] (read-only). For more details, see
-            Widget behavior.
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: Unique key for the widget. If None (default), auto-generated. Access value via st.session_state[key] (read-only). Also used as CSS class st-key-.
           default: None
           kwarg_only: true
         on_change:
@@ -4612,16 +4480,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string to use for giving this element a stable
-            identity. If this is None (default), the element's identity
-            will be determined based on the values of the other parameters.
-            If selections are activated and key is provided,
-            Streamlit will register the key in Session State to store the
-            selection state. The selection state is read-only. For more
-            details, see Widget behavior.
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: An optional string for stable element identity. If None (default), identity based on other parameters. If selections are activated and key is provided, selection state is stored in Session State (read-only). Also used as CSS class st-key-.
           default: None
           kwarg_only: true
         on_select:
@@ -6272,14 +6131,7 @@ api:
           default: 'False'
         key:
           type: str, int, or None
-          description: >-
-            An optional string or integer to use as the unique key for
-            the widget. If this is None (default), a key will be
-            generated for the widget based on the values of the other
-            parameters. No two widgets may have the same key.
-            When on_change is set to "rerun" or a callable, setting a
-            key lets you read or update the expanded state via
-            st.session_state[key]. For more details, see Widget behavior.
+          description: Unique key for the widget. If None (default), auto-generated. When on_change is "rerun" or callable, key enables reading/updating expanded state via st.session_state[key].
           default: None
           kwarg_only: true
         icon:
@@ -6426,14 +6278,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string or integer to use as the unique key for
-            the widget. If this is None (default), a key will be
-            generated for the widget based on the values of the other
-            parameters. No two widgets may have the same key.
-            When on_change is set to "rerun" or a callable, setting a
-            key lets you read or update the open/closed state via
-            st.session_state[key]. For more details, see Widget behavior.
+          description: Unique key for the widget. If None (default), auto-generated. When on_change is "rerun" or callable, key enables reading/updating open/closed state via st.session_state[key].
           default: None
           kwarg_only: true
         on_change:
@@ -6554,14 +6399,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: >-
-            An optional string or integer to use as the unique key for
-            the widget. If this is None (default), a key will be
-            generated for the widget based on the values of the other
-            parameters. No two widgets may have the same key.
-            When on_change is set to "rerun" or a callable, setting a
-            key lets you read or update the active tab label via
-            st.session_state[key]. For more details, see Widget behavior.
+          description: Unique key for the widget. If None (default), auto-generated. When on_change is "rerun" or callable, key enables reading/updating active tab label via st.session_state[key].
           default: None
           kwarg_only: true
         on_change:
@@ -6600,9 +6438,7 @@ api:
           kwarg_only: true
       returns:
       - type: Sequence of TabContainers
-        description: >-
-          A sequence of TabContainer objects with .open properties to
-          return the current state of the tabs if the tabs track state.
+        description: A sequence of TabContainer objects with .open properties for state tracking (if enabled).
   media:
     streamlit.audio:
       signature: st.audio(data, format="audio/wav", start_time=0, *, sample_rate=None, end_time=None, loop=False, autoplay=False,
@@ -6627,10 +6463,7 @@ api:
             http://msdn.microsoft.com/en-us/library/windows/hardware/dn653308(v=vs.85).aspx
         format:
           type: str
-          description: >-
-            The MIME type for the audio file. This defaults to "audio/wav".
-            For more information about MIME types, see
-            https://www.iana.org/assignments/media-types/media-types.xhtml.
+          description: 'The MIME type for the audio file. Defaults to "audio/wav".'
           default: '"audio/wav"'
         start_time:
           type: int, float, timedelta, str, or None
@@ -6888,10 +6721,7 @@ api:
             headers to match the file format specified via format.
         format:
           type: str
-          description: >-
-            The MIME type for the video file. This defaults to "video/mp4".
-            For more information about MIME types, see
-            https://www.iana.org/assignments/media-types/media-types.xhtml.
+          description: 'The MIME type for the video file. Defaults to "video/mp4".'
           default: '"video/mp4"'
         start_time:
           type: int, float, timedelta, str, or None
@@ -7145,9 +6975,7 @@ api:
           kwarg_only: true
       returns:
       - type: StatusContainer
-        description: >-
-          A mutable status container that can hold multiple elements. The label, state,
-          and expanded state can be updated after creation via .update().
+        description: A mutable status container holding multiple elements. Label, state, and expanded state can be updated via .update().
     streamlit.success:
       signature: st.success(body, *, icon=None, width="stretch")
       description: Display a success message.
@@ -7943,17 +7771,7 @@ api:
           kwarg_only: true
         visibility:
           type: '"visible" or "hidden"'
-          description: >-
-            Whether the page is shown in the navigation menu. If this is
-            "visible" (default), the page appears in the navigation menu. If
-            this is "hidden", the page is excluded from the navigation menu but
-            remains accessible via direct URL, st.page_link, or
-            st.switch_page.
-            Note
-            Navigating to a page by URL starts a new session. For a
-            hidden page to be accessible by URL, it must be passed to
-            st.navigation during the new session's initial script
-            run.
+          description: '"visible" (default): page appears in nav menu. "hidden": excluded from nav but accessible via URL, st.page_link, or st.switch_page. Note: URL navigation starts a new session.'
           default: '"visible"'
           kwarg_only: true
       returns:
@@ -8028,9 +7846,7 @@ api:
           kwarg_only: true
       returns:
       - type: StreamlitPage
-        description: >-
-          The current page selected by the user. To run the page, you must use
-          the .run() method on it.
+        description: The current page selected by the user. Call .run() to execute it.
     streamlit.switch_page:
       signature: st.switch_page(page, *, query_params=None)
       description: >-
@@ -8292,9 +8108,7 @@ api:
         description: A new SQLAlchemy connection object.
     streamlit.connections.SQLConnection.driver:
       signature: SQLConnection.driver
-      description: >-
-        The name of the driver used by the underlying SQLAlchemy Engine.
-        This is equivalent to accessing self._instance.driver.
+      description: The name of the driver used by the underlying SQLAlchemy Engine (equivalent to self._instance.driver).
       source: lib/streamlit/connections/sql_connection.py#L389
       returns:
       - type: str
@@ -8834,10 +8648,7 @@ api:
           kwarg_only: true
       returns:
       - type: str or list
-        description: >-
-          The full response. If the streamed output only contains text, this
-          is a string. Otherwise, this is a list of all the streamed objects.
-          The return value is fully compatible as input for st.write.
+        description: The full response. String if output is text only, otherwise a list of streamed objects. Compatible as input for st.write.
   user_auth:
     streamlit.login:
       signature: st.login(provider=None)
@@ -9013,10 +8824,7 @@ api:
           default: None
       returns:
       - type: CustomComponent
-        description: >-
-          A CustomComponent that can be called like a function.
-          Calling the component will create a new instance of the component
-          in the Streamlit app.
+        description: A CustomComponent callable. Each call creates a new instance in the Streamlit app.
     streamlit.components.v1.html:
       signature: st.components.v1.html(html, width=None, height=None, scrolling=False, *, tab_index=None)
       description: >-
@@ -9138,10 +8946,7 @@ api:
           kwarg_only: true
       returns:
       - type: BidiComponentDefinition
-        description: >-
-          A component definition with inline content preserved and file-backed
-          entries resolved to absolute filesystem paths plus their
-          asset_dir-relative URLs.
+        description: A component definition with inline content preserved and file-backed entries resolved to absolute paths plus asset_dir-relative URLs.
     streamlit.components.v2.component:
       signature: st.components.v2.component(name, *, html=None, css=None, js=None, isolate_styles=True)
       description: >-
@@ -9768,28 +9573,11 @@ api:
           default: None
         url_path:
           type: str
-          description: >-
-            The page's URL pathname, which is the path relative to the app's root
-            URL.
-            Unless declared otherwise in st.Page, the URL pathname is inferred
-            from the filename or callable name. For more information, see
-            Overview of multipage apps.
-            The default page will always have a url_path of "" to indicate
-            the root URL (e.g. homepage).
+          description: 'The page''s URL pathname relative to the app''s root URL. If not declared, inferred from filename or callable name. Default page has url_path="" (root URL).'
           default: None
         visibility:
           type: Literal["visible", "hidden"]
-          description: >-
-            Whether the page is shown in the navigation menu. If this is
-            "visible" (default), the page appears in the navigation menu. If
-            this is "hidden", the page is excluded from the navigation menu but
-            remains accessible via direct URL, st.page_link, or
-            st.switch_page.
-            Note
-            Navigating to a page by URL starts a new session. For a
-            hidden page to be accessible by URL, it must be passed to
-            st.navigation during the new session's initial script
-            run.
+          description: '"visible" (default): page appears in nav menu. "hidden": excluded from nav but accessible via URL, st.page_link, or st.switch_page. Note: URL navigation starts a new session.'
           default: '"visible"'
     StreamlitPage.icon:
       signature: StreamlitPage.icon

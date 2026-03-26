@@ -98,7 +98,6 @@ movie-recommender/
 │
 ├── data/                                   # TRACKED — Curated input data + evaluation results
 │   ├── labeled/                            # Manually curated training data
-│   │   ├── tmdb-keyword-frequencies.tsv    # 70K keyword frequency export from tmdb.sqlite
 │   │   └── tmdb-keyword-frequencies_labeled_top5000.tsv  # 5K keywords with mood labels
 │   └── evaluation/                         # Pipeline evaluation outputs (small, reproducible)
 │       ├── keyword_classifier_results.csv  # Classifier comparison table (scaled + unscaled)
