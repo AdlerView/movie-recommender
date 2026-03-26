@@ -465,9 +465,9 @@ every Discover request when sort="Personalized Score".
 
 | File | Responsibility |
 |---|---|
-| `app/utils/scoring.py` | Scoring formula, dynamic weights, cosine similarity, batch scoring |
-| `app/utils/filters.py` | TMDB API parameter builder from UI state, local mood filter |
-| `app/utils/user_profile.py` | User profile computation from ratings (weighted avg of .npy vectors) |
+| `ml/scoring/scoring.py` | Scoring formula, dynamic weights, cosine similarity, batch scoring |
+| `ml/scoring/filters.py` | TMDB API parameter builder from UI state, local mood filter |
+| `ml/scoring/user_profile.py` | User profile computation from ratings (weighted avg of .npy vectors) |
 
 **Data flow:**
 
@@ -517,10 +517,10 @@ User clicks "Discover" with filters
 | `ml/classification/keyword_mood_classifier.py` | `DONE` | Keyword-to-mood: train classifier, infer 70K+ |
 | `data/input/genre_mood_map.json` | `DONE` | 19 genre -> mood rules (manual) |
 | `data/output/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
-| `app/utils/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
-| `app/utils/scoring.py` | `PENDING` | Scoring formula, dynamic weights, cosine similarity |
-| `app/utils/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |
-| `app/utils/user_profile.py` | `PENDING` | User profile computation from ratings |
+| `ml/evaluation/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
+| `ml/scoring/scoring.py` | `PENDING` | Scoring formula, dynamic weights, cosine similarity |
+| `ml/scoring/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |
+| `ml/scoring/user_profile.py` | `DONE` | User profile computation from ratings |
 | `ml/evaluation/ml_evaluation.ipynb` | `PENDING` | Detailed ML evaluation notebook (academic, narrative) |
 
 ---
@@ -598,7 +598,7 @@ Both locations, with shared logic. Alternatives considered: Statistics
 page only (not detailed enough for academic evaluation), notebook only
 (not visible during video demo).
 
-- **Shared utility:** `app/utils/ml_eval.py` contains all evaluation
+- **Shared utility:** `ml/evaluation/ml_eval.py` contains all evaluation
   logic (`evaluate_classifiers()`, `best_model_report()`,
   `run_cross_validation()`)
 - **Statistics page** (compact, video-friendly): "Run ML Evaluation"

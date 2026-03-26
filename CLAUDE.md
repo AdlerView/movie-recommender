@@ -99,7 +99,7 @@ movie-recommender/
 │   │   └── MOOD.md                         # Keyword-to-mood classification documentation
 │   ├── scoring/                            # Online scoring (runtime, imported by app)
 │   │   ├── __init__.py
-│   │   ├── user_profile.py                 # NOT YET CREATED — User profile from ratings
+│   │   ├── user_profile.py                 # User profile vectors from ratings + .npy arrays
 │   │   ├── scoring.py                      # NOT YET CREATED — 9-signal scoring formula
 │   │   ├── filters.py                      # NOT YET CREATED — TMDB API params + mood filter
 │   │   ├── SCORING.md                      # Scoring formula + component details

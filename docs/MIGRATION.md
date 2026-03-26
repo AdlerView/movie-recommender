@@ -60,7 +60,7 @@ The user rates a movie after watching it.
 
 **After saving:** the user profile vectors are recomputed from all
 ratings using the precomputed model files. *(Profile recomputation
-not yet implemented -- requires `user_profile.py` + `data/output/`.)*
+scoring.py not yet implemented -- requires `data/output/`.)*
 
 ---
 
@@ -654,7 +654,7 @@ for the full specification.
 
 Both follow the same course-compliant evaluation workflow.
 
-**Shared utility:** `app/utils/ml_eval.py` contains all evaluation
+**Shared utility:** `ml/evaluation/ml_eval.py` contains all evaluation
 logic. Called by both the Statistics page (compact, video-friendly)
 and `ml/evaluation/ml_evaluation.ipynb` (academic, narrative). No
 duplicated code.
@@ -729,9 +729,9 @@ filter UI.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 2.1 | User profile: load `.npy` arrays, compute weighted-average profile vectors from ratings, cache in `user_profile_cache` | `app/utils/user_profile.py` | 1a.5 (`data/output/` populated) | `PENDING` |
-| 2.2 | Scoring: 9-signal formula, dynamic weights by rating count, batch cosine similarity (numpy vectorized) | `app/utils/scoring.py` | 2.1 | `PENDING` |
-| 2.3 | Filters: TMDB API parameter builder from 14 filter controls, local mood filter against `mood_scores.npy` | `app/utils/filters.py` | 1a.5 (`data/output/` for mood filter) | `PENDING` |
+| 2.1 | User profile: load `.npy` arrays, compute weighted-average profile vectors from ratings, cache in `user_profile_cache` | `ml/scoring/user_profile.py` | 1a.5 (`data/output/` populated) | `DONE` |
+| 2.2 | Scoring: 9-signal formula, dynamic weights by rating count, batch cosine similarity (numpy vectorized) | `ml/scoring/scoring.py` | 2.1 | `PENDING` |
+| 2.3 | Filters: TMDB API parameter builder from 14 filter controls, local mood filter against `mood_scores.npy` | `ml/scoring/filters.py` | 1a.5 (`data/output/` for mood filter) | `PENDING` |
 
 **Graceful degradation:** When `data/output/` is not populated, the app
 MUST fall back to quality + mood only (cold-start weight table row 0:
@@ -748,7 +748,7 @@ No duplicated training -- evaluates what was already built.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 3.1 | Shared ML evaluation utility: `evaluate_classifiers()`, `best_model_report()`, `run_cross_validation()` | `app/utils/ml_eval.py` | 1b.1 (keyword classifier), 2.2 (scoring) | `DONE` |
+| 3.1 | Shared ML evaluation utility: `evaluate_classifiers()`, `best_model_report()`, `run_cross_validation()` | `ml/evaluation/ml_eval.py` | 1b.1 (keyword classifier), 2.2 (scoring) | `DONE` |
 | 3.2 | Statistics page: ML Evaluation section -- "Run ML Evaluation" button, classifier comparison table, confusion matrix, classification report, CV scores, best model KPIs | `app/views/statistics.py` | 3.1 | `DONE` |
 | 3.3 | Jupyter notebook: academic narrative -- problem definition, feature engineering, data distribution plots, all classifiers with commentary, scaled vs. unscaled, KNN k=1..20 plot, discussion | `ml/evaluation/ml_evaluation.ipynb` | 3.1 | `PENDING` |
 
