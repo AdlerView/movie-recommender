@@ -15,7 +15,7 @@ At the start of every new session, read ALL of the following files before doing 
 
 **Documentation (all `.md` files):**
 - `CLAUDE.md`, `README.md`, `docs/TODO.md`, `docs/MIGRATION.md`
-- `docs/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
+- `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
 - `docs/tmdb-schema.mmd`, `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
 - `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
 
@@ -79,7 +79,8 @@ movie-recommender/
 │   ├── utils/                              # App utilities (DB, API)
 │   │   ├── __init__.py
 │   │   ├── db.py                           # SQLite persistence (user ratings, watchlist, dismissed)
-│   │   └── tmdb.py                         # TMDB API client (cached)
+│   │   ├── tmdb.py                         # TMDB API client (cached)
+│   │   └── TMDB_API.md                     # TMDB API endpoint reference
 │
 ├── static/                                 # Poppins font files (18 TTFs + OFL license)
 │
@@ -137,7 +138,6 @@ movie-recommender/
 │   ├── TODO.md                             # Task tracking with deadlines
 │   ├── CONTRIBUTION.md                     # Team contribution matrix
 │   ├── REQUIREMENTS.md                     # Grading requirements checklist
-│   ├── TMDB_API.md                         # TMDB API endpoint reference
 │   ├── tmdb-schema.mmd                     # ER diagram of TMDB database (Mermaid)
 │   ├── STREAMLIT_API.yaml                  # Streamlit API reference
 │   ├── concept/                            # Original project concept
