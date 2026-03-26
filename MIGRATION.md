@@ -15,7 +15,7 @@ The system has two phases with strict separation:
 
 ---
 
-### Offline Phase (Training) `PENDING`
+### Offline Phase (Training) `DONE`
 
 Uses the 8.2 GB TMDB SQLite database (`store/tmdb.db`, 1.17M movies,
 30 tables) to precompute feature vectors and mood scores. This database
@@ -64,7 +64,7 @@ not yet implemented -- requires `user_profile.py` + `store/`.)*
 
 ---
 
-### Flow 2: Discover a Movie `PENDING`
+### Flow 2: Discover a Movie `PARTIAL`
 
 The user wants to find a new movie to watch.
 
@@ -123,10 +123,10 @@ automatically filtered out.
 | Rating descending | `sort_by=vote_average.desc` on discover API |
 | Release date descending | `sort_by=primary_release_date.desc` on discover API |
 
-*Current state: Discover has genre-only filter + card-based
-one-at-a-time browsing. The sidebar layout, 14-filter UI, mood
-pills, poster grid, live filtering, and personalized scoring are not
-yet implemented.*
+*Current state: Sidebar with 12 filters, mood pills, sort dropdown,
+poster grid (5 cols), live filtering, load more, and empty-state
+fallback are implemented (Task 4.1 DONE). Personalized scoring
+(Phase 2) is pending.*
 
 ---
 
@@ -166,7 +166,7 @@ in the local database (used for keyword badges and ML pipeline).
 
 ---
 
-### Flow 2: Discover a Movie `PENDING`
+### Flow 2: Discover a Movie `PARTIAL`
 
 **Keyword autocomplete (debounced 300ms per keystroke):**
 
@@ -382,7 +382,7 @@ dominates.
 
 ---
 
-### Offline Pipeline (run once, then on DB updates) `PENDING`
+### Offline Pipeline (run once, then on DB updates) `DONE`
 
 ---
 

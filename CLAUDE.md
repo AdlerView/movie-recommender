@@ -83,9 +83,9 @@ movie-recommender/
 │   │   ├── __init__.py
 │   │   ├── db.py                           # SQLite persistence (user ratings, watchlist, dismissed)
 │   │   ├── tmdb.py                         # TMDB API client (cached)
-│   │   ├── scoring.py                      # Scoring formula + dynamic weights
-│   │   ├── filters.py                      # TMDB API parameter builder + local mood filter
-│   │   ├── user_profile.py                 # User profile computation from ratings
+│   │   ├── scoring.py                      # NOT YET CREATED — Scoring formula + dynamic weights
+│   │   ├── filters.py                      # NOT YET CREATED — TMDB API parameter builder + local mood filter
+│   │   ├── user_profile.py                 # NOT YET CREATED — User profile computation from ratings
 │   │   └── ml_eval.py                      # Shared ML evaluation (classifiers, metrics, CV)
 │   └── static/                             # Poppins font files (18 TTFs + OFL license)
 │

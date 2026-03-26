@@ -507,22 +507,22 @@ User clicks "Discover" with filters
 
 ---
 
-## Files To Create
+## Files Status
 
-| File | Content | Priority |
+| File | Status | Content |
 |---|---|---|
-| `app/utils/scoring.py` | Scoring formula, dynamic weights, cosine similarity, batch scoring | High |
-| `app/utils/filters.py` | TMDB API parameter builder from UI state, local mood filter | High |
-| `app/utils/user_profile.py` | User profile computation from ratings (weighted avg of .npy vectors) | High |
-| `pipeline/01_extract_features.py` | Stage 1: tmdb.db -> SVD/onehot -> .npy | High (prerequisite) |
-| `pipeline/02_predict_moods.py` | Stage 2: genre/keyword mapping + emotion classifier -> mood_scores.npy | High |
-| `pipeline/03_quality_scores.py` | Stage 3: Bayesian average -> quality_scores.npy | Medium |
-| `pipeline/04_build_index.py` | Stage 4: movie_id_index.json + SVD .pkl saving | Medium |
-| `store/genre_mood_map.json` | 19 genre -> mood rules (manual) | High |
-| `store/keyword_mood_map.json` | 70K+ keyword -> mood predictions (from supervised pipeline) | Medium |
-| `pipeline/keyword_mood_classifier.py` | Stage A+B: label seed data, train classifier, infer full keyword set | Medium |
-| `app/utils/ml_eval.py` | Shared ML evaluation logic (classifiers, metrics, CV) for Statistics page + notebook | High |
-| `notebooks/ml_evaluation.ipynb` | Detailed ML evaluation notebook (academic, narrative) | Medium |
+| `pipeline/01_extract_features.py` | `DONE` | Stage 1: tmdb.db -> SVD/onehot -> .npy |
+| `pipeline/02_predict_moods.py` | `DONE` | Stage 2: genre/keyword mapping + emotion classifier -> mood_scores.npy |
+| `pipeline/03_quality_scores.py` | `DONE` | Stage 3: Bayesian average -> quality_scores.npy |
+| `pipeline/04_build_index.py` | `DONE` | Stage 4: movie_id_index.json + output verification |
+| `pipeline/keyword_mood_classifier.py` | `DONE` | Keyword-to-mood: train classifier, infer 70K+ |
+| `store/genre_mood_map.json` | `DONE` | 19 genre -> mood rules (manual) |
+| `store/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
+| `app/utils/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
+| `app/utils/scoring.py` | `PENDING` | Scoring formula, dynamic weights, cosine similarity |
+| `app/utils/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |
+| `app/utils/user_profile.py` | `PENDING` | User profile computation from ratings |
+| `notebooks/ml_evaluation.ipynb` | `PENDING` | Detailed ML evaluation notebook (academic, narrative) |
 
 ---
 

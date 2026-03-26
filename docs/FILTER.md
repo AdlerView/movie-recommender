@@ -108,8 +108,8 @@ only mood filtering is applied locally.
 
 19 toggle buttons loaded from `GET /3/genre/movie/list`.
 
-Required: at least 1 genre must be selected. Multiple genres use AND
-logic (comma-separated in the API: `with_genres=53,18`).
+Optional (no minimum). Multiple genres use AND logic (comma-separated
+in the API: `with_genres=53,18`).
 
 Full genre list:
 
