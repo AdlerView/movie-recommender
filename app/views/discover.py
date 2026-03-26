@@ -24,11 +24,13 @@ from app.utils.tmdb import (
     get_genre_map,
     get_languages,
     get_movie_details,
-    get_trending,
     get_watch_providers_list,
     poster_url,
     search_keywords,
 )
+from ml.scoring.mood_filter import filter_by_mood
+from ml.scoring.scoring import score_candidates
+from ml.scoring.user_profile import get_or_compute_profile
 
 # --- Constants ---
 
@@ -388,13 +390,9 @@ try:
     _page = 0
     while len(movies) < _target_count and _has_more and _page < 10:
         _page += 1
-        if _params:
-            # Use filtered discover endpoint
-            response = discover_movies_filtered(_params, page=_page)
-            _page_movies = response.get("results", [])
-        else:
-            # No filters set — show trending
-            _page_movies = get_trending(page=_page)
+        # Always use discover endpoint (params always non-empty: sort_by + vote_count)
+        response = discover_movies_filtered(_params, page=_page)
+        _page_movies = response.get("results", [])
 
         if not _page_movies:
             _has_more = False
@@ -416,6 +414,27 @@ try:
             _has_more = _page < 10
 
     movies = movies[:_target_count]
+
+    # --- Personalized ranking (only for "Personalized" sort) ---
+    if sort_option == "Personalized" and movies:
+        # Mood filter: remove candidates below mood threshold (before scoring)
+        if selected_moods:
+            _filtered_ids = set(filter_by_mood(
+                [m["id"] for m in movies], list(selected_moods),
+            ))
+            movies = [m for m in movies if m["id"] in _filtered_ids]
+
+        # ML scoring: re-rank by 9-signal cosine similarity
+        _profile = get_or_compute_profile(ratings=st.session_state.ratings)
+        if _profile is not None:
+            _scored = score_candidates(
+                _profile, [m["id"] for m in movies],
+                list(selected_moods) if selected_moods else None,
+            )
+            _id_to_score = {mid: score for mid, score in _scored}
+            movies.sort(
+                key=lambda m: _id_to_score.get(m["id"], 0.0), reverse=True,
+            )
 
 except requests.HTTPError as e:
     if e.response is not None and e.response.status_code == 401:
@@ -501,7 +520,10 @@ else:
 
     st.subheader("You might also like")
     try:
-        _fallback = get_trending(page=1)
+        _fallback_resp = discover_movies_filtered(
+            (("sort_by", "popularity.desc"), ("vote_count.gte", "50")), page=1,
+        )
+        _fallback = _fallback_resp.get("results", [])
         _fallback = [m for m in _fallback if m.get("poster_path")
                      and m["id"] not in _dismissed
                      and m["id"] not in _watchlisted_ids

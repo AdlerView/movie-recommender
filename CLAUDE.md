@@ -205,6 +205,26 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 
 ---
 
+## Retrieval + Ranking Architecture
+
+Both Discover and Rate use the same two-layer architecture. Trending endpoints are not used.
+
+**Retrieval Layer (shared, steerable):**
+All candidate movies come from `GET /discover/movie` — the same TMDB API endpoint on both pages. Discover passes explicit user-selected filters via `_build_discover_params()`. Rate passes implicit defaults (`sort_by=popularity.desc`, `vote_count.gte=50`). Same endpoint, same caching, same response format.
+
+**Ranking Layer (personalized):**
+`score_candidates()` runs whenever a user profile exists. On Discover, the mood filter (`filter_by_mood()`) runs before scoring when mood pills are active. On Rate, no mood filter (no mood pills). Non-personalized sort options on Discover (Popularity, Rating, Release date) skip ML entirely and use the API sort order directly.
+
+**Default = passively personalized:**
+"No filters" does not mean "neutral". It means "no manual user overrides, but stored user knowledge is active". When a profile exists, ML scoring always runs. The only true cold start is 0 ratings + no model files — in that case, `discover/movie` popularity order is the fallback.
+
+**Graceful degradation:**
+- No `data/output/` → `is_model_available()` returns False → API order used
+- No ratings → `get_or_compute_profile()` returns None → API order used
+- Model available + ratings exist → full 9-signal personalized scoring
+
+---
+
 ## Subdirectory Documentation (mandatory)
 
 Every subdirectory (not root-level) MUST have a Markdown documentation file named after the directory in uppercase: `DIRNAME.md`. This file describes the directory's purpose, contents, and relationships. It is the single entry point for understanding what the directory contains and why.

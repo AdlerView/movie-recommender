@@ -16,11 +16,19 @@ from app.utils.db import (
     save_rating,
 )
 from app.utils.tmdb import (
+    discover_movies_filtered,
     get_movie_details,
     get_movie_keywords,
-    get_trending,
     poster_url,
     search_movies,
+)
+from ml.scoring.scoring import score_candidates
+from ml.scoring.user_profile import get_or_compute_profile
+
+# Default discover params for the browse grid (same endpoint as Discover page)
+_RATE_DISCOVER_PARAMS: tuple[tuple[str, str], ...] = (
+    ("sort_by", "popularity.desc"),
+    ("vote_count.gte", "50"),
 )
 
 st.header("Rate a movie", divider="gray", text_alignment="center")
@@ -262,11 +270,19 @@ if current_query != st.session_state._watched_prev_query:
     st.session_state._watched_pages = 1
     st.session_state._watched_prev_query = current_query
 
+# Compute profile once (used for subheader + re-ranking below)
+_profile = None if current_query else get_or_compute_profile(
+    ratings=st.session_state.ratings,
+)
+
 if current_query:
     st.subheader("Search results")
+elif _profile is not None:
+    # Personalized browse: discover candidates re-ranked by ML scoring
+    st.subheader("Based on your interests")
 else:
-    # No search query — show trending movies as quick entry point
-    st.subheader("Trending movies")
+    # Cold start: no ratings yet, show popular movies
+    st.subheader("Discover movies")
 
 # --- Fetch movies with pagination ---
 # Loads pages until we have enough unrated movies to fill the grid.
@@ -285,7 +301,9 @@ try:
         if current_query:
             page_movies = search_movies(current_query, page=p)
         else:
-            page_movies = get_trending(page=p)
+            # Discover endpoint with default params (same as Discover page)
+            response = discover_movies_filtered(_RATE_DISCOVER_PARAMS, page=p)
+            page_movies = response.get("results", [])
         if not page_movies:
             has_more = False
             break
@@ -304,6 +322,15 @@ try:
             has_more = p < _max_pages
     # Trim to exact target count
     movies = movies[:target_count]
+
+    # --- Personalized re-ranking (when profile exists, no search query) ---
+    if not current_query and _profile is not None and movies:
+        _scored = score_candidates(_profile, [m["id"] for m in movies])
+        _id_to_score = {mid: score for mid, score in _scored}
+        movies.sort(
+            key=lambda m: _id_to_score.get(m["id"], 0.0), reverse=True,
+        )
+
 except requests.HTTPError:
     st.error("TMDB API error. Please try again later.", icon=":material/error:")
     st.stop()
