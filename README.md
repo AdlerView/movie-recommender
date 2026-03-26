@@ -75,18 +75,37 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 
 ## Grading Criteria
 
-8 requirements, each scored 0–3 points. Project = 20% of final grade. See [REQUIREMENTS.md](docs/REQUIREMENTS.md) for details.
+8 requirements, each scored 0–3 points. Project = 20% of final grade. Source: [group-project.pdf](docs/archive/group-project.pdf).
+
+| Points | Description |
+|--------|-------------|
+| 0 | Requirement not met / feature does not exist |
+| 1 | Basic implementation, formally present but not very relevant to the problem |
+| 2 | Good implementation |
+| 3 | Outstanding implementation, far beyond the level of this course |
 
 | # | Requirement | Status |
 |---|-------------|--------|
 | 1 | Problem clearly stated | defined |
 | 2 | Data via API/database | implemented (TMDB + SQLite) |
-| 3 | Data visualization | in progress (PoC: KPIs, 7 charts, rankings, table) |
-| 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search) |
-| 5 | Machine learning | in progress (personalized recommendations: content-based scoring from user ratings + mood reactions, sklearn pipeline with classifier comparison) |
+| 3 | Data visualization | implemented (KPIs, 7 Altair charts, rankings, rated movies table) |
+| 4 | User interaction | implemented (discover/rate/dismiss/watchlist/search/settings) |
+| 5 | Machine learning | implemented (offline pipeline + online scoring + ML evaluation) |
 | 6 | Code documentation | in progress |
 | 7 | Contribution matrix | not started |
 | 8 | 4-min video + demo | not started |
+
+| Points | Grade % | Points | Grade % |
+|--------|---------|--------|---------|
+| 0 | 0% | 9 | 56.25% |
+| 1 | 6.25% | 10 | 62.5% |
+| 2 | 12.5% | 11 | 68.75% |
+| 3 | 18.75% | 12 | 75% |
+| 4 | 25% | 13 | 81.25% |
+| 5 | 31.25% | 14 | 87.5% |
+| 6 | 37.5% | 15 | 93.75% |
+| 7 | 43.75% | >=16 | 100% |
+| 8 | 50% | | |
 
 ---
 
@@ -95,11 +114,8 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 | Document | Description |
 |----------|-------------|
 | [TODO.md](docs/TODO.md) | Actionable tasks with owners and deadlines |
-| [REQUIREMENTS.md](docs/REQUIREMENTS.md) | Grading criteria with status tracking |
 | [CONTRIBUTION.md](docs/CONTRIBUTION.md) | Team contribution matrix |
-| [OPEN_ISSUES.md](docs/OPEN_ISSUES.md) | Conceptual gaps and pending decisions |
 | [cs-project.md](docs/archive/cs-project.md) | Original project concept |
-| [Wireframe](docs/archive/prototype-movie-recommender.jpg) | UI prototype sketch |
 
 Historical artifacts and course references are in [docs/archive/](docs/archive/).
 

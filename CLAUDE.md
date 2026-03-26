@@ -15,9 +15,9 @@ At the start of every new session, read ALL of the following files before doing 
 
 **Documentation (all `.md` files):**
 - `CLAUDE.md`, `README.md`, `docs/TODO.md`
-- `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
+- `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`
 - `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
-- `docs/OPEN_ISSUES.md`, `docs/archive/cs-project.md`
+- `docs/archive/cs-project.md`
 
 **Config:**
 - `.streamlit/config.toml`
@@ -144,8 +144,6 @@ movie-recommender/
 ├── docs/                                   # TRACKED — Project documentation + planning
 │   ├── TODO.md                             # Task tracking with deadlines
 │   ├── CONTRIBUTION.md                     # Team contribution matrix
-│   ├── REQUIREMENTS.md                     # Grading requirements checklist
-│   ├── OPEN_ISSUES.md                     # Conceptual gaps and pending decisions
 │   ├── STREAMLIT_API.yaml                  # Streamlit API reference
 │   └── archive/                            # Static/historical artifacts
 │       ├── ARCHIVE.md                      # Directory documentation
@@ -244,6 +242,18 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 - `ml/classification/MOOD.md` → merge into `CLASSIFICATION.md`
 - `ml/scoring/FILTER.md` → merge into `SCORING.md`
 - `app/utils/TMDB_API.md` → merge into `UTILS.md`
+
+---
+
+## Key Decisions
+
+**ML approach (2026-03-25):** Personalized recommendations from user ratings + mood reactions. 7 mood categories (Ekman model). Offline pipeline extracts feature vectors from `tmdb.sqlite` into `.npy` arrays. Runtime: cosine similarity between user profile and candidate vectors. Course-compliant ML workflow: train/test split, 5+ classifier comparison, confusion matrix, DummyClassifier baseline.
+
+**Dismiss signal (2026-03-25):** Dismissals ARE negative signals in the contra vector (`ml/scoring/user_profile.py`). Dismissed movies included alongside ratings <= 30. Not used in offline pipeline.
+
+**"Based on your interests" (2026-03-26):** Rate page uses `discover/movie` as candidate source (same retrieval layer as Discover), re-ranked by `score_candidates()`. Falls back to popularity order when no ratings exist.
+
+**Keyword scoring / Discover architecture (2026-03-25):** All filters passed to TMDB API `/discover/movie`. Keyword autocomplete via `search/keyword`. Mood filter + personalized scoring run locally against precomputed `.npy` arrays. `tmdb.sqlite` is offline only.
 
 ---
 
