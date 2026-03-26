@@ -619,4 +619,4 @@ With 0 ratings, the classifier cannot run. The scoring falls back to:
 - Quality score (Bayesian average) + mood match (if selected)
 - No personalization signals until >= 1 rating
 - Dynamic weight table shifts from quality-heavy to
-  personalization-heavy as ratings accumulate (see MIGRATION.md)
+  personalization-heavy as ratings accumulate (see SCORING.md)

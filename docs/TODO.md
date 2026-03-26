@@ -1,23 +1,18 @@
 # To-Do
 
 > Actionable tasks with owners and deadlines.
-> Last updated: 2026-03-26
+> Last updated: 2026-03-27
 >
 > **Rule:** When a task is checked off (`[x]`), it MUST be moved to the **Done** section (with completion date) or **Superseded** section (with replacement note). Completed tasks MUST NOT remain in In Progress, Upcoming, or Backlog.
 
 ## In Progress
 
-- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Discover sidebar + 12 filters + poster grid done; ML scoring done; Discover integration pending Phase 4.2)*
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
 - [ ] Discover page visual polish — layout refinements, spacing, visual consistency pass
 
 ## Upcoming
 
-- [ ] Discover: personalized sort option (ML scoring from rating history, Phase 4.2)
-- [ ] Rate: "Based on your interests" personalized poster grid (Phase 4.3)
 - [ ] ML evaluation notebook — ml/evaluation/ml_evaluation.ipynb (academic narrative, Phase 3.3)
-- [ ] Statistics dashboard polish — layout improvements, chart refinements (Req 3)
-- [ ] Discover page visual polish — layout refinements, spacing
 - [ ] Finalize contribution matrix (Req 7)
 - [ ] Record 4-minute video with live narration (Req 8)
 - [ ] Final code review and documentation pass (Req 6)
@@ -80,6 +75,13 @@
 - [x] Online scoring Phase 2 — `ml/scoring/user_profile.py` (weighted-avg profile vectors, SQLite cache), `ml/scoring/scoring.py` (9-signal cosine similarity, dynamic weights, ~8ms/300 candidates), `ml/scoring/mood_filter.py` (threshold fallback 0.3→0.0) (2026-03-26)
 - [x] Bugfix: Watchlist duplicate key crash — dedup guard on watchlist append + defensive seen-set in grid loop (#018, 2026-03-26)
 - [x] Bugfix: Discover dialog buttons unresponsive — replaced `on_click` callbacks with `if st.button(): st.rerun()` pattern (#019, 2026-03-26)
+- [x] Cleanup: removed schema migration code from init_db() — no more PRAGMA user_version, v4→v5 migration deleted. Fresh `CREATE TABLE IF NOT EXISTS` only (2026-03-27)
+- [x] Settings page — new 5th tab (right-aligned with Statistics). Three sections: streaming country (dropdown + save/reset), subscriptions (provider pills + save/clear), preferred language (dropdown + save/reset). Persisted in `user_preferences` + `user_subscriptions` tables (2026-03-27)
+- [x] Discover sidebar cleanup — removed language, streaming country, and provider filters from sidebar (moved to Settings). Removed "More filters" expander. Certification moved inline above keywords. Discover reads preferences from SQLite at query time (2026-03-27)
+- [x] Discover personalized sort (Phase 4.2) — ML scoring re-ranks discover candidates when sort=Personalized. Mood filter + 9-signal scoring via `ml/scoring/`. Graceful degradation to popularity order (2026-03-27)
+- [x] Rate "Based on your interests" (Phase 4.3) — replaced trending with `discover/movie` retrieval + ML re-ranking. Unified retrieval layer across both pages (2026-03-27)
+- [x] Architecture redesign complete — unified discover/movie retrieval, personalized ranking, Settings page, all Phase 0-4 tasks done (2026-03-27)
+- [x] Deleted MIGRATION.md — migration complete, unique content merged into UTILS.md (API flows, DB schema) and EVALUATION.md (ML eval spec). Open tasks moved to TODO.md (2026-03-27)
 
 ## Superseded
 

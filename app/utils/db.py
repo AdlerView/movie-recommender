@@ -10,15 +10,7 @@ junction tables for genres, cast, crew, and production countries. This
 enables efficient SQL aggregations for the Statistics dashboard without
 re-fetching from TMDB.
 
-Database file (gitignored):
-- data/user.sqlite: App runtime database (ratings, watchlist, dismissed, details).
-  Schema version: 5 (managed via PRAGMA user_version).
-
-Schema v5 changes (from v4):
-- ratings (REAL 0-10) renamed to user_ratings (INTEGER 0-100, steps of 10)
-- New table: user_rating_moods (mood reactions per rating)
-- New table: user_subscriptions (streaming provider preferences)
-- New table: user_profile_cache (cached ML profile vectors)
+Database file: data/user.sqlite (gitignored).
 """
 from __future__ import annotations
 
@@ -54,16 +46,15 @@ def _connection():
 
 
 def init_db() -> None:
-    """Create database tables if they don't exist and run migrations.
+    """Create database tables if they don't exist.
 
     Core tables:
     - watchlist: saved movies with metadata for display
     - user_ratings: integer ratings (0-100 in steps of 10) per movie
     - user_rating_moods: mood reactions per rating (7 Ekman moods)
     - dismissed: movies the user skipped
-
-    User preference tables (v5):
     - user_subscriptions: streaming provider preferences
+    - user_preferences: key-value store for user settings (country, language)
     - user_profile_cache: cached ML profile vectors (BLOB)
 
     Normalized detail tables (for Statistics dashboard):
@@ -77,58 +68,43 @@ def init_db() -> None:
     Called once at app startup from streamlit_app.py.
     """
     with _connection() as conn:
-        # --- Schema migration ---
-        version = conn.execute("PRAGMA user_version").fetchone()[0]
-
-        # v0/v1 → v2: ratings changed from INTEGER 1-5 to REAL 0.00-10.00
-        if version < 2:
-            conn.execute("DROP TABLE IF EXISTS ratings")
-
-        # v4 → v5: ratings (REAL 0-10) → user_ratings (INTEGER 0-100)
-        if version == 4:
-            _migrate_v4_to_v5(conn)
-
         conn.executescript("""
-            -- Watchlist: saved movies with TMDB metadata for offline display
             CREATE TABLE IF NOT EXISTS watchlist (
                 movie_id     INTEGER PRIMARY KEY,
                 title        TEXT NOT NULL,
                 poster_path  TEXT,
                 vote_average REAL,
                 overview     TEXT,
-                genre_ids    TEXT,    -- JSON array of TMDB genre IDs
+                genre_ids    TEXT,
                 added_at     TEXT DEFAULT (datetime('now'))
             );
-            -- User ratings: 0-100 in steps of 10 (v5, replaces old ratings table)
             CREATE TABLE IF NOT EXISTS user_ratings (
                 movie_id INTEGER PRIMARY KEY,
                 rating   INTEGER NOT NULL CHECK (rating BETWEEN 0 AND 100),
                 rated_at TEXT NOT NULL DEFAULT (datetime('now'))
             );
-            -- Mood reactions per rating (7 Ekman moods, multi-select)
             CREATE TABLE IF NOT EXISTS user_rating_moods (
                 movie_id INTEGER NOT NULL,
                 mood     TEXT NOT NULL,
                 PRIMARY KEY (movie_id, mood),
                 FOREIGN KEY (movie_id) REFERENCES user_ratings(movie_id)
             );
-            -- Dismissed: movies skipped via "Not interested" button
             CREATE TABLE IF NOT EXISTS dismissed (
                 movie_id     INTEGER PRIMARY KEY,
                 dismissed_at TEXT DEFAULT (datetime('now'))
             );
-            -- Streaming provider preferences (for "Only my subscriptions" filter)
             CREATE TABLE IF NOT EXISTS user_subscriptions (
                 provider_id INTEGER PRIMARY KEY,
                 iso_3166_1  TEXT NOT NULL
             );
-            -- Cached ML profile vectors (key-value BLOB store)
+            CREATE TABLE IF NOT EXISTS user_preferences (
+                key   TEXT PRIMARY KEY,
+                value TEXT
+            );
             CREATE TABLE IF NOT EXISTS user_profile_cache (
                 key   TEXT PRIMARY KEY,
                 value BLOB
             );
-            -- Normalized TMDB detail tables for Statistics dashboard
-            -- Core movie metadata cached from GET /movie/{id}
             CREATE TABLE IF NOT EXISTS movie_details (
                 movie_id          INTEGER PRIMARY KEY,
                 title             TEXT NOT NULL,
@@ -141,7 +117,6 @@ def init_db() -> None:
                 overview          TEXT,
                 fetched_at        TEXT DEFAULT (datetime('now'))
             );
-            -- Genre assignments (many-to-many, from details.genres)
             CREATE TABLE IF NOT EXISTS movie_genres (
                 movie_id   INTEGER NOT NULL,
                 genre_id   INTEGER NOT NULL,
@@ -149,7 +124,6 @@ def init_db() -> None:
                 PRIMARY KEY (movie_id, genre_id),
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
-            -- Top cast members (from details.credits.cast, order < 5)
             CREATE TABLE IF NOT EXISTS movie_cast (
                 movie_id      INTEGER NOT NULL,
                 person_id     INTEGER NOT NULL,
@@ -159,7 +133,6 @@ def init_db() -> None:
                 PRIMARY KEY (movie_id, person_id),
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
-            -- Crew members filtered to directors (from details.credits.crew)
             CREATE TABLE IF NOT EXISTS movie_crew (
                 movie_id    INTEGER NOT NULL,
                 person_id   INTEGER NOT NULL,
@@ -168,7 +141,6 @@ def init_db() -> None:
                 PRIMARY KEY (movie_id, person_id, job),
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
-            -- Production countries (from details.production_countries)
             CREATE TABLE IF NOT EXISTS movie_countries (
                 movie_id     INTEGER NOT NULL,
                 country_code TEXT NOT NULL,
@@ -176,7 +148,6 @@ def init_db() -> None:
                 PRIMARY KEY (movie_id, country_code),
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
-            -- Thematic keywords per movie (from /movie/{id}/keywords)
             CREATE TABLE IF NOT EXISTS movie_keywords (
                 movie_id     INTEGER NOT NULL,
                 keyword_id   INTEGER NOT NULL,
@@ -185,60 +156,7 @@ def init_db() -> None:
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
         """)
-
-        # Bump schema version to current
-        if version < 5:
-            conn.execute("PRAGMA user_version = 5")
-
         conn.commit()
-
-
-def _migrate_v4_to_v5(conn: sqlite3.Connection) -> None:
-    """Migrate ratings table from v4 (REAL 0-10) to v5 (INTEGER 0-100).
-
-    Reads existing ratings, converts them (multiply by 10, round to nearest
-    10), and inserts into the new user_ratings table. The old ratings table
-    is dropped after migration.
-
-    Args:
-        conn: Active SQLite connection (caller manages commit).
-    """
-    # Check if old ratings table exists (fresh installs skip this)
-    has_old = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='ratings'"
-    ).fetchone()
-    if not has_old:
-        return
-
-    # Read old ratings before dropping
-    old_rows = conn.execute(
-        "SELECT movie_id, rating, rated_at FROM ratings"
-    ).fetchall()
-
-    # Create new table
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS user_ratings (
-            movie_id INTEGER PRIMARY KEY,
-            rating   INTEGER NOT NULL CHECK (rating BETWEEN 0 AND 100),
-            rated_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )
-    """)
-
-    # Migrate: REAL 0-10 → INTEGER 0-100, rounded to nearest step of 10
-    for row in old_rows:
-        old_rating = row["rating"]
-        # Convert: multiply by 10, round to nearest 10
-        new_rating = round(old_rating * 10 / 10) * 10
-        # Clamp to valid range
-        new_rating = max(0, min(100, new_rating))
-        conn.execute(
-            "INSERT OR REPLACE INTO user_ratings (movie_id, rating, rated_at) "
-            "VALUES (?, ?, ?)",
-            (row["movie_id"], new_rating, row["rated_at"]),
-        )
-
-    # Drop old table
-    conn.execute("DROP TABLE ratings")
 
 
 # --- Watchlist ---
@@ -410,6 +328,88 @@ def save_dismissed(movie_id: int) -> None:
             "INSERT OR IGNORE INTO dismissed (movie_id) VALUES (?)",
             (movie_id,),
         )
+        conn.commit()
+
+
+# --- Subscriptions ---
+
+
+def load_subscriptions() -> set[int]:
+    """Load saved streaming provider IDs.
+
+    Returns:
+        Set of TMDB provider IDs the user subscribes to.
+    """
+    with _connection() as conn:
+        rows = conn.execute("SELECT provider_id FROM user_subscriptions").fetchall()
+    return {row["provider_id"] for row in rows}
+
+
+def save_subscriptions(provider_ids: list[int], country: str = "CH") -> None:
+    """Replace all saved streaming subscriptions.
+
+    Deletes existing entries and inserts the new selection. Uses a single
+    transaction for atomicity.
+
+    Args:
+        provider_ids: List of TMDB provider IDs to save.
+        country: ISO 3166-1 country code for the subscription region.
+    """
+    with _connection() as conn:
+        conn.execute("DELETE FROM user_subscriptions")
+        for pid in provider_ids:
+            conn.execute(
+                "INSERT INTO user_subscriptions (provider_id, iso_3166_1) VALUES (?, ?)",
+                (pid, country),
+            )
+        conn.commit()
+
+
+# --- Preferences (generic key-value store) ---
+
+
+def load_preference(key: str, default: str | None = None) -> str | None:
+    """Load a single user preference by key.
+
+    Args:
+        key: Preference key (e.g., "streaming_country", "preferred_language").
+        default: Value to return if the key does not exist.
+
+    Returns:
+        Stored value as string, or default if not found.
+    """
+    with _connection() as conn:
+        row = conn.execute(
+            "SELECT value FROM user_preferences WHERE key = ?", (key,),
+        ).fetchone()
+    if row is None:
+        return default
+    return row["value"]
+
+
+def save_preference(key: str, value: str) -> None:
+    """Save a single user preference.
+
+    Args:
+        key: Preference key.
+        value: Preference value (stored as TEXT).
+    """
+    with _connection() as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO user_preferences (key, value) VALUES (?, ?)",
+            (key, value),
+        )
+        conn.commit()
+
+
+def delete_preference(key: str) -> None:
+    """Delete a single user preference.
+
+    Args:
+        key: Preference key to remove.
+    """
+    with _connection() as conn:
+        conn.execute("DELETE FROM user_preferences WHERE key = ?", (key,))
         conn.commit()
 
 

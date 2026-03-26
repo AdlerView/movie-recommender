@@ -8,6 +8,8 @@ Grading requirements: 3 (Data visualization) + 5 (Machine learning).
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import altair as alt
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -183,14 +185,9 @@ if mood_data:
 # and KNN hyperparameter tuning via ml/evaluation/ml_eval.py.
 st.subheader("ML Evaluation: Keyword-to-Mood", divider="gray")
 
-_eval_results_path = (
-    __import__("pathlib").Path(__file__).resolve().parent.parent.parent
-    / "data" / "output" / "keyword_classifier_results.csv"
-)
-_eval_cm_path = (
-    __import__("pathlib").Path(__file__).resolve().parent.parent.parent
-    / "data" / "output" / "keyword_classifier_confusion_matrix.png"
-)
+_OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "output"
+_eval_results_path = _OUTPUT_DIR / "keyword_classifier_results.csv"
+_eval_cm_path = _OUTPUT_DIR / "keyword_classifier_confusion_matrix.png"
 
 if _eval_results_path.exists():
     # Classifier comparison table (from Phase 1b pipeline output)
@@ -226,8 +223,6 @@ if _eval_results_path.exists():
 
     # Cross-validation + KNN tuning (live, cached)
     if st.button("Run cross-validation & KNN tuning", icon=":material/science:"):
-        from pathlib import Path
-
         import numpy as np
         from sklearn.preprocessing import LabelEncoder, RobustScaler
 

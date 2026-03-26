@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-26
+**Updated:** 2026-03-27
 
 
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 At the start of every new session, read ALL of the following files before doing any work:
 
 **Documentation (all `.md` files):**
-- `CLAUDE.md`, `README.md`, `docs/TODO.md`, `docs/MIGRATION.md`
+- `CLAUDE.md`, `README.md`, `docs/TODO.md`
 - `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
 - `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
 - `docs/OPEN_ISSUES.md`, `docs/archive/cs-project.md`
@@ -40,7 +40,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 - **Framework:** Streamlit (>=1.53.0)
 - **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
-- **Database:** SQLite (WAL mode, schema v5 via `PRAGMA user_version`) for user data (user_ratings INTEGER 0-100, user_rating_moods, watchlist, dismissed, user_subscriptions, user_profile_cache). `data/output/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) used offline only for feature extraction. Runtime uses precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
+- **Database:** SQLite (WAL mode) for user data (user_ratings INTEGER 0-100, user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache). `data/output/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) used offline only for feature extraction. Runtime uses precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
 - **ML:** Personalized movie recommendations via scikit-learn. Scoring model uses user ratings + mood reactions as training signal, movie features from `tmdb.sqlite` (keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime). Mood scores per film derived from genre→mood mapping, keyword→mood mapping (supervised pipeline: labeled seed + classifier on sentence embeddings → 70K+ keywords), and emotion classification on overview/review text. 7 mood categories (TMDB Vibes / Ekman model: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Two ML classification tasks: (1) user preference (liked/disliked), (2) keyword-to-mood.
 - **Python:** 3.11 (conda environment in `.conda/`)
 
@@ -76,11 +76,12 @@ movie-recommender/
 │   │   ├── discover.py                     # Sidebar filters + poster grid + live filtering
 │   │   ├── rate.py                         # Search/browse → rate + mood reactions
 │   │   ├── watchlist.py                    # Poster grid → detail dialog + actions
-│   │   └── statistics.py                   # KPIs, charts, ML evaluation, rankings, table
+│   │   ├── statistics.py                   # KPIs, charts, ML evaluation, rankings, table
+│   │   └── settings.py                     # Subscriptions, streaming country, language prefs
 │   ├── utils/                              # App utilities (DB, API)
 │   │   ├── UTILS.md                        # Directory documentation (merge TODO: TMDB_API.md)
 │   │   ├── __init__.py
-│   │   ├── db.py                           # SQLite persistence (user ratings, watchlist, dismissed)
+│   │   ├── db.py                           # SQLite persistence (ratings, watchlist, dismissed, preferences)
 │   │   ├── tmdb.py                         # TMDB API client (cached)
 │   │   └── TMDB_API.md                     # TMDB API endpoint reference (merge into UTILS.md)
 │
@@ -141,7 +142,6 @@ movie-recommender/
 │   └── user.sqlite                         # GITIGNORED — App runtime SQLite
 │
 ├── docs/                                   # TRACKED — Project documentation + planning
-│   ├── MIGRATION.md                        # Migration plan + implementation roadmap
 │   ├── TODO.md                             # Task tracking with deadlines
 │   ├── CONTRIBUTION.md                     # Team contribution matrix
 │   ├── REQUIREMENTS.md                     # Grading requirements checklist
@@ -254,22 +254,23 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 - Imports: `from app.utils.tmdb import get_genres` (entry point in root enables direct package imports)
 - Pages directory: `app/views/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
-- UX pattern: Each tab has one responsibility. Poster grids on Discover, Rate, and Watchlist, click → detail dialog overlay (`@st.dialog`). Discover uses `st.sidebar` for filters (only page with sidebar).
+- UX pattern: Each tab has one responsibility. Poster grids on Discover, Rate, and Watchlist, click → detail dialog overlay (`@st.dialog`). Discover uses `st.sidebar` for filters (only page with sidebar). Settings manages preferences (subscriptions, country, language) that Discover reads from the DB.
 
 ### Page Descriptions (current state)
 
-- **Discover:** Sidebar + main layout. Sidebar contains all filters (genre, year, keywords, runtime, rating, min votes, plus expander for language, certification, streaming). Main page has header, sort dropdown (top-right, default: Personalized), mood pills (toggle-deselect behavior), and poster grid (5 columns, clickable → detail dialog with Watchlist/Dismiss). Live filtering: grid updates on every filter change, no explicit "Discover" button. "Reset all" in sidebar resets only sidebar filters (not mood/sort). Empty results: info message + "You might also like" fallback grid with recommended movies. Already-rated/dismissed/watchlisted movies excluded. "Load more" button for pagination. Provider logos (TMDB `logo_path`) as toggle buttons in streaming filter.
+- **Discover:** Sidebar + main layout. Sidebar contains filters (genre, year, runtime, rating, min votes, certification, keywords). Language, streaming country, and providers are managed in Settings (applied automatically via DB preferences). Main page has header, sort dropdown (top-right, default: Personalized), mood pills (toggle-deselect behavior), and poster grid (5 columns, clickable → detail dialog with Watchlist/Dismiss). Live filtering: grid updates on every filter change. "Reset all" in sidebar resets only sidebar filters (not mood/sort). Empty results: info message + "You might also like" fallback grid. Already-rated/dismissed/watchlisted movies excluded. "Load more" button for pagination.
 - **Rate:** Pure action tab. TMDB text search + Netflix-style clickable poster grid (personalized via `discover/movie` + ML scoring, or popularity order on cold start). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Mood reactions are optional and multi-select, saved alongside the numeric rating. Already-rated movies excluded from browse grid but shown in search results (allows re-rating).
 - **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (CH, flatrate only). Actions: "Remove from watchlist" or "Mark as watched" (rating slider + 7 mood reaction buttons).
 - **Statistics:** KPIs (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 7 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution), top 5 directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
+- **Settings:** User preferences persisted in SQLite. Three sections: (1) Streaming country — dropdown with save/reset (default: Switzerland), used for provider availability on Discover. (2) My subscriptions — provider pills with save/clear, used by Discover when filtering. (3) Preferred language — dropdown with save/reset, applied as default language filter on Discover.
 
 ### UI Patterns
 
 - Rating: Slider 0-100 in steps of 10, color-coded track (gray/red/orange/green), dot tick marks at each step, dynamic sentiment label. Save button disabled until slider is moved (prevents accidental 0-ratings). `on_change` callback sets `_*_touched_` flag in session state; flag cleaned up on save.
 - TMDB rating display: Always 1 decimal (`:.1f`) across all pages for consistency.
-- Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script (dialogs cannot be triggered from callbacks directly)
+- Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks, because `@st.dialog` inherits from `@st.fragment` and `on_click` only triggers a fragment rerun).
 - Movie details: Fetched from TMDB API via `append_to_response=credits,videos,watch/providers`. Eagerly cached in user SQLite on rating save.
-- Navigation: 4 pages — Discover, Rate, Watchlist (left-aligned), Statistics (right-aligned via CSS)
+- Navigation: 5 pages — Discover, Rate, Watchlist (left-aligned), Statistics, Settings (right-aligned via CSS `margin-left: auto`)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 - Headers: All page headers use `text_alignment="center"`. Section headers use `st.subheader` with `label_visibility="collapsed"` on the associated widget.
@@ -279,29 +280,31 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 
 ---
 
-## Planned Features (authoritative source: docs/MIGRATION.md)
+## Planned Features
 
-**All planned features, architecture decisions, scoring formulas, ML pipeline details, and implementation roadmap are defined in [docs/MIGRATION.md](docs/MIGRATION.md).** That file is the single source of truth for all Soll-Zustand. Consult it before implementing any new feature.
+**Remaining planned changes** (see `docs/TODO.md` for full task list):
+- ML evaluation notebook (`ml/evaluation/ml_evaluation.ipynb`)
+- Statistics dashboard polish
+- Code documentation final pass (Req 6)
+- Contribution matrix (Req 7)
+- 4-minute video (Req 8)
 
-Supporting docs (referenced by docs/MIGRATION.md):
-- [ml/extraction/ML-PIPELINE.md](ml/extraction/ML-PIPELINE.md) — offline pipeline stages, ML evaluation spec
-- [ml/scoring/SCORING.md](ml/scoring/SCORING.md) — scoring formula, dynamic weights, component details
-- [ml/scoring/FILTER.md](ml/scoring/FILTER.md) — 14 discovery filters, API parameter mapping, caching
-- [ml/classification/MOOD.md](ml/classification/MOOD.md) — keyword-to-mood classification, labeling methodology
-
-**Remaining planned changes** (see docs/MIGRATION.md for full details):
-- Discover: personalized sort option via ML scoring (Phase 4.2)
-- Rate: "Based on your interests" personalized poster grid (Phase 4.3)
-- ML evaluation notebook (Phase 3.3)
+**Architecture docs:**
+- [ml/extraction/ML-PIPELINE.md](ml/extraction/ML-PIPELINE.md) — offline pipeline stages
+- [ml/scoring/SCORING.md](ml/scoring/SCORING.md) — scoring formula, dynamic weights
+- [ml/scoring/FILTER.md](ml/scoring/FILTER.md) — discovery filters, API parameter mapping
+- [ml/classification/MOOD.md](ml/classification/MOOD.md) — keyword-to-mood classification
+- [ml/evaluation/EVALUATION.md](ml/evaluation/EVALUATION.md) — ML evaluation spec
 
 **Already completed:**
 - Offline pipeline complete (Phase 1a): 4 scripts, 14 outputs in `data/output/` (~4 GB)
 - Keyword-to-mood classifier (Phase 1b): MLPClassifier, 68K keyword moods
 - Online scoring complete (Phase 2): user profile, 9-signal scoring (~8ms/300 candidates), mood filter
-- Discover page redesign (Phase 4.1): sidebar + 12 filters + poster grid
+- Discover page redesign (Phase 4.1): sidebar filters + poster grid
 - ML evaluation on Statistics page (Phase 3.1 + 3.2): classifier table, confusion matrix, CV, KNN k-plot
 - Mood reactions on Rate + Watchlist (Phase 0 + 4.4)
 - Statistics mood distribution chart (Phase 4.5)
+- Settings page: streaming subscriptions, country, language preferences (saved in SQLite)
 
 ---
 
@@ -416,7 +419,7 @@ Key gotchas:
 | 2 | Data via API | TMDB + SQLite integrated |
 | 3 | Data visualization | In progress (PoC: KPIs, 7 charts, rankings, table) |
 | 4 | User interaction | Implemented (genre discover, rate + mood reactions, dismiss, watchlist, search) |
-| 5 | Machine learning | In progress — see [docs/MIGRATION.md](docs/MIGRATION.md) Phase 1-3 |
+| 5 | Machine learning | Implemented (offline pipeline + online scoring + ML evaluation) |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |
 | 8 | 4-min video | Not started |

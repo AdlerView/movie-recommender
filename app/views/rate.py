@@ -7,6 +7,8 @@ action tab — rated movies are reviewed on the Statistics page instead.
 """
 from __future__ import annotations
 
+import sqlite3
+
 import requests
 import streamlit as st
 from app.utils.db import (
@@ -237,11 +239,11 @@ def _show_rating_dialog(movie_id: int) -> None:
         # Eager fetch: cache full TMDB details + keywords for Statistics/ML
         try:
             save_movie_details(movie_id, details)
-        except Exception:
+        except (requests.RequestException, sqlite3.Error):
             pass
         try:
             save_movie_keywords(movie_id, get_movie_keywords(movie_id))
-        except Exception:
+        except (requests.RequestException, sqlite3.Error):
             pass
         st.session_state._watched_selected_id = None
         st.session_state.pop(_touch_key, None)
@@ -349,37 +351,8 @@ if not movies:
     st.stop()
 
 # --- Poster grid (Netflix-style: clickable poster images) ---
-# CSS overlays a transparent button on each poster for click interaction.
-# Scoped to .st-key-poster_grid to avoid affecting other columns on the page.
-st.markdown("""<style>
-    .st-key-poster_grid [data-testid="stColumn"] {
-        position: relative !important;
-        cursor: pointer !important;
-    }
-    .st-key-poster_grid [data-testid="stColumn"] [data-testid="stElementContainer"]:has(.stButton) {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 10 !important;
-    }
-    .st-key-poster_grid [data-testid="stElementContainer"]:has(.stButton) .stButton,
-    .st-key-poster_grid [data-testid="stElementContainer"]:has(.stButton) .stButton button {
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100% !important;
-        opacity: 0 !important;
-        cursor: pointer !important;
-        border: none !important;
-        background: transparent !important;
-        padding: 0 !important;
-    }
-    .st-key-poster_grid [data-testid="stColumn"]:hover {
-        opacity: 0.85;
-        transition: opacity 0.2s;
-    }
-</style>""", unsafe_allow_html=True)
+from app.utils import inject_poster_grid_css
+inject_poster_grid_css("poster_grid")
 
 with st.container(key="poster_grid"):
     for row_start in range(0, len(movies), _GRID_COLS):

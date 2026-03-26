@@ -14,6 +14,7 @@ from __future__ import annotations
 import requests
 import streamlit as st
 from app.utils.db import (
+    load_preference,
     save_dismissed,
     save_to_watchlist,
 )
@@ -24,7 +25,6 @@ from app.utils.tmdb import (
     get_genre_map,
     get_languages,
     get_movie_details,
-    get_watch_providers_list,
     poster_url,
     search_keywords,
 )
@@ -115,6 +115,20 @@ with st.sidebar:
         value=50, step=10, key="discover_min_votes",
     )
 
+    # --- Certification dropdown ---
+    _cert_country = "DE"
+    try:
+        _certs = get_certifications(_cert_country)
+        _cert_options = ["Any"] + [c["certification"] for c in
+                                   sorted(_certs, key=lambda x: x.get("order", 0))
+                                   if c["certification"]]
+    except requests.RequestException:
+        _cert_options = ["Any"]
+    selected_cert = st.selectbox(
+        f"Certification ({_cert_country})", options=_cert_options,
+        key="discover_certification",
+    )
+
     # --- Keywords (autocomplete search) ---
     keyword_query = st.text_input(
         "Keywords", placeholder="Search keywords...",
@@ -154,77 +168,6 @@ with st.sidebar:
                     st.session_state["_discover_keywords"] = selected_keywords
                     st.rerun()
 
-    # --- More filters (expander) ---
-    with st.expander("More filters"):
-        # Language dropdown
-        try:
-            _languages = get_languages()
-            _lang_options = ["Any"] + sorted(
-                {lg["english_name"] for lg in _languages if lg.get("english_name")},
-            )
-        except requests.RequestException:
-            _lang_options = ["Any"]
-        selected_language = st.selectbox(
-            "Language", options=_lang_options, key="discover_language",
-        )
-
-        # Certification dropdown
-        _cert_country = "DE"
-        try:
-            _certs = get_certifications(_cert_country)
-            _cert_options = ["Any"] + [c["certification"] for c in
-                                       sorted(_certs, key=lambda x: x.get("order", 0))
-                                       if c["certification"]]
-        except requests.RequestException:
-            _cert_options = ["Any"]
-        selected_cert = st.selectbox(
-            f"Certification ({_cert_country})", options=_cert_options,
-            key="discover_certification",
-        )
-
-        # Streaming country
-        try:
-            _countries = get_countries()
-            _country_options = sorted(
-                {c["english_name"] for c in _countries if c.get("english_name")},
-            )
-            _country_code_map = {c["english_name"]: c["iso_3166_1"] for c in _countries}
-        except requests.RequestException:
-            _country_options = ["Switzerland"]
-            _country_code_map = {"Switzerland": "CH"}
-        _default_country_idx = (
-            _country_options.index("Switzerland")
-            if "Switzerland" in _country_options else 0
-        )
-        selected_country_name = st.selectbox(
-            "Streaming country", options=_country_options,
-            index=_default_country_idx, key="discover_stream_country",
-        )
-        selected_country_code = _country_code_map.get(selected_country_name, "CH")
-
-        # Streaming providers (logo toggle buttons)
-        try:
-            _providers = get_watch_providers_list(region=selected_country_code)
-            # Show top providers by priority (TMDB sorts by display_priority)
-            _providers = sorted(_providers, key=lambda p: p.get("display_priority", 999))[:20]
-        except requests.RequestException:
-            _providers = []
-        if _providers:
-            # Display provider logos as a multi-select pills widget
-            _provider_names = [p["provider_name"] for p in _providers]
-            _provider_id_map = {p["provider_name"]: p["provider_id"] for p in _providers}
-            selected_provider_names = st.pills(
-                "Providers",
-                options=_provider_names,
-                selection_mode="multi",
-                key="discover_providers",
-            )
-        else:
-            selected_provider_names = []
-
-        # Only my subscriptions checkbox (filters providers to user's saved list)
-        st.checkbox("Only my subscriptions", key="discover_only_mine")
-
     # --- Reset all button ---
     def _reset_sidebar():
         """Reset all sidebar filter states to defaults.
@@ -235,7 +178,6 @@ with st.sidebar:
         """
         # Pills widgets: set to empty list for multi-select
         st.session_state["discover_genre"] = []
-        st.session_state["discover_providers"] = []
         # Sliders: set to full range (= no filter)
         st.session_state["discover_year"] = (1900, 2026)
         st.session_state["discover_runtime"] = (0, 360)
@@ -243,11 +185,8 @@ with st.sidebar:
         st.session_state["discover_min_votes"] = 50
         # Text input: clear
         st.session_state["discover_keyword_query"] = ""
-        # Selectboxes: set to first option index (= "Any")
-        st.session_state["discover_language"] = "Any"
+        # Selectbox: set to first option (= "Any")
         st.session_state["discover_certification"] = "Any"
-        # Checkbox
-        st.session_state["discover_only_mine"] = False
         # Keywords list and pagination
         st.session_state["_discover_keywords"] = []
         st.session_state["_discover_pages"] = 1
@@ -337,14 +276,14 @@ def _build_discover_params() -> list[tuple[str, str]]:
         kw_ids = "|".join(str(kw["id"]) for kw in selected_keywords)
         params.append(("with_keywords", kw_ids))
 
-    # Language
-    if selected_language and selected_language != "Any":
-        # Reverse lookup: english_name → iso_639_1
+    # Language (from Settings preference)
+    _pref_lang = load_preference("preferred_language")
+    if _pref_lang and _pref_lang != "Any":
         try:
             _langs = get_languages()
             _lang_code = next(
                 (lg["iso_639_1"] for lg in _langs
-                 if lg.get("english_name") == selected_language),
+                 if lg.get("english_name") == _pref_lang),
                 None,
             )
             if _lang_code:
@@ -357,16 +296,23 @@ def _build_discover_params() -> list[tuple[str, str]]:
         params.append(("certification_country", _cert_country))
         params.append(("certification.lte", selected_cert))
 
-    # Streaming providers
-    if selected_provider_names:
-        provider_ids = [
-            str(_provider_id_map[name]) for name in selected_provider_names
-            if name in _provider_id_map
-        ]
-        if provider_ids:
-            params.append(("with_watch_providers", "|".join(provider_ids)))
-            params.append(("watch_region", selected_country_code))
-            params.append(("with_watch_monetization_types", "flatrate"))
+    # Streaming providers (from Settings subscriptions)
+    _subs = st.session_state.get("subscriptions", set())
+    if _subs:
+        params.append(("with_watch_providers", "|".join(str(pid) for pid in _subs)))
+        # Streaming country from Settings preference
+        _pref_country = load_preference("streaming_country", "Switzerland")
+        try:
+            _countries_list = get_countries()
+            _code = next(
+                (c["iso_3166_1"] for c in _countries_list
+                 if c.get("english_name") == _pref_country),
+                "CH",
+            )
+        except requests.RequestException:
+            _code = "CH"
+        params.append(("watch_region", _code))
+        params.append(("with_watch_monetization_types", "flatrate"))
 
     return params
 
@@ -452,36 +398,9 @@ except requests.ConnectionError:
 # POSTER GRID
 # ============================================================
 
-# Poster grid CSS (invisible button overlay for click interaction)
-st.markdown("""<style>
-    .st-key-discover_grid [data-testid="stColumn"] {
-        position: relative !important;
-        cursor: pointer !important;
-    }
-    .st-key-discover_grid [data-testid="stColumn"] [data-testid="stElementContainer"]:has(.stButton) {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 10 !important;
-    }
-    .st-key-discover_grid [data-testid="stElementContainer"]:has(.stButton) .stButton,
-    .st-key-discover_grid [data-testid="stElementContainer"]:has(.stButton) .stButton button {
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100% !important;
-        opacity: 0 !important;
-        cursor: pointer !important;
-        border: none !important;
-        background: transparent !important;
-        padding: 0 !important;
-    }
-    .st-key-discover_grid [data-testid="stColumn"]:hover {
-        opacity: 0.85;
-        transition: opacity 0.2s;
-    }
-</style>""", unsafe_allow_html=True)
+# Poster grid CSS (shared helper, scoped to container key)
+from app.utils import inject_poster_grid_css
+inject_poster_grid_css("discover_grid")
 
 
 def _select_movie(movie_id: int) -> None:

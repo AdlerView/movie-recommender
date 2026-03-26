@@ -6,12 +6,14 @@ navigation with top positioning.
 """
 from __future__ import annotations
 
+import requests
 import streamlit as st
 from app.utils.db import (
     get_ratings_without_details,
     init_db,
     load_dismissed,
     load_ratings,
+    load_subscriptions,
     load_watchlist,
     save_movie_details,
 )
@@ -33,9 +35,10 @@ init_db()
 # After loading, session state is the runtime source of truth.
 # Pages write to both session state and DB on every action.
 if "db_loaded" not in st.session_state:
-    st.session_state.ratings = load_ratings()       # {movie_id: 0-100 int}
-    st.session_state.watchlist = load_watchlist()    # [movie_dict, ...]
-    st.session_state.dismissed = load_dismissed()    # {movie_id, ...}
+    st.session_state.ratings = load_ratings()             # {movie_id: 0-100 int}
+    st.session_state.watchlist = load_watchlist()         # [movie_dict, ...]
+    st.session_state.dismissed = load_dismissed()         # {movie_id, ...}
+    st.session_state.subscriptions = load_subscriptions() # {provider_id, ...}
     st.session_state.db_loaded = True
 
 # --- Backfill movie details ---
@@ -49,35 +52,33 @@ if "details_backfilled" not in st.session_state:
                 try:
                     details = get_movie_details(movie_id)
                     save_movie_details(movie_id, details)
-                except Exception:
+                except requests.RequestException:
                     pass  # Skip failed fetches — will retry next session
     st.session_state.details_backfilled = True
 
 
-# --- Push Statistics tab to the far right of the nav bar ---
+# --- Push Statistics + Settings to the far right of the nav bar ---
 # The first 3 tabs (Discover, Rate, Watchlist) stay left-aligned;
-# the 4th tab (Statistics) gets margin-left:auto to fill remaining space.
+# the 4th tab (Statistics) gets margin-left:auto, Settings follows naturally.
 # Streamlit renders nav items as div.rc-overflow-item inside div.rc-overflow.
-st.markdown("""<style>
-    /* Make the nav overflow container span full toolbar width */
+st.html("""<style>
     [data-testid="stToolbar"] .rc-overflow {
         width: 100% !important;
     }
-    /* Push 4th nav item (Statistics) to the far right */
     [data-testid="stToolbar"] .rc-overflow > .rc-overflow-item:nth-child(4) {
         margin-left: auto !important;
     }
-</style>""", unsafe_allow_html=True)
+</style>""")
 
 # --- Navigation ---
 # Top navigation: each tab has exactly one responsibility
-# Discover = find new, Rate = rate watched, Watchlist = saved, Statistics = review
 page = st.navigation(
     [
         st.Page("app/views/discover.py", title="Discover", icon=":material/explore:"),
         st.Page("app/views/rate.py", title="Rate", icon=":material/star:"),
         st.Page("app/views/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
         st.Page("app/views/statistics.py", title="Statistics", icon=":material/bar_chart:"),
+        st.Page("app/views/settings.py", title="Settings", icon=":material/settings:"),
     ],
     position="top",
 )
