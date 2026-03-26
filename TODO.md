@@ -1,12 +1,13 @@
 # To-Do
 
 > Actionable tasks with owners and deadlines.
-> Last updated: 2026-03-25
+> Last updated: 2026-03-26
 
 ## In Progress
 
-- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5)
+- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Phase 1 cleanup done: old keyword/mood code removed from all files, app functional with genre-only discovery)*
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
+- [ ] Keyword-to-mood supervised pipeline — label seed dataset, train classifier, infer full 70K+ keywords (Req 5)
 
 ## Upcoming
 
@@ -26,11 +27,15 @@
 
 - [ ] Optional: MVP presentation II
 - [ ] Offline pipeline Stage 1: feature extraction (keyword/director/actor TF-IDF → SVD, genre/decade/language onehot)
+- [ ] Keyword seed dataset — label top ~1K keywords from tmdb-keyword-frequencies.tsv with 7 moods (single/multi/none)
+- [ ] Keyword mood classifier — sentence embeddings + supervised pipeline (KNN/SVC/NB/LR/MLP comparison), infer remaining 70K+
 - [ ] Offline pipeline Stage 2: mood scores per film (genre→mood + keyword→mood mapping + emotion classifier on overview/reviews)
 - [ ] Offline pipeline Stage 3: quality scores (Bayesian average)
 - [ ] Offline pipeline Stage 4: build numpy index arrays + mappings
 - [ ] Online scoring: user profile from ratings → cosine similarity scoring → personalized ranking
-- [ ] ML evaluation: train/test split, 5+ classifier comparison, confusion matrix, DummyClassifier baseline, classification_report
+- [ ] Create app/utils/ml_eval.py — shared ML evaluation logic (evaluate_classifiers, best_model_report, run_cross_validation)
+- [ ] ML evaluation on Statistics page — "Run ML Evaluation" button, classifier table, confusion matrix, CV scores
+- [ ] ML evaluation notebook — notebooks/ml_evaluation.ipynb (academic narrative, scaled vs unscaled, KNN tuning plot)
 - [ ] Statistics dashboard iteration — layout improvements, additional KPIs, chart refinements
 
 ### Week 09 — 2026-04-30 (Coaching: 27.04)
@@ -49,7 +54,7 @@
 
 ## Backlog
 
-- [ ] "Based on your stream" section — show rated/watchlisted movies as recommendation source (Open Issue #011)
+- [ ] "Based on your interests" poster grid on Rate page — personalized recommendations identical to trending layout (Open Issue #011)
 
 ## Done
 
@@ -90,6 +95,7 @@
 - [x] Statistics table fix — proper None handling for TMDB ratings, column width for "Your rating" (2026-03-24)
 - [x] Comprehensive TMDB database — tmdb-build-db.py fetches all 1.17M movies with keywords, credits, genres (2026-03-25)
 - [x] Doc consistency fixes — normalized all ML stats, removed outdated status block, fixed .gitignore (2026-03-25)
+- [x] Phase 1 cleanup — removed old keyword/mood pipeline code from all app files (db.py, discover.py, rate.py, watchlist.py, streamlit_app.py), app functional with genre-only discovery (2026-03-26)
 
 ## Superseded
 
