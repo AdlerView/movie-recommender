@@ -240,7 +240,6 @@ Supporting docs (referenced by docs/MIGRATION.md):
 - [ml/classification/MOOD.md](ml/classification/MOOD.md) — keyword-to-mood classification, labeling methodology
 
 **Remaining planned changes** (see docs/MIGRATION.md for full details):
-- Online scoring: user profile + 9-signal cosine similarity (Phase 2)
 - Discover: personalized sort option via ML scoring (Phase 4.2)
 - Rate: "Based on your interests" personalized poster grid (Phase 4.3)
 - ML evaluation notebook (Phase 3.3)
@@ -248,6 +247,7 @@ Supporting docs (referenced by docs/MIGRATION.md):
 **Already completed:**
 - Offline pipeline complete (Phase 1a): 4 scripts, 14 outputs in `data/output/` (~4 GB)
 - Keyword-to-mood classifier (Phase 1b): MLPClassifier, 68K keyword moods
+- Online scoring complete (Phase 2): user profile, 9-signal scoring (~8ms/300 candidates), mood filter
 - Discover page redesign (Phase 4.1): sidebar + 12 filters + poster grid
 - ML evaluation on Statistics page (Phase 3.1 + 3.2): classifier table, confusion matrix, CV, KNN k-plot
 - Mood reactions on Rate + Watchlist (Phase 0 + 4.4)

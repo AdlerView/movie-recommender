@@ -232,7 +232,7 @@ execution. Well within the 40 req/s rate limit.
 
 ---
 
-## Scoring System `PENDING`
+## Scoring System `DONE`
 
 ---
 
@@ -378,7 +378,7 @@ dominates.
 
 ---
 
-## ML Pipeline `PENDING`
+## ML Pipeline `PARTIAL`
 
 ---
 
@@ -536,7 +536,7 @@ Script: `ml/classification/keyword_mood_classifier.py`
 
 ---
 
-### Online Pipeline (per request) `PENDING`
+### Online Pipeline (per request) `DONE`
 
 ```
 1. TMDB API discover/movie with all user filters
@@ -721,7 +721,7 @@ See TODO.md "Done" section for details.
 
 ---
 
-### Phase 2: Online Scoring `PENDING`
+### Phase 2: Online Scoring `DONE`
 
 Connects `data/output/` to the running app. Computes user profiles from
 ratings, scores candidate movies, builds TMDB API parameters from

@@ -1,19 +1,18 @@
 # To-Do
 
 > Actionable tasks with owners and deadlines.
-> Last updated: 2026-03-26
+> Last updated: 2026-03-27
 >
 > **Rule:** When a task is checked off (`[x]`), it MUST be moved to the **Done** section (with completion date) or **Superseded** section (with replacement note). Completed tasks MUST NOT remain in In Progress, Upcoming, or Backlog.
 
 ## In Progress
 
-- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Discover sidebar + 12 filters + poster grid done; ML scoring pending Phase 2)*
+- [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Discover sidebar + 12 filters + poster grid done; ML scoring done; Discover integration pending Phase 4.2)*
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
 - [ ] Discover page visual polish — layout refinements, spacing, visual consistency pass
 
 ## Upcoming
 
-- [ ] Online scoring: user profile from ratings → cosine similarity scoring → personalized ranking (Phase 2)
 - [ ] Discover: personalized sort option (ML scoring from rating history, Phase 4.2)
 - [ ] Rate: "Based on your interests" personalized poster grid (Phase 4.3)
 - [ ] ML evaluation notebook — ml/evaluation/ml_evaluation.ipynb (academic narrative, Phase 3.3)
@@ -22,7 +21,6 @@
 - [ ] Finalize contribution matrix (Req 7)
 - [ ] Record 4-minute video with live narration (Req 8)
 - [ ] Final code review and documentation pass (Req 6)
-- [ ] Content-based movie recommendations from rated films (if time permits)
 - [ ] Upload code + video to Canvas by 2026-05-14 23:59
 
 ## Done
@@ -79,6 +77,7 @@
 - [x] Build index pipeline — `ml/extraction/04_build_index.py`: movie_id_index.json (1.17M entries, 18.4 MB), all 14 pipeline outputs verified. Phase 1a complete. (2026-03-26)
 - [x] Watchlist: mood reactions in "Mark as watched" dialog — rating slider + 7 mood buttons, saves to user_rating_moods (2026-03-26)
 - [x] Statistics: mood distribution chart from user reactions — Altair horizontal bar chart from load_mood_distribution() (2026-03-26)
+- [x] Online scoring Phase 2 — `ml/scoring/user_profile.py` (weighted-avg profile vectors, SQLite cache), `ml/scoring/scoring.py` (9-signal cosine similarity, dynamic weights, ~8ms/300 candidates), `ml/scoring/mood_filter.py` (threshold fallback 0.3→0.0) (2026-03-26)
 
 ## Superseded
 
