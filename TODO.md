@@ -9,7 +9,7 @@
 
 - [ ] Architecture redesign — personalized recommendations with 14 Discover filters, 7 mood reactions on Rate, ML scoring (Req 4+5) *(Phase 1 cleanup done: old keyword/mood code removed from all files, app functional with genre-only discovery)*
 - [ ] Statistics dashboard polish — improve layout, add chart interactions, refine visual design (Req 3)
-- [ ] Keyword-to-mood supervised pipeline — train classifier on labeled seed (1,049 single-label), infer full 70K+ keywords (Req 5) *(seed labeling done: 5,000 keywords in data/tmdb-keyword-frequencies_labeled_top5000.tsv)*
+- [ ] Keyword-to-mood supervised pipeline — train classifier on labeled seed (1,049 single-label), infer full 70K+ keywords (Req 5) *(seed labeling done: 5,000 keywords in data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv)*
 
 ## Upcoming
 

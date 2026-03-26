@@ -730,15 +730,9 @@ evaluates what Phase 1b built.
 
 ### Phase 0: Foundation `DONE`
 
-DB schema migration, rating scale change, mood reaction UI. All
-prerequisite changes that the rest of the system depends on.
-
-| ID | Task | File(s) | Depends on | Status |
-|---|---|---|---|---|
-| 0.1 | DB schema v5: `user_ratings` (INTEGER 0-100), `user_rating_moods`, `user_subscriptions`, `user_profile_cache` | `app/utils/db.py` | -- | `DONE` |
-| 0.2 | Rating slider 0-100 (steps of 10), sentiment labels, color-coded track | `app/app_pages/rate.py` | 0.1 | `DONE` |
-| 0.3 | Mood reaction buttons (7 Ekman moods) on Rate dialog | `app/app_pages/rate.py`, `app/utils/db.py` | 0.1 | `DONE` |
-| 0.4 | Phase 1 cleanup: remove old keyword/mood pipeline code from all app files | all app files | -- | `DONE` |
+Completed 2026-03-26. DB schema v5, rating slider 0-100, mood reaction
+buttons, old keyword/mood pipeline code removed. See TODO.md "Done"
+section for details.
 
 ---
 
@@ -768,31 +762,13 @@ idempotent and can be re-run independently.
 
 ### Phase 1b: Keyword-to-Mood Classifier `DONE`
 
-Supervised pipeline: train on labeled keywords, infer moods for 70K+
-unlabeled keywords. This is the productive build step -- academic
-evaluation belongs in Phase 3.
-
-| ID | Task | File(s) | Depends on | Status |
-|---|---|---|---|---|
-| 1b.1 | Keyword classifier: load TSV, filter single-label (1,049), extract features (embeddings and/or TF-IDF), train 5+ classifiers, select best by macro-F1, infer 70K+, export | `pipeline/keyword_mood_classifier.py` -> `store/keyword_mood_map.json` | `data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv` | `DONE` |
-
-**Detail breakdown for 1b.1:**
-
-1. Load `data/labeled/tmdb-keyword-frequencies_labeled_top5000.tsv`
-2. Filter to `assignment_type == "single"` (1,049 keywords, 7 classes)
-3. Features: EmbeddingGemma-300M sentence embeddings (256-dim) per
-   keyword. Model cached at
-   `~/.cache/macmini/huggingface/hub/models--google--embeddinggemma-300m`
-4. `train_test_split(stratify=y, random_state=42)`
-5. Optional `RobustScaler` on embedding vectors
-6. Train: KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier,
-   DummyClassifier
-7. Select best model by macro-F1 (careful: class imbalance --
-   Interested=332 vs Disgusted=31)
-8. `class_weight='balanced'` where supported
-9. Fit best model on full single-label training data
-10. Infer mood labels for all remaining 70K+ unlabeled keywords
-11. Export `store/keyword_mood_map.json`
+Completed 2026-03-26. Supervised classifier trained on 1,049
+single-label keywords (EmbeddingGemma-300M, 768-dim), best model
+MLPClassifier (val F1=0.76, test accuracy=78%), inferred moods for
+65,779 unlabeled keywords. Total: 68,462 entries in
+`store/keyword_mood_map.json`. Script: `pipeline/keyword_mood_classifier.py`.
+Evaluation artifacts: `data/evaluation/keyword_classifier_*.{csv,png}`.
+See TODO.md "Done" section for details.
 
 ---
 
