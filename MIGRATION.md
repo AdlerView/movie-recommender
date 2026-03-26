@@ -68,28 +68,51 @@ not yet implemented -- requires `user_profile.py` + `store/`.)*
 
 The user wants to find a new movie to watch.
 
-**UI elements:**
+**Layout:** Sidebar + main page. The Discover page is the only page
+with a sidebar.
 
-| # | Element | Type | Source | Required |
-|---|---|---|---|---|
-| 1 | Mood | 7 toggle buttons | Hardcoded (own concept) | Optional, multi-select |
-| 2 | Sort | Dropdown | Hardcoded (4 options) | Default: Personalized Score |
-| 3 | Genre | 19 toggle buttons | TMDB API `genre/movie/list` | Required, min 1 |
-| 4 | Certification | Toggle buttons (values change per country, e.g. DE: 0/6/12/16/18, US: G/PG/PG-13/R/NC-17) | TMDB API `certification/movie/list` | Optional |
-| 5 | Release date from | Year input | -- | Optional |
-| 6 | Release date to | Year input | -- | Optional |
-| 7 | Language | Dropdown | TMDB API `configuration/languages` | Optional |
-| 8 | Runtime | Range slider 0-360 min | -- | Optional, default 0-360 |
-| 9 | User score | Range slider 0-10 | -- | Optional, default 0-10 |
-| 10 | Min user votes | Slider 0-500 | -- | Optional, default 50 |
-| 11 | Keywords | Text field + autocomplete | TMDB API `search/keyword` | Optional |
-| 12 | Streaming country | Dropdown | TMDB API `configuration/countries` | Optional |
-| 13 | Streaming providers | Multi-toggle | TMDB API `watch/providers/movie` | Optional |
-| 14 | Only my subscriptions | Checkbox | Local user DB | Optional |
+**Sidebar (filters):**
 
-*Current state: Discover has genre-only filter + card browsing. The
-14-filter UI, mood filter, and personalized scoring are not yet
-implemented.*
+| # | Element | Type | Source |
+|---|---|---|---|
+| 1 | Genre | `st.pills` multi-select, width-optimized order (not alphabetical) | TMDB API `genre/movie/list` |
+| 2 | Release date from | Year input | -- |
+| 3 | Release date to | Year input | -- |
+| 4 | Runtime | Range slider 0-360 min | -- |
+| 5 | User score | Range slider 0-10 | -- |
+| 6 | Min user votes | Slider 0-500, default 50 | -- |
+| 7 | Keywords | Autocomplete (TMDB API `search/keyword`) + removable chips | TMDB API |
+| -- | *More filters (expander)* | | |
+| 8 | Language | Dropdown | TMDB API `configuration/languages` |
+| 9 | Certification | Dropdown (values per country) | TMDB API `certification/movie/list` |
+| 10 | Streaming country | Dropdown | TMDB API `configuration/countries` |
+| 11 | Streaming providers | Toggle buttons with provider logos (TMDB `logo_path`, ~30px) | TMDB API `watch/providers/movie` |
+| 12 | Only my subscriptions | Checkbox | Local `user_subscriptions` DB |
+| -- | Reset all | Button, resets sidebar filters only (not mood/sort) | -- |
+
+**Main page:**
+
+| # | Element | Type | Position |
+|---|---|---|---|
+| 1 | Header | "Which movie will you watch?" | Center |
+| 2 | Sort | Dropdown (4 options, default: Personalized) | Right-aligned, same line as "Recommended Movies" |
+| 3 | Mood | `st.pills` multi-select, toggle-deselect (re-click to deselect) | Below heading |
+| 4 | Poster grid | 5 columns, clickable → detail dialog (Watchlist/Dismiss) | Below mood |
+| 5 | Load more | Button | Below grid |
+
+**Interaction model:** Live filtering. Every filter/mood/sort change
+immediately updates the poster grid. No explicit "Discover" button.
+TMDB rate limit (40 req/s) is sufficient for live updates.
+
+**Default state (no filters):** "Recommended Movies" shows 20
+personalized films (ML pipeline). Fallback: trending.
+
+**Empty results:** Info message ("No movies match your filters. Try
+fewer criteria.") + "You might also like" section with recommended
+movies as fallback.
+
+**Exclusions:** Already-rated, dismissed, and watchlisted movies are
+automatically filtered out.
 
 **Sort options:**
 
@@ -100,13 +123,10 @@ implemented.*
 | Rating descending | `sort_by=vote_average.desc` on discover API |
 | Release date descending | `sort_by=primary_release_date.desc` on discover API |
 
-**Results display per movie:**
-
-- Title, year, poster
-- Genres, runtime, certification badge
-- Predicted mood tags
-- Streaming provider logos
-- Personalized score (0-100)
+*Current state: Discover has genre-only filter + card-based
+one-at-a-time browsing. The sidebar layout, 14-filter UI, mood
+pills, poster grid, live filtering, and personalized scoring are not
+yet implemented.*
 
 ---
 
@@ -767,16 +787,16 @@ No duplicated training -- evaluates what was already built.
 
 ### Phase 4: UI Integration `PENDING`
 
-Rebuild Discover page with 14 filters and personalized scoring.
-Add personalized poster grid to Rate page. Add mood reactions to
-Watchlist.
+Rebuild Discover page with sidebar filters, poster grid, and live
+filtering. Add personalized poster grid to Rate page. Add mood
+reactions to Watchlist.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 4.1 | Discover: 14 filter controls (genre, mood, certification, year, language, runtime, score, votes, keywords, streaming) | `app/app_pages/discover.py` | 2.3 (filters.py) | `PENDING` |
-| 4.2 | Discover: personalized sort option (ML scoring from rating history) | `app/app_pages/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
+| 4.1 | Discover: sidebar layout with 12 filter controls + main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. Provider logos via TMDB `logo_path`. Genre `st.pills` width-optimized order. Keyword autocomplete + chips. | `app/app_pages/discover.py` | -- (TMDB API filters work without pipeline) | `PENDING` |
+| 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/app_pages/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
 | 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/app_pages/rate.py` | 2.2 (scoring.py) | `PENDING` |
-| 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/app_pages/watchlist.py` | 0.1 (DB schema) | `PENDING` |
+| 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/app_pages/watchlist.py` | 0.1 (DB schema) | `DONE` |
 | 4.5 | Statistics: mood distribution chart from user reactions | `app/app_pages/statistics.py` | 0.3 (mood buttons) | `PENDING` |
 
 ---

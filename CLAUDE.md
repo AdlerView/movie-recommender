@@ -207,11 +207,11 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Imports relative to `app/`: `from utils.tmdb import get_genres`
 - Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
-- UX pattern: Each tab has one responsibility. Poster grids on Rate and Watchlist, click → detail dialog overlay (`@st.dialog`)
+- UX pattern: Each tab has one responsibility. Poster grids on Discover, Rate, and Watchlist, click → detail dialog overlay (`@st.dialog`). Discover uses `st.sidebar` for filters (only page with sidebar).
 
 ### Page Descriptions (current state)
 
-- **Discover:** Genre-only filter + card-based one-at-a-time browsing. 19 TMDB genre toggle buttons (AND logic), automatic pagination up to 10 pages, already-rated/dismissed/watchlisted movies filtered out. Toast feedback on watchlist add and dismiss.
+- **Discover:** Sidebar + main layout. Sidebar contains all filters (genre, year, keywords, runtime, rating, min votes, plus expander for language, certification, streaming). Main page has header, sort dropdown (top-right, default: Personalized), mood pills (toggle-deselect behavior), and poster grid (5 columns, clickable → detail dialog with Watchlist/Dismiss). Live filtering: grid updates on every filter change, no explicit "Discover" button. "Reset all" in sidebar resets only sidebar filters (not mood/sort). Empty results: info message + "You might also like" fallback grid with recommended movies. Already-rated/dismissed/watchlisted movies excluded. "Load more" button for pagination. Provider logos (TMDB `logo_path`) as toggle buttons in streaming filter.
 - **Rate:** Pure action tab. TMDB text search + Netflix-style clickable poster grid (trending). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Mood reactions are optional and multi-select, saved alongside the numeric rating. Already-rated movies excluded from trending grid but shown in search results (allows re-rating).
 - **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (CH, flatrate only). Actions: "Remove from watchlist" or "Mark as watched" (rating slider + 7 mood reaction buttons).
 - **Statistics:** KPIs (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 7 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution), top 5 directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.

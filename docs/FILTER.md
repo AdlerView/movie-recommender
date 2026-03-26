@@ -9,24 +9,49 @@ runs locally against precomputed model files.
 
 ---
 
-## Filter Overview
+## Layout
 
-| # | Filter | UI Element | TMDB API Parameter | Source | Required |
-|---|---|---|---|---|---|
-| 1 | Mood | 7 toggle buttons | -- (local) | Hardcoded | Optional, multi-select |
-| 2 | Sort | Dropdown (4 options) | `sort_by` | Hardcoded | Default: Personalized Score |
-| 3 | Genre | 19 toggle buttons | `with_genres` | `GET /3/genre/movie/list` | Required, min 1 |
-| 4 | Certification | Toggle buttons (per country) | `certification_country` + `certification.lte` | `GET /3/certification/movie/list` | Optional |
-| 5 | Release date from | Year input | `primary_release_date.gte` | -- | Optional |
-| 6 | Release date to | Year input | `primary_release_date.lte` | -- | Optional |
-| 7 | Language | Dropdown | `with_original_language` | `GET /3/configuration/languages` | Optional |
-| 8 | Runtime | Range slider 0-360 min | `with_runtime.gte` + `with_runtime.lte` | -- | Optional, default 0-360 |
-| 9 | User score | Range slider 0-10 | `vote_average.gte` + `vote_average.lte` | -- | Optional, default 0-10 |
-| 10 | Min user votes | Slider 0-500 | `vote_count.gte` | -- | Optional, default 50 |
-| 11 | Keywords | Text + autocomplete | `with_keywords` | `GET /3/search/keyword` | Optional |
-| 12 | Streaming country | Dropdown | `watch_region` | `GET /3/configuration/countries` | Optional |
-| 13 | Streaming providers | Multi-toggle | `with_watch_providers` | `GET /3/watch/providers/movie` | Optional |
-| 14 | Only my subscriptions | Checkbox | `with_watch_providers` (filtered) | Local `user_subscriptions` DB | Optional |
+Sidebar + main page. Discover is the only page with a sidebar.
+
+**Sidebar** (collapsible, filter controls):
+
+| # | Filter | UI Element | TMDB API Parameter | Source |
+|---|---|---|---|---|
+| 1 | Genre | `st.pills` multi-select (width-optimized order, not alphabetical) | `with_genres` | `GET /3/genre/movie/list` |
+| 2 | Release date from | Year input | `primary_release_date.gte` | -- |
+| 3 | Release date to | Year input | `primary_release_date.lte` | -- |
+| 4 | Runtime | Range slider 0-360 min | `with_runtime.gte` + `with_runtime.lte` | -- |
+| 5 | User score | Range slider 0-10 | `vote_average.gte` + `vote_average.lte` | -- |
+| 6 | Min user votes | Slider 0-500, default 50 | `vote_count.gte` | -- |
+| 7 | Keywords | Autocomplete (`search/keyword`) + removable chips | `with_keywords` | `GET /3/search/keyword` |
+| -- | *More filters (expander)* | | | |
+| 8 | Language | Dropdown | `with_original_language` | `GET /3/configuration/languages` |
+| 9 | Certification | Dropdown (values per country) | `certification_country` + `certification.lte` | `GET /3/certification/movie/list` |
+| 10 | Streaming country | Dropdown | `watch_region` | `GET /3/configuration/countries` |
+| 11 | Streaming providers | Toggle buttons with provider logos (TMDB `logo_path`, ~30px) | `with_watch_providers` | `GET /3/watch/providers/movie` |
+| 12 | Only my subscriptions | Checkbox | `with_watch_providers` (filtered) | Local `user_subscriptions` DB |
+| -- | Reset all | Button (resets sidebar filters only, not mood/sort) | -- | -- |
+
+**Main page** (poster grid + mood + sort):
+
+| # | Element | UI Element | Position |
+|---|---|---|---|
+| 1 | Header | "Which movie will you watch?" | Center |
+| 2 | Sort | Dropdown (4 options, default: Personalized) | Right-aligned, same line as "Recommended Movies" |
+| 3 | Mood | `st.pills` multi-select, toggle-deselect | Below heading, above grid |
+| 4 | Poster grid | 5 columns, clickable → detail dialog | Main area |
+| 5 | Load more | Button | Below grid |
+
+**Interaction model:** Live filtering — every filter/mood/sort change
+immediately updates the poster grid. No explicit "Discover" button.
+
+**Genre ordering:** Not alphabetical. Sorted by label width to maximize
+sidebar space usage (shorter names like War, Crime, Music grouped in
+same row; longer names like Science Fiction get their own row).
+
+**No requirements:** Genre has no minimum selection. Mood has no
+"optional" label. All filters are truly optional — zero filters shows
+personalized recommendations (or trending as fallback).
 
 ---
 
