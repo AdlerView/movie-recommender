@@ -100,6 +100,7 @@
 - [x] Genre-to-mood mapping — 19 TMDB genres with hand-crafted mood weights in `store/genre_mood_map.json` (2026-03-26)
 - [x] Keyword-to-mood classifier — `pipeline/keyword_mood_classifier.py`: 80/10/10 split, scaled+unscaled, 5+ classifiers (MLPClassifier best, val F1=0.76, test acc=78%), inferred 65,779 keywords → `store/keyword_mood_map.json` (68,462 entries, 3.0 MB) (2026-03-26)
 - [x] Directory restructuring — `data/` + `model/` → `data/` (tracked: labeled/, evaluation/) + `store/` (gitignored: DBs, .npy, .pkl, generated JSON). Gitignore simplified to single `store/` rule (2026-03-26)
+- [x] Feature extraction pipeline — `pipeline/01_extract_features.py`: 7 features from tmdb.db (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim), 3 SVD .pkl models. Total: ~2.9 GB in store/. Runtime: 2m39s (2026-03-26)
 
 ## Superseded
 
