@@ -138,7 +138,7 @@ The app is publicly accessible at **https://hsg.adlerscope.com** via Cloudflare 
 ```bash
 # Start Streamlit (Terminal 1)
 conda activate ./.conda
-streamlit run app/streamlit_app.py
+streamlit run streamlit_app.py
 
 # Start tunnel (Terminal 2)
 cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender
@@ -163,5 +163,5 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 # Edit .streamlit/secrets.toml and replace with the shared TMDB API key (see group chat)
 
 # Run the app
-streamlit run app/streamlit_app.py
+streamlit run streamlit_app.py
 ```

@@ -70,7 +70,7 @@ Thumbs.db
 # Streamlit
 .streamlit/secrets.toml
 
-# Store — large files (fast to regenerate from pipeline scripts)
+# Data — large files (fast to regenerate from ML pipeline scripts)
 data/input/tmdb.sqlite
 data/user.sqlite
 data/user.sqlite-shm

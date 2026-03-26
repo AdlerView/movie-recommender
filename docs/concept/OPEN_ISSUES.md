@@ -51,7 +51,7 @@
 - [x] `#004` **[decision]** — Movies only, no TV series (2026-03-23)
 - [x] `#007` **[decision]** — Rating 0-100 in steps of 10 via slider (2026-03-23, redesigned 2026-03-25 from 0.00-10.00 in 0.01 steps)
 - [x] `#009` **[decision]** — Streamlit + server-side TMDB key in `.streamlit/secrets.toml` (2026-03-23)
-- [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Rate, Watchlist, Statistics), entry point `app/streamlit_app.py`, pages in `app/app_pages/` (2026-03-23, restructured 2026-03-24: Watched renamed to Rate as pure action tab)
+- [x] `#014` **[decision]** — Multi-page app with top navigation: 4 pages (Discover, Rate, Watchlist, Statistics), entry point `streamlit_app.py`, pages in `app/views/` (2026-03-23, restructured 2026-03-24: Watched renamed to Rate as pure action tab)
 - [x] `#015` **[decision]** — Card-based UX flow: one movie at a time with rate/dismiss buttons, matching wireframe prototype (2026-03-23)
 - [x] `#016` **[decision]** — TMDB API key injected via `_get()` helper in `app/utils/tmdb.py` (2026-03-23)
 - [x] `#006` **[decision]** — Sort by `popularity.desc` with `vote_count.gte=100` floor, AND logic for genres, automatic pagination up to 10 pages (2026-03-24)

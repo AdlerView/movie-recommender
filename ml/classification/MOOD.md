@@ -41,7 +41,7 @@ All 5000 keywords were reviewed against 3 real film overviews per keyword. The r
 
 The single-label subset (1,049 keywords) trains a classifier
 (EmbeddingGemma-300M sentence embeddings) that infers moods for the
-remaining ~65K unlabeled keywords. See `pipeline/keyword_mood_classifier.py`.
+remaining ~65K unlabeled keywords. See `ml/classification/keyword_mood_classifier.py`.
 
 Training uses single-label only for a methodologically clean 7-class
 problem. Alternatives considered: multi-label with one-vs-rest (more
@@ -328,4 +328,4 @@ The single-label class imbalance (Interested=332 vs. Disgusted=31) is structural
 - **Parent:** [CLAUDE.md](../CLAUDE.md)
 - **ML Pipeline:** [ML-PIPELINE.md](ML-PIPELINE.md)
 - **Labeled data:** `data/input/tmdb-keyword-frequencies_labeled_top5000.tsv`
-- **Classifier:** `pipeline/keyword_mood_classifier.py`
+- **Classifier:** `ml/classification/keyword_mood_classifier.py`

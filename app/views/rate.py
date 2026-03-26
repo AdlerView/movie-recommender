@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import (
+from app.utils.db import (
     save_mood_reactions,
     save_movie_details,
     save_movie_keywords,
     save_rating,
 )
-from utils.tmdb import (
+from app.utils.tmdb import (
     get_movie_details,
     get_movie_keywords,
     get_trending,

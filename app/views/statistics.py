@@ -12,7 +12,7 @@ import altair as alt
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
-from utils.db import (
+from app.utils.db import (
     load_decade_distribution,
     load_genre_distribution,
     load_language_distribution,
@@ -25,7 +25,7 @@ from utils.db import (
     load_top_directors,
     load_user_vs_tmdb,
 )
-from utils.tmdb import poster_url
+from app.utils.tmdb import poster_url
 
 st.header("Your statistics", divider="gray", text_alignment="center")
 
@@ -179,8 +179,8 @@ if mood_data:
 
 # --- ML Evaluation (Course Requirement 5) ---
 # Keyword-to-mood classification evaluation. Uses precomputed results
-# from pipeline/keyword_mood_classifier.py (Phase 1b) + live cross-validation
-# and KNN hyperparameter tuning via ml_eval.py.
+# from ml/classification/keyword_mood_classifier.py (Phase 1b) + live cross-validation
+# and KNN hyperparameter tuning via ml/evaluation/ml_eval.py.
 st.subheader("ML Evaluation: Keyword-to-Mood", divider="gray")
 
 _eval_results_path = (
@@ -231,7 +231,7 @@ if _eval_results_path.exists():
         import numpy as np
         from sklearn.preprocessing import LabelEncoder, RobustScaler
 
-        from utils.ml_eval import knn_hyperparameter_plot, run_cross_validation
+        from ml.evaluation.ml_eval import knn_hyperparameter_plot, run_cross_validation
 
         # Load keyword data and embeddings (same as pipeline)
         _tsv_path = (
@@ -271,7 +271,7 @@ if _eval_results_path.exists():
 
                 # Cross-validation (10-fold, Notebook 10-1 pattern)
                 _best_name = _scaled_non_dummy.iloc[0]["Classifier"] if not _scaled_non_dummy.empty else "MLPClassifier"
-                from utils.ml_eval import get_classifiers
+                from ml.evaluation.ml_eval import get_classifiers
                 _classifiers = get_classifiers()
                 _best_clf = _classifiers.get(_best_name, _classifiers["MLPClassifier"])
                 _cv_scores = run_cross_validation(_best_clf, _x_all_s, _y)
@@ -292,7 +292,7 @@ if _eval_results_path.exists():
             st.warning("Labeled keyword data not found.", icon=":material/warning:")
 else:
     st.info(
-        "Run `python3 pipeline/keyword_mood_classifier.py` to generate "
+        "Run `python3 ml/classification/keyword_mood_classifier.py` to generate "
         "evaluation results.",
         icon=":material/science:",
     )

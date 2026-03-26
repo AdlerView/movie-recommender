@@ -23,9 +23,9 @@ At the start of every new session, read ALL of the following files before doing 
 - `.streamlit/config.toml`
 
 **Source code (all `.py` files):**
-- `app/streamlit_app.py`
+- `streamlit_app.py`
 - `app/utils/__init__.py`, `app/utils/db.py`, `app/utils/tmdb.py`
-- `app/app_pages/discover.py`, `app/app_pages/rate.py`, `app/app_pages/statistics.py`, `app/app_pages/watchlist.py`
+- `app/views/discover.py`, `app/views/rate.py`, `app/views/statistics.py`, `app/views/watchlist.py`
 
 ---
 
@@ -48,99 +48,108 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 
 ## Directory Structure
 
-Each directory has exactly one tracking status and one artifact type.
-No gitignore exceptions needed.
-
 | Directory | Tracking | Artifact Type |
 |-----------|----------|---------------|
-| `app/` | Tracked | Runtime application code |
-| `pipeline/` | Tracked | Offline pipeline scripts |
+| `app/` | Tracked | Streamlit views, utilities, static assets |
+| `ml/` | Tracked | ML pipeline by phase (extraction, classification, scoring, evaluation) |
 | `data/` | Partial | Pipeline data (input/, output/, user.sqlite) |
-| `notebooks/` | Tracked | Jupyter notebooks |
-| `docs/` | Tracked | Project documentation |
+| `docs/` | Tracked | Project documentation + planning |
 | `.streamlit/` | Partial | Config tracked, secrets gitignored |
 
 **Decision algorithm for new files:**
 
-1. Code (`*.py`, `*.ipynb`) → `app/`, `pipeline/`, or `notebooks/`
-2. Documentation (`*.md`, `*.mmd`) → `docs/`
-3. Pipeline source data, training data, hand-crafted rules → `data/input/`
-4. Pipeline-generated arrays, models, mappings, evaluation results → `data/output/`
-5. Streamlit configuration → `.streamlit/`
+1. Streamlit views, app utilities → `app/`
+2. ML scripts, models, notebooks → `ml/{phase}/`
+3. ML-specific documentation → `ml/{phase}/` (co-located with code)
+4. Pipeline source data, training data → `data/input/`
+5. Pipeline-generated arrays, models, mappings → `data/output/`
+6. Project-level documentation → `docs/`
+7. Streamlit configuration → `.streamlit/`
 
 ```
 movie-recommender/
-├── app/                                    # TRACKED — Runtime application
-│   ├── streamlit_app.py                    # Entry point (router, init, navigation)
-│   ├── app_pages/                          # Page modules
-│   │   ├── discover.py                     # 14 filters + personalized scoring
+├── streamlit_app.py                        # Entry point (router, init, navigation)
+│
+├── app/                                    # TRACKED — Streamlit application modules
+│   ├── views/                              # Page modules
+│   │   ├── discover.py                     # Sidebar filters + poster grid + live filtering
 │   │   ├── rate.py                         # Search/browse → rate + mood reactions
 │   │   ├── watchlist.py                    # Poster grid → detail dialog + actions
-│   │   └── statistics.py                   # KPIs, charts, rankings, table
-│   ├── utils/                              # Business logic & helpers
+│   │   └── statistics.py                   # KPIs, charts, ML evaluation, rankings, table
+│   ├── utils/                              # App utilities (DB, API)
 │   │   ├── __init__.py
 │   │   ├── db.py                           # SQLite persistence (user ratings, watchlist, dismissed)
-│   │   ├── tmdb.py                         # TMDB API client (cached)
-│   │   ├── scoring.py                      # NOT YET CREATED — Scoring formula + dynamic weights
-│   │   ├── filters.py                      # NOT YET CREATED — TMDB API parameter builder + local mood filter
-│   │   ├── user_profile.py                 # NOT YET CREATED — User profile computation from ratings
-│   │   └── ml_eval.py                      # Shared ML evaluation (classifiers, metrics, CV)
+│   │   └── tmdb.py                         # TMDB API client (cached)
 │   └── static/                             # Poppins font files (18 TTFs + OFL license)
 │
-├── pipeline/                               # TRACKED — Offline pipeline scripts
-│   ├── keyword_mood_classifier.py          # Keyword → mood: train classifier, infer 70K+
-│   ├── 01_extract_features.py              # Stage 1: DB → feature matrices (SVD, onehot)
-│   ├── 02_predict_moods.py                 # Stage 2: Mood scores per film (4 signals)
-│   ├── 03_quality_scores.py                # Stage 3: Bayesian average quality scores
-│   └── 04_build_index.py                   # Stage 4: Save numpy arrays + mappings
+├── ml/                                     # TRACKED — ML pipeline by phase
+│   ├── __init__.py
+│   ├── extraction/                         # Feature transformation (no ML models)
+│   │   ├── __init__.py
+│   │   ├── 01_extract_features.py          # Stage 1: DB → SVD, onehot, normalized features
+│   │   ├── 03_quality_scores.py            # Stage 3: Bayesian average quality scores
+│   │   ├── 04_build_index.py              # Stage 4: movie_id_index.json + output verification
+│   │   └── ML-PIPELINE.md                  # Pipeline architecture + stages documentation
+│   ├── classification/                     # ML models (training + inference)
+│   │   ├── __init__.py
+│   │   ├── keyword_mood_classifier.py      # Keyword → mood: train classifier, infer 70K+
+│   │   ├── 02_predict_moods.py             # Stage 2: Mood scores per film (4 signals)
+│   │   └── MOOD.md                         # Keyword-to-mood classification documentation
+│   ├── scoring/                            # Online scoring (runtime, imported by app)
+│   │   ├── __init__.py
+│   │   ├── user_profile.py                 # NOT YET CREATED — User profile from ratings
+│   │   ├── scoring.py                      # NOT YET CREATED — 9-signal scoring formula
+│   │   ├── filters.py                      # NOT YET CREATED — TMDB API params + mood filter
+│   │   ├── SCORING.md                      # Scoring formula + component details
+│   │   └── FILTER.md                       # 14 discovery filters documentation
+│   └── evaluation/                         # Academic ML evaluation
+│       ├── __init__.py
+│       ├── ml_eval.py                      # Shared evaluation functions (classifiers, CV, plots)
+│       └── ml_evaluation.ipynb             # NOT YET CREATED — Academic narrative notebook
 │
 ├── data/                                   # PARTIAL — Pipeline data
 │   ├── input/                              # Pipeline inputs (sources, training data, rules)
-│   │   ├── tmdb.sqlite                     # GITIGNORED — Offline TMDB database (8.2 GB, 1.17M movies)
+│   │   ├── tmdb.sqlite                     # GITIGNORED — Offline TMDB database (8.2 GB)
 │   │   ├── tmdb-keyword-frequencies_labeled_top5000.tsv  # tracked — 5K keywords with mood labels
 │   │   └── genre_mood_map.json             # tracked — 19 genre → mood rules (hand-crafted)
 │   ├── output/                             # Pipeline outputs (feature arrays, models, mappings)
-│   │   ├── keyword_svd_vectors.npy         # GITIGNORED — 1.17M × 200, Stage 1
-│   │   ├── director_svd_vectors.npy        # GITIGNORED — 1.17M × 200, Stage 1
-│   │   ├── actor_svd_vectors.npy           # GITIGNORED — 1.17M × 200, Stage 1
-│   │   ├── keyword_svd.pkl                 # GITIGNORED — Fitted SVD transformer, Stage 1
-│   │   ├── director_svd.pkl                # GITIGNORED — Fitted SVD transformer, Stage 1
-│   │   ├── actor_svd.pkl                   # GITIGNORED — Fitted SVD transformer, Stage 1
-│   │   ├── genre_vectors.npy              # tracked — 1.17M × 19, Stage 1
-│   │   ├── decade_vectors.npy             # tracked — 1.17M × 15, Stage 1
-│   │   ├── language_vectors.npy           # tracked — 1.17M × 20, Stage 1
-│   │   ├── runtime_normalized.npy         # tracked — 1.17M × 1, Stage 1
-│   │   ├── mood_scores.npy               # tracked — 1.17M × 7, Stage 2
-│   │   ├── quality_scores.npy            # tracked — 1.17M × 1, Stage 3
-│   │   ├── movie_id_index.json           # tracked — movie_id ↔ row_index, Stage 4
-│   │   ├── keyword_mood_map.json         # tracked — ~70K keyword → mood predictions
-│   │   ├── keyword_classifier_results.csv      # tracked — classifier comparison table
-│   │   └── keyword_classifier_confusion_matrix.png  # tracked — best model confusion matrix
-│   └── user.sqlite                         # GITIGNORED — App runtime SQLite (user ratings, watchlist)
+│   │   ├── keyword_svd_vectors.npy         # GITIGNORED — 1.17M × 200
+│   │   ├── director_svd_vectors.npy        # GITIGNORED — 1.17M × 200
+│   │   ├── actor_svd_vectors.npy           # GITIGNORED — 1.17M × 200
+│   │   ├── keyword_svd.pkl                 # GITIGNORED — Fitted SVD transformer
+│   │   ├── director_svd.pkl                # GITIGNORED — Fitted SVD transformer
+│   │   ├── actor_svd.pkl                   # GITIGNORED — Fitted SVD transformer
+│   │   ├── genre_vectors.npy               # tracked — 1.17M × 19
+│   │   ├── decade_vectors.npy              # tracked — 1.17M × 15
+│   │   ├── language_vectors.npy            # tracked — 1.17M × 20
+│   │   ├── runtime_normalized.npy          # tracked — 1.17M × 1
+│   │   ├── mood_scores.npy                 # tracked — 1.17M × 7
+│   │   ├── quality_scores.npy              # tracked — 1.17M × 1
+│   │   ├── movie_id_index.json             # tracked — movie_id ↔ row_index
+│   │   ├── keyword_mood_map.json           # tracked — ~70K keyword → mood predictions
+│   │   ├── keyword_classifier_results.csv  # tracked — classifier comparison table
+│   │   └── keyword_classifier_confusion_matrix.png  # tracked — confusion matrix plot
+│   └── user.sqlite                         # GITIGNORED — App runtime SQLite
 │
-├── notebooks/                              # TRACKED — Jupyter notebooks
-│   └── ml_evaluation.ipynb                 # Detailed ML evaluation (academic, narrative)
-│
-├── docs/                                   # TRACKED — Project documentation
+├── docs/                                   # TRACKED — Project documentation + planning
+│   ├── MIGRATION.md                        # Migration plan + implementation roadmap
+│   ├── TODO.md                             # Task tracking with deadlines
 │   ├── CONTRIBUTION.md                     # Team contribution matrix
 │   ├── REQUIREMENTS.md                     # Grading requirements checklist
 │   ├── TMDB_API.md                         # TMDB API endpoint reference
-│   ├── ML-PIPELINE.md                      # Offline pipeline + ML evaluation spec
-│   ├── SCORING.md                          # Scoring formula + component details
-│   ├── FILTER.md                           # 14 discovery filters
-│   ├── MOOD.md                             # Keyword-to-mood classification
 │   ├── tmdb-schema.mmd                     # ER diagram of TMDB database (Mermaid)
+│   ├── STREAMLIT_API.yaml                  # Streamlit API reference
 │   ├── concept/                            # Original project concept
-│   │   ├── cs-project.md                   # Project concept (Markdown)
-│   │   ├── cs-project.docx                 # Project concept (original Word)
-│   │   ├── OPEN_ISSUES.md                  # Resolved conceptual gaps
-│   │   └── prototype-movie-recommender.jpg # Wireframe prototype
+│   │   ├── cs-project.md
+│   │   ├── cs-project.docx
+│   │   ├── OPEN_ISSUES.md
+│   │   └── prototype-movie-recommender.jpg
 │   └── references/                         # Course reference materials
-│       ├── group-project.pdf               # Grading rubric (11 slides)
-│       ├── group-project.mp4               # Project briefing recording
-│       ├── 02-exercises.pdf                # Exercise reference
-│       ├── 04-prep-streamlit.mp4           # Streamlit prep recording
-│       └── writing-with-ai.md              # AI usage policy
+│       ├── group-project.pdf
+│       ├── group-project.mp4
+│       ├── 02-exercises.pdf
+│       ├── 04-prep-streamlit.mp4
+│       └── writing-with-ai.md
 │
 ├── .streamlit/                             # PARTIAL — Config tracked, secrets gitignored
 │   ├── config.toml                         # Cinema Gold theme + fontFaces + server config
@@ -148,10 +157,9 @@ movie-recommender/
 │   └── secrets.toml.example                # Template for secrets
 │
 ├── CLAUDE.md                               # Claude Code project instructions
-├── MIGRATION.md                            # Migration plan + implementation roadmap
 ├── README.md                               # Project overview
-├── TODO.md                                 # Task tracking with deadlines
-└── requirements.txt                        # Python dependencies
+├── requirements.txt                        # Python dependencies
+└── .gitignore
 ```
 
 ---
@@ -160,7 +168,7 @@ movie-recommender/
 
 ```bash
 conda activate ./.conda
-streamlit run app/streamlit_app.py
+streamlit run streamlit_app.py
 ```
 
 ---
@@ -197,8 +205,8 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 
 - Streamlit files: no `if __name__ == "__main__"` (whole file runs on every interaction)
 - Utility modules: `if __name__ == "__main__"` allowed for quick testing
-- Imports relative to `app/`: `from utils.tmdb import get_genres`
-- Pages directory: `app_pages/` (not `pages/` — conflicts with old Streamlit API)
+- Imports: `from app.utils.tmdb import get_genres` (entry point in root enables direct package imports)
+- Pages directory: `app/views/` (not `pages/` — conflicts with old Streamlit API)
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Each tab has one responsibility. Poster grids on Discover, Rate, and Watchlist, click → detail dialog overlay (`@st.dialog`). Discover uses `st.sidebar` for filters (only page with sidebar).
 
@@ -258,11 +266,11 @@ All idempotent and re-runnable independently.
 
 | Script | Output | Runtime |
 |--------|--------|---------|
-| `pipeline/01_extract_features.py` | 7 `.npy` (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim) + 3 SVD `.pkl` | 2m39s |
-| `pipeline/02_predict_moods.py` | `mood_scores.npy` (1.17M × 7, 4 signals: genre + keyword + overview emotion + review emotion) | 4h18m |
-| `pipeline/03_quality_scores.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
-| `pipeline/04_build_index.py` | `movie_id_index.json` (1.17M entries) + output verification | <1s |
-| `pipeline/keyword_mood_classifier.py` | `keyword_mood_map.json` (68,462 entries, MLPClassifier val F1=0.76) | 3m |
+| `ml/extraction/01_extract_features.py` | 7 `.npy` (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim) + 3 SVD `.pkl` | 2m39s |
+| `ml/classification/02_predict_moods.py` | `mood_scores.npy` (1.17M × 7, 4 signals: genre + keyword + overview emotion + review emotion) | 4h18m |
+| `ml/extraction/03_quality_scores.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
+| `ml/extraction/04_build_index.py` | `movie_id_index.json` (1.17M entries) + output verification | <1s |
+| `ml/classification/keyword_mood_classifier.py` | `keyword_mood_map.json` (68,462 entries, MLPClassifier val F1=0.76) | 3m |
 
 Run order: `01` + `03` (parallel) → `keyword_mood_classifier` → `02` → `04`
 

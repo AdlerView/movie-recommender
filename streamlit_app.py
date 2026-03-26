@@ -7,7 +7,7 @@ navigation with top positioning.
 from __future__ import annotations
 
 import streamlit as st
-from utils.db import (
+from app.utils.db import (
     get_ratings_without_details,
     init_db,
     load_dismissed,
@@ -15,7 +15,7 @@ from utils.db import (
     load_watchlist,
     save_movie_details,
 )
-from utils.tmdb import get_movie_details
+from app.utils.tmdb import get_movie_details
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -74,10 +74,10 @@ st.markdown("""<style>
 # Discover = find new, Rate = rate watched, Watchlist = saved, Statistics = review
 page = st.navigation(
     [
-        st.Page("app_pages/discover.py", title="Discover", icon=":material/explore:"),
-        st.Page("app_pages/rate.py", title="Rate", icon=":material/star:"),
-        st.Page("app_pages/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
-        st.Page("app_pages/statistics.py", title="Statistics", icon=":material/bar_chart:"),
+        st.Page("app/views/discover.py", title="Discover", icon=":material/explore:"),
+        st.Page("app/views/rate.py", title="Rate", icon=":material/star:"),
+        st.Page("app/views/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
+        st.Page("app/views/statistics.py", title="Statistics", icon=":material/bar_chart:"),
     ],
     position="top",
 )

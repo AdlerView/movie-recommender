@@ -403,7 +403,7 @@ Input: `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies)
 
 Output: `.npy` files + `movie_id_index.json` + `svd_models/*.pkl`
 
-Script: `pipeline/01_extract_features.py`
+Script: `ml/extraction/01_extract_features.py`
 
 ---
 
@@ -432,7 +432,7 @@ Documentary -> {interested: 0.6, sad: 0.2, angry: 0.1}
 **Signal 2: Keyword -> Mood mapping (supervised pipeline, ~70K
 keywords)**
 
-Produced by `pipeline/keyword_mood_classifier.py`. Two-stage process:
+Produced by `ml/classification/keyword_mood_classifier.py`. Two-stage process:
 1. Labeled seed: 5,000 keywords in
    `data/output/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single-
    label after review, 1,634 multi, 2,317 none)
@@ -463,7 +463,7 @@ If no reviews:
 
 Output: `mood_scores.npy` (1.17M x 7)
 
-Script: `pipeline/02_predict_moods.py`
+Script: `ml/classification/02_predict_moods.py`
 
 ---
 
@@ -481,7 +481,7 @@ Normalized to [0, 1].
 
 Output: `quality_scores.npy` (1.17M x 1)
 
-Script: `pipeline/03_quality_scores.py`
+Script: `ml/extraction/03_quality_scores.py`
 
 ---
 
@@ -500,7 +500,7 @@ data/output/
     actor_svd.pkl
 ```
 
-Script: `pipeline/04_build_index.py`
+Script: `ml/extraction/04_build_index.py`
 
 ---
 
@@ -533,7 +533,7 @@ of the same workflow belongs in Phase 3.
 - Scaled vs. unscaled comparison
 - Notebook narrative + Statistics page section
 
-Script: `pipeline/keyword_mood_classifier.py`
+Script: `ml/classification/keyword_mood_classifier.py`
 
 ---
 
@@ -659,7 +659,7 @@ Both follow the same course-compliant evaluation workflow.
 
 **Shared utility:** `app/utils/ml_eval.py` contains all evaluation
 logic. Called by both the Statistics page (compact, video-friendly)
-and `notebooks/ml_evaluation.ipynb` (academic, narrative). No
+and `ml/evaluation/ml_evaluation.ipynb` (academic, narrative). No
 duplicated code.
 
 **Mandatory elements (course baseline):**
@@ -710,7 +710,7 @@ section for details.
 
 Completed 2026-03-26. All 5 stages produced `data/output/` directory with
 14 pipeline outputs (9 `.npy`, 2 `.json`, 3 `.pkl`). Total ~4 GB.
-Scripts: `pipeline/01_extract_features.py`, `02_predict_moods.py`,
+Scripts: `ml/extraction/01_extract_features.py`, `02_predict_moods.py`,
 `03_quality_scores.py`, `04_build_index.py`. See TODO.md "Done"
 section and CLAUDE.md § ML Pipeline for details.
 
@@ -719,7 +719,7 @@ section and CLAUDE.md § ML Pipeline for details.
 ### Phase 1b: Keyword-to-Mood Classifier `DONE`
 
 Completed 2026-03-26. MLPClassifier (val F1=0.76, test acc=78%),
-68,462 keyword mood entries. Script: `pipeline/keyword_mood_classifier.py`.
+68,462 keyword mood entries. Script: `ml/classification/keyword_mood_classifier.py`.
 See TODO.md "Done" section for details.
 
 ---
@@ -752,8 +752,8 @@ No duplicated training -- evaluates what was already built.
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
 | 3.1 | Shared ML evaluation utility: `evaluate_classifiers()`, `best_model_report()`, `run_cross_validation()` | `app/utils/ml_eval.py` | 1b.1 (keyword classifier), 2.2 (scoring) | `DONE` |
-| 3.2 | Statistics page: ML Evaluation section -- "Run ML Evaluation" button, classifier comparison table, confusion matrix, classification report, CV scores, best model KPIs | `app/app_pages/statistics.py` | 3.1 | `DONE` |
-| 3.3 | Jupyter notebook: academic narrative -- problem definition, feature engineering, data distribution plots, all classifiers with commentary, scaled vs. unscaled, KNN k=1..20 plot, discussion | `notebooks/ml_evaluation.ipynb` | 3.1 | `PENDING` |
+| 3.2 | Statistics page: ML Evaluation section -- "Run ML Evaluation" button, classifier comparison table, confusion matrix, classification report, CV scores, best model KPIs | `app/views/statistics.py` | 3.1 | `DONE` |
+| 3.3 | Jupyter notebook: academic narrative -- problem definition, feature engineering, data distribution plots, all classifiers with commentary, scaled vs. unscaled, KNN k=1..20 plot, discussion | `ml/evaluation/ml_evaluation.ipynb` | 3.1 | `PENDING` |
 
 **Phase 3 evaluation scope (both classification tasks):**
 
@@ -775,11 +775,11 @@ reactions to Watchlist.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 4.1 | Discover: sidebar layout with 12 filter controls + main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. Provider logos via TMDB `logo_path`. Genre `st.pills` width-optimized order. Keyword autocomplete + chips. | `app/app_pages/discover.py` | -- (TMDB API filters work without pipeline) | `DONE` |
-| 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/app_pages/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
-| 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/app_pages/rate.py` | 2.2 (scoring.py) | `PENDING` |
-| 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/app_pages/watchlist.py` | 0.1 (DB schema) | `DONE` |
-| 4.5 | Statistics: mood distribution chart from user reactions | `app/app_pages/statistics.py` | 0.3 (mood buttons) | `DONE` |
+| 4.1 | Discover: sidebar layout with 12 filter controls + main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. Provider logos via TMDB `logo_path`. Genre `st.pills` width-optimized order. Keyword autocomplete + chips. | `app/views/discover.py` | -- (TMDB API filters work without pipeline) | `DONE` |
+| 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/views/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
+| 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/views/rate.py` | 2.2 (scoring.py) | `PENDING` |
+| 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/views/watchlist.py` | 0.1 (DB schema) | `DONE` |
+| 4.5 | Statistics: mood distribution chart from user reactions | `app/views/statistics.py` | 0.3 (mood buttons) | `DONE` |
 
 ---
 
@@ -789,7 +789,7 @@ Final quality pass and submission artifacts. Deadline: 2026-05-14.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 5.1 | Statistics dashboard polish -- layout, chart interactions, visual design | `app/app_pages/statistics.py` | 3.2, 4.5 | `PENDING` |
+| 5.1 | Statistics dashboard polish -- layout, chart interactions, visual design | `app/views/statistics.py` | 3.2, 4.5 | `PENDING` |
 | 5.2 | Code documentation final pass (Req 6) -- docstrings, inline comments on all new files | all `.py` files | all phases | `PENDING` |
 | 5.3 | Contribution matrix (Req 7) | `docs/CONTRIBUTION.md` | -- | `PENDING` |
 | 5.4 | Record 4-minute video with live narration (Req 8) | video file | all phases | `PENDING` |

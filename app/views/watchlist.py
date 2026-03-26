@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import (
+from app.utils.db import (
     remove_from_watchlist,
     save_mood_reactions,
     save_movie_details,
     save_movie_keywords,
     save_rating,
 )
-from utils.tmdb import get_movie_details, get_movie_keywords, poster_url
+from app.utils.tmdb import get_movie_details, get_movie_keywords, poster_url
 
 # Provider brand colors for badge styling
 _PROVIDER_COLORS: dict[str, str] = {

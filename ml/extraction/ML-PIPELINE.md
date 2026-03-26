@@ -114,10 +114,10 @@ classification problem.
 ```
 data/input/tmdb.sqlite (8.2 GB, offline only)
     |
-    |  pipeline/01_extract_features.py
-    |  pipeline/02_predict_moods.py
-    |  pipeline/03_quality_scores.py
-    |  pipeline/04_build_index.py
+    |  ml/extraction/01_extract_features.py
+    |  ml/classification/02_predict_moods.py
+    |  ml/extraction/03_quality_scores.py
+    |  ml/extraction/04_build_index.py
     |
     v
 data/output/ (~3 GB, shipped to production)
@@ -146,7 +146,7 @@ are loaded into memory for scoring.
 
 ## Stage 1: Feature Extraction
 
-**Script:** `pipeline/01_extract_features.py`
+**Script:** `ml/extraction/01_extract_features.py`
 
 **Input:** `data/input/tmdb.sqlite`
 
@@ -195,7 +195,7 @@ data/output/svd_models/actor_svd.pkl
 
 ## Stage 2: Mood Score Prediction
 
-**Script:** `pipeline/02_predict_moods.py`
+**Script:** `ml/classification/02_predict_moods.py`
 
 **Input:** `data/input/tmdb.sqlite` + `data/input/genre_mood_map.json` +
 `data/output/keyword_mood_map.json`
@@ -379,7 +379,7 @@ weight redistributes to the remaining signals.
 
 ## Stage 3: Quality Scores
 
-**Script:** `pipeline/03_quality_scores.py`
+**Script:** `ml/extraction/03_quality_scores.py`
 
 **Input:** `data/input/tmdb.sqlite` (`movies.vote_average`, `movies.vote_count`)
 
@@ -405,7 +405,7 @@ Normalized to [0, 1] range.
 
 ## Stage 4: Build Index
 
-**Script:** `pipeline/04_build_index.py`
+**Script:** `ml/extraction/04_build_index.py`
 
 Saves the final mappings:
 
@@ -423,10 +423,10 @@ Saves the final mappings:
 
 ```bash
 # Full pipeline (takes several hours for mood prediction on 1.17M movies)
-python3 pipeline/01_extract_features.py --db data/input/tmdb.sqlite --output data/output/
-python3 pipeline/02_predict_moods.py --db data/input/tmdb.sqlite --output data/output/
-python3 pipeline/03_quality_scores.py --db data/input/tmdb.sqlite --output data/output/
-python3 pipeline/04_build_index.py --output data/output/
+python3 ml/extraction/01_extract_features.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/classification/02_predict_moods.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/extraction/03_quality_scores.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/extraction/04_build_index.py --output data/output/
 ```
 
 Each stage is idempotent and can be re-run independently.
@@ -511,18 +511,18 @@ User clicks "Discover" with filters
 
 | File | Status | Content |
 |---|---|---|
-| `pipeline/01_extract_features.py` | `DONE` | Stage 1: tmdb.sqlite -> SVD/onehot -> .npy |
-| `pipeline/02_predict_moods.py` | `DONE` | Stage 2: genre/keyword mapping + emotion classifier -> mood_scores.npy |
-| `pipeline/03_quality_scores.py` | `DONE` | Stage 3: Bayesian average -> quality_scores.npy |
-| `pipeline/04_build_index.py` | `DONE` | Stage 4: movie_id_index.json + output verification |
-| `pipeline/keyword_mood_classifier.py` | `DONE` | Keyword-to-mood: train classifier, infer 70K+ |
+| `ml/extraction/01_extract_features.py` | `DONE` | Stage 1: tmdb.sqlite -> SVD/onehot -> .npy |
+| `ml/classification/02_predict_moods.py` | `DONE` | Stage 2: genre/keyword mapping + emotion classifier -> mood_scores.npy |
+| `ml/extraction/03_quality_scores.py` | `DONE` | Stage 3: Bayesian average -> quality_scores.npy |
+| `ml/extraction/04_build_index.py` | `DONE` | Stage 4: movie_id_index.json + output verification |
+| `ml/classification/keyword_mood_classifier.py` | `DONE` | Keyword-to-mood: train classifier, infer 70K+ |
 | `data/input/genre_mood_map.json` | `DONE` | 19 genre -> mood rules (manual) |
 | `data/output/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
 | `app/utils/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
 | `app/utils/scoring.py` | `PENDING` | Scoring formula, dynamic weights, cosine similarity |
 | `app/utils/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |
 | `app/utils/user_profile.py` | `PENDING` | User profile computation from ratings |
-| `notebooks/ml_evaluation.ipynb` | `PENDING` | Detailed ML evaluation notebook (academic, narrative) |
+| `ml/evaluation/ml_evaluation.ipynb` | `PENDING` | Detailed ML evaluation notebook (academic, narrative) |
 
 ---
 
@@ -605,7 +605,7 @@ page only (not detailed enough for academic evaluation), notebook only
 - **Statistics page** (compact, video-friendly): "Run ML Evaluation"
   button, classifier comparison table, best model KPIs (accuracy + F1),
   confusion matrix, classification report, cross-validation score
-- **Jupyter notebook** `notebooks/ml_evaluation.ipynb` (academic,
+- **Jupyter notebook** `ml/evaluation/ml_evaluation.ipynb` (academic,
   narrative): problem definition, feature engineering explanation,
   data distribution plots, all 7 classifiers with commentary, scaled
   vs unscaled comparison, KNN hyperparameter tuning (k=1..20 plot),

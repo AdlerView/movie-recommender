@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from utils.db import (
+from app.utils.db import (
     save_dismissed,
     save_to_watchlist,
 )
-from utils.tmdb import (
+from app.utils.tmdb import (
     discover_movies_filtered,
     get_certifications,
     get_countries,
