@@ -20,7 +20,7 @@
 
 - [x] `#002` **[gap]** — ML approach unspecified
   - Context: "Implements machine learning" is a project requirement. The concept deferred this to "after the ML class."
-  - Decision (v2, 2026-03-25): Personalized recommendations from user ratings + mood reactions. 7 mood categories (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). Users tag moods on Rate page. Offline pipeline extracts feature vectors (keyword/director/actor SVD, genre/decade/language onehot, mood scores, quality scores) from `tmdb.sqlite` into `.npy` arrays. Runtime scoring: cosine similarity between user profile and candidate vectors, mood match, contra-penalty. Full course ML workflow: train/test split, 5+ classifier comparison, confusion matrix, DummyClassifier baseline. See `MIGRATION.md` for full architecture.
+  - Decision (v2, 2026-03-25): Personalized recommendations from user ratings + mood reactions. 7 mood categories (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). Users tag moods on Rate page. Offline pipeline extracts feature vectors (keyword/director/actor SVD, genre/decade/language onehot, mood scores, quality scores) from `tmdb.sqlite` into `.npy` arrays. Runtime scoring: cosine similarity between user profile and candidate vectors, mood match, contra-penalty. Full course ML workflow: train/test split, 5+ classifier comparison, confusion matrix, DummyClassifier baseline. See `docs/MIGRATION.md` for full architecture.
   - Superseded: v1 (10 custom mood categories via EmbeddingGemma-300M centroid labeling + KNN, 2026-03-24)
   - Found: 2026-03-18 | Resolved: 2026-03-25
 
@@ -28,7 +28,7 @@
 
 - [x] `#017` **[decision]** — Keyword scoring architecture for Discover
   - Context: TMDB keywords follow a long-tail distribution (top keyword "based on novel or book" in ~11% of films). AND logic is impractical — even 2 keywords would eliminate most results.
-  - Decision (v2, 2026-03-25): All 14 Discover filters passed to TMDB API `/discover/movie` endpoint (genres, certification, year, language, runtime, score, votes, keywords, providers). Keyword autocomplete via TMDB API `search/keyword`. Mood filter + personalized scoring run locally against precomputed `.npy` arrays. `tmdb.sqlite` is offline only — not queried at runtime. See `MIGRATION.md` for full architecture.
+  - Decision (v2, 2026-03-25): All 14 Discover filters passed to TMDB API `/discover/movie` endpoint (genres, certification, year, language, runtime, score, votes, keywords, providers). Keyword autocomplete via TMDB API `search/keyword`. Mood filter + personalized scoring run locally against precomputed `.npy` arrays. `tmdb.sqlite` is offline only — not queried at runtime. See `docs/MIGRATION.md` for full architecture.
   - Superseded: v1 (keywords.db ~63k movies + 10 mood pill categories, 2026-03-24)
   - Resolved: 2026-03-25
 

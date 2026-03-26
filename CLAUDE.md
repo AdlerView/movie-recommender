@@ -14,9 +14,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 At the start of every new session, read ALL of the following files before doing any work:
 
 **Documentation (all `.md` files):**
-- `CLAUDE.md`, `README.md`, `TODO.md`, `MIGRATION.md`
+- `CLAUDE.md`, `README.md`, `docs/TODO.md`, `docs/MIGRATION.md`
 - `docs/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
-- `docs/tmdb-schema.mmd`, `docs/ML-PIPELINE.md`, `docs/FILTER.md`, `docs/MOOD.md`, `docs/SCORING.md`
+- `docs/tmdb-schema.mmd`, `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
 - `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
 
 **Config:**
@@ -233,17 +233,17 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 
 ---
 
-## Planned Features (authoritative source: MIGRATION.md)
+## Planned Features (authoritative source: docs/MIGRATION.md)
 
-**All planned features, architecture decisions, scoring formulas, ML pipeline details, and implementation roadmap are defined in [MIGRATION.md](MIGRATION.md).** That file is the single source of truth for all Soll-Zustand. Consult it before implementing any new feature.
+**All planned features, architecture decisions, scoring formulas, ML pipeline details, and implementation roadmap are defined in [docs/MIGRATION.md](docs/MIGRATION.md).** That file is the single source of truth for all Soll-Zustand. Consult it before implementing any new feature.
 
-Supporting docs (referenced by MIGRATION.md):
-- [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md) — offline pipeline stages, ML evaluation spec
-- [docs/SCORING.md](docs/SCORING.md) — scoring formula, dynamic weights, component details
-- [docs/FILTER.md](docs/FILTER.md) — 14 discovery filters, API parameter mapping, caching
-- [docs/MOOD.md](docs/MOOD.md) — keyword-to-mood classification, labeling methodology
+Supporting docs (referenced by docs/MIGRATION.md):
+- [ml/extraction/ML-PIPELINE.md](ml/extraction/ML-PIPELINE.md) — offline pipeline stages, ML evaluation spec
+- [ml/scoring/SCORING.md](ml/scoring/SCORING.md) — scoring formula, dynamic weights, component details
+- [ml/scoring/FILTER.md](ml/scoring/FILTER.md) — 14 discovery filters, API parameter mapping, caching
+- [ml/classification/MOOD.md](ml/classification/MOOD.md) — keyword-to-mood classification, labeling methodology
 
-**Remaining planned changes** (see MIGRATION.md for full details):
+**Remaining planned changes** (see docs/MIGRATION.md for full details):
 - Online scoring: user profile + 9-signal cosine similarity (Phase 2)
 - Discover: personalized sort option via ML scoring (Phase 4.2)
 - Rate: "Based on your interests" personalized poster grid (Phase 4.3)
@@ -370,7 +370,7 @@ Key gotchas:
 | 2 | Data via API | TMDB + SQLite integrated |
 | 3 | Data visualization | In progress (PoC: KPIs, 7 charts, rankings, table) |
 | 4 | User interaction | Implemented (genre discover, rate + mood reactions, dismiss, watchlist, search) |
-| 5 | Machine learning | In progress — see [MIGRATION.md](MIGRATION.md) Phase 1-3 |
+| 5 | Machine learning | In progress — see [docs/MIGRATION.md](docs/MIGRATION.md) Phase 1-3 |
 | 6 | Code documentation | In progress |
 | 7 | Contribution matrix | Not started |
 | 8 | 4-min video | Not started |

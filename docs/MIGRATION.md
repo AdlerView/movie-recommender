@@ -645,7 +645,7 @@ The canonical directory structure is defined in [CLAUDE.md](CLAUDE.md)
 ## ML Evaluation (Course Requirement 5) `PENDING`
 
 The ML evaluation follows the exact workflow taught in lectures 10-11
-and assignments 10-11. See [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md)
+and assignments 10-11. See [ml/extraction/ML-PIPELINE.md](../ml/extraction/ML-PIPELINE.md)
 for the full specification.
 
 **Two classification tasks:**

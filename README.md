@@ -94,7 +94,7 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 
 | Document | Description |
 |----------|-------------|
-| [TODO.md](TODO.md) | Actionable tasks with owners and deadlines |
+| [TODO.md](docs/TODO.md) | Actionable tasks with owners and deadlines |
 | [REQUIREMENTS.md](docs/REQUIREMENTS.md) | Grading criteria with status tracking |
 | [CONTRIBUTION.md](docs/CONTRIBUTION.md) | Team contribution matrix |
 | [OPEN_ISSUES.md](docs/concept/OPEN_ISSUES.md) | Conceptual gaps and pending decisions |
