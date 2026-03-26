@@ -797,7 +797,7 @@ reactions to Watchlist.
 | 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/app_pages/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
 | 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/app_pages/rate.py` | 2.2 (scoring.py) | `PENDING` |
 | 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/app_pages/watchlist.py` | 0.1 (DB schema) | `DONE` |
-| 4.5 | Statistics: mood distribution chart from user reactions | `app/app_pages/statistics.py` | 0.3 (mood buttons) | `PENDING` |
+| 4.5 | Statistics: mood distribution chart from user reactions | `app/app_pages/statistics.py` | 0.3 (mood buttons) | `DONE` |
 
 ---
 
