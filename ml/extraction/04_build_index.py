@@ -116,11 +116,11 @@ def main() -> int:
 
     # Check SVD models
     for fname in ["keyword_svd.pkl", "director_svd.pkl", "actor_svd.pkl"]:
-        fpath = args.output / "svd_models" / fname
+        fpath = args.output / fname
         status = "OK" if fpath.exists() else "MISSING"
         if not fpath.exists():
             all_ok = False
-        log.info("  svd_models/%-20s %s", fname, status)
+        log.info("  %-30s %s", fname, status)
 
     if all_ok:
         log.info("=== All pipeline outputs verified ===")

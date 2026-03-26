@@ -30,7 +30,7 @@ SVD component count (default: 200):
 Data flow:
     data/input/tmdb.sqlite (1.17M movies, 30 tables)
         → 7 .npy feature arrays in data/output/
-        → 3 .pkl SVD models in data/output/svd_models/
+        → 3 .pkl SVD models in data/output/
 
 All arrays share the same row ordering: SELECT id FROM movies ORDER BY id.
 The movie_id ↔ row_index mapping is saved by Stage 4 (04_build_index.py).
@@ -141,7 +141,7 @@ def extract_keyword_svd(
 
     # Save outputs
     np.save(output_dir / "keyword_svd_vectors.npy", vectors)
-    with open(output_dir / "svd_models" / "keyword_svd.pkl", "wb") as f:
+    with open(output_dir / "keyword_svd.pkl", "wb") as f:
         pickle.dump(svd, f)
     log.info("Saved keyword_svd_vectors.npy + keyword_svd.pkl")
 
@@ -204,7 +204,7 @@ def extract_person_svd(
 
     # Save outputs
     np.save(output_dir / npy_filename, vectors)
-    with open(output_dir / "svd_models" / pkl_filename, "wb") as f:
+    with open(output_dir / pkl_filename, "wb") as f:
         pickle.dump(svd, f)
     log.info("Saved %s + %s", npy_filename, pkl_filename)
 
@@ -444,7 +444,6 @@ def main() -> int:
         return 1
 
     args.output.mkdir(parents=True, exist_ok=True)
-    (args.output / "svd_models").mkdir(exist_ok=True)
 
     conn = sqlite3.connect(args.db)
 
@@ -514,9 +513,9 @@ def main() -> int:
 
     pkl_files = ["keyword_svd.pkl", "director_svd.pkl", "actor_svd.pkl"]
     for fname in pkl_files:
-        fpath = args.output / "svd_models" / fname
+        fpath = args.output / fname
         status = "OK" if fpath.exists() else "MISSING"
-        log.info("  svd_models/%-20s %s", fname, status)
+        log.info("  %-30s %s", fname, status)
 
     return 0
 

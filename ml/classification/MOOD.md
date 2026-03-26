@@ -325,7 +325,7 @@ The single-label class imbalance (Interested=332 vs. Disgusted=31) is structural
 
 ## Navigation
 
-- **Parent:** [CLAUDE.md](../CLAUDE.md)
+- **Parent:** [CLAUDE.md](../../CLAUDE.md)
 - **ML Pipeline:** [ML-PIPELINE.md](../extraction/ML-PIPELINE.md)
 - **Labeled data:** `data/input/tmdb-keyword-frequencies_labeled_top5000.tsv`
 - **Classifier:** `ml/classification/keyword_mood_classifier.py`

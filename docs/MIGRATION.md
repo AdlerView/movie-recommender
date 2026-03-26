@@ -401,7 +401,7 @@ Input: `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies)
 | Runtime normalized | 1.17M x 1 | `movies.runtime / 360.0` |
 | Movie ID index | 1.17M entries | `movies.id` -> row index mapping |
 
-Output: `.npy` files + `movie_id_index.json` + `svd_models/*.pkl`
+Output: `.npy` files + `movie_id_index.json` + `*.pkl`
 
 Script: `ml/extraction/01_extract_features.py`
 
@@ -494,10 +494,9 @@ data/output/
   genre_mood_map.json        19 entries
   keyword_mood_map.json      ~70K entries
   movie_id_index.json        1.17M entries
-  svd_models/
-    keyword_svd.pkl
-    director_svd.pkl
-    actor_svd.pkl
+  keyword_svd.pkl
+  director_svd.pkl
+  actor_svd.pkl
 ```
 
 Script: `ml/extraction/04_build_index.py`
@@ -595,10 +594,9 @@ data/output/
   movie_id_index.json           1.17M entries  movie_id <-> row index
   genre_mood_map.json           19 entries     manual genre -> mood rules
   keyword_mood_map.json         ~70K entries   supervised keyword -> mood predictions
-  svd_models/
-    keyword_svd.pkl                            for transforming new movies
-    director_svd.pkl
-    actor_svd.pkl
+  keyword_svd.pkl                              for transforming new movies
+  director_svd.pkl
+  actor_svd.pkl
 ```
 
 Total: ~3 GB
@@ -635,7 +633,7 @@ CREATE TABLE user_profile_cache (
 
 ## Project Structure
 
-The canonical directory structure is defined in [CLAUDE.md](CLAUDE.md)
+The canonical directory structure is defined in [CLAUDE.md](../CLAUDE.md)
 § Directory Structure. See that section for the full tree.
     tmdb-schema.mmd                  ER diagram of TMDB database
 ```

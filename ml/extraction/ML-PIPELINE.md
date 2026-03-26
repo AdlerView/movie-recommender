@@ -133,10 +133,9 @@ data/output/ (~3 GB, shipped to production)
     movie_id_index.json         1.17M entries
     genre_mood_map.json         19 entries
     keyword_mood_map.json       ~70K entries
-    svd_models/
-      keyword_svd.pkl
-      director_svd.pkl
-      actor_svd.pkl
+    keyword_svd.pkl
+    director_svd.pkl
+    actor_svd.pkl
 ```
 
 The 8.2 GB database is never queried at runtime. Only the model files
@@ -186,9 +185,9 @@ data/output/decade_vectors.npy
 data/output/language_vectors.npy
 data/output/runtime_normalized.npy
 data/output/movie_id_index.json
-data/output/svd_models/keyword_svd.pkl
-data/output/svd_models/director_svd.pkl
-data/output/svd_models/actor_svd.pkl
+data/output/keyword_svd.pkl
+data/output/director_svd.pkl
+data/output/actor_svd.pkl
 ```
 
 ---
@@ -263,7 +262,7 @@ Source: `data/input/tmdb-keyword-frequencies_labeled_top5000.tsv`
 | multi | 2,047 → 1,634 after review | Multiple moods assigned |
 | none | 1,256 → 2,317 after review | Not mood-relevant (metadata, format, identity tags) |
 
-Post-review counts reflect ~666 corrections (see [MOOD.md](MOOD.md) Stage 2).
+Post-review counts reflect ~666 corrections (see [MOOD.md](../classification/MOOD.md) Stage 2).
 The single-label subset (1,049) is the actual training set for Stage B.
 
 Single-label class distribution (post-review):
@@ -415,7 +414,7 @@ Saves the final mappings:
   TMDB API.
 - `data/input/genre_mood_map.json` -- 19 genre -> mood rules
 - `data/output/keyword_mood_map.json` -- ~70K keyword -> mood predictions
-- `data/output/svd_models/*.pkl` -- saved SVD transformers for future use
+- `data/output/*.pkl` -- saved SVD transformers for future use
 
 ---
 
