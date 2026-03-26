@@ -80,7 +80,8 @@ movie-recommender/
 │   │   ├── __init__.py
 │   │   ├── db.py                           # SQLite persistence (user ratings, watchlist, dismissed)
 │   │   └── tmdb.py                         # TMDB API client (cached)
-│   └── static/                             # Poppins font files (18 TTFs + OFL license)
+│
+├── static/                                 # Poppins font files (18 TTFs + OFL license)
 │
 ├── ml/                                     # TRACKED — ML pipeline by phase
 │   ├── __init__.py
@@ -229,7 +230,7 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - Headers: All page headers use `text_alignment="center"`. Section headers use `st.subheader` with `label_visibility="collapsed"` on the associated widget.
 - Movie detail badges: Genre = `:gray-badge`, Keywords = `:gray-badge`. Section headers via `st.caption("**Genre**")` etc. Sections only shown when data exists.
 - Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
-- Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `app/static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
+- Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
 
 ---
 

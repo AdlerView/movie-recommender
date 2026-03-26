@@ -98,7 +98,7 @@ app/utils/db.py               ← DB_PATH = data/user.sqlite
 app/utils/tmdb.py             ← TMDB API client
 ml/evaluation/ml_eval.py          ← should move to ml/evaluation/
 app/utils/__init__.py
-app/static/                   ← Poppins fonts (must stay relative to entry point)
+static/                   ← Poppins fonts (must stay relative to entry point)
 ml/*.py                 ← should split into ml/extraction/ + ml/classification/
 data/input/tmdb.sqlite        ← GITIGNORED (7.7 GB)
 data/input/genre_mood_map.json
@@ -132,7 +132,7 @@ st.Page("app/views/discover.py") → st.Page("app/views/discover.py")
 
 ## Risks and Uncertainties
 
-- **app/static/ path dependency** (high confidence): Streamlit's enableStaticServing requires static/ relative to the entry point. If streamlit_app.py moves to root, static/ must be at root level OR stay under app/ and the config adjusted. Currently documented to stay at app/static/. VERIFY this works after the move.
+- **static/ path dependency** (high confidence): Streamlit's enableStaticServing requires static/ relative to the entry point. If streamlit_app.py moves to root, static/ must be at root level OR stay under app/ and the config adjusted. Currently documented to stay at static/. VERIFY this works after the move.
 
 - **st.Page() path resolution** (medium confidence): st.Page("app/views/discover.py") should work relative to the entry point's directory. But test this.
 
