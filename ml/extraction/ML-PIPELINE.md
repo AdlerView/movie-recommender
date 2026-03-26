@@ -518,7 +518,7 @@ User clicks "Discover" with filters
 | `data/input/genre_mood_map.json` | `DONE` | 19 genre -> mood rules (manual) |
 | `data/output/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
 | `ml/evaluation/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
-| `ml/scoring/scoring.py` | `PENDING` | Scoring formula, dynamic weights, cosine similarity |
+| `ml/scoring/scoring.py` | `DONE` | Scoring formula, dynamic weights, cosine similarity |
 | `ml/scoring/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |
 | `ml/scoring/user_profile.py` | `DONE` | User profile computation from ratings |
 | `ml/evaluation/ml_evaluation.ipynb` | `PENDING` | Detailed ML evaluation notebook (academic, narrative) |

@@ -60,7 +60,7 @@ The user rates a movie after watching it.
 
 **After saving:** the user profile vectors are recomputed from all
 ratings using the precomputed model files. *(Profile recomputation
-scoring.py not yet implemented -- requires `data/output/`.)*
+filters.py not yet implemented.)*
 
 ---
 
@@ -730,7 +730,7 @@ filter UI.
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
 | 2.1 | User profile: load `.npy` arrays, compute weighted-average profile vectors from ratings, cache in `user_profile_cache` | `ml/scoring/user_profile.py` | 1a.5 (`data/output/` populated) | `DONE` |
-| 2.2 | Scoring: 9-signal formula, dynamic weights by rating count, batch cosine similarity (numpy vectorized) | `ml/scoring/scoring.py` | 2.1 | `PENDING` |
+| 2.2 | Scoring: 9-signal formula, dynamic weights by rating count, batch cosine similarity (numpy vectorized) | `ml/scoring/scoring.py` | 2.1 | `DONE` |
 | 2.3 | Filters: TMDB API parameter builder from 14 filter controls, local mood filter against `mood_scores.npy` | `ml/scoring/filters.py` | 1a.5 (`data/output/` for mood filter) | `PENDING` |
 
 **Graceful degradation:** When `data/output/` is not populated, the app

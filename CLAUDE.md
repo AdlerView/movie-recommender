@@ -100,7 +100,7 @@ movie-recommender/
 │   ├── scoring/                            # Online scoring (runtime, imported by app)
 │   │   ├── __init__.py
 │   │   ├── user_profile.py                 # User profile vectors from ratings + .npy arrays
-│   │   ├── scoring.py                      # NOT YET CREATED — 9-signal scoring formula
+│   │   ├── scoring.py                      # 9-signal cosine similarity + dynamic weights
 │   │   ├── filters.py                      # NOT YET CREATED — TMDB API params + mood filter
 │   │   ├── SCORING.md                      # Scoring formula + component details
 │   │   └── FILTER.md                       # 14 discovery filters documentation

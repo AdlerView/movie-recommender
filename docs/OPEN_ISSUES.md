@@ -36,7 +36,7 @@
 
 - [x] `#010` **[unclear]** — "Not interested" signal usage
   - Context: The wireframe has a "not interested" button that skips to the next recommendation. The concept does not specify whether dismissals feed back into the ML model as negative training signals or are just skipped.
-  - Decision (2026-03-25): Dismissals ARE negative signals in Layer 2 (online scoring / contra vector). They are NOT used in the offline pipeline (Layer 1). Exact weight contribution to the contra vector is TBD during `scoring.py` implementation. For Phase 0 (DB migration + UI), dismissals remain cosmetic (filtered from results only). Negative signal integration deferred to Phase 2 (online scoring).
+  - Decision (2026-03-25): Dismissals ARE negative signals in Layer 2 (online scoring / contra vector). They are NOT used in the offline pipeline (Layer 1). Contra vector implemented in `ml/scoring/user_profile.py` (dismissed movies included alongside ratings <= 30). For Phase 0 (DB migration + UI), dismissals remain cosmetic (filtered from results only). Negative signal integration deferred to Phase 2 (online scoring).
   - Found: 2026-03-18 | Resolved: 2026-03-25
 
 - [x] `#011` **[unclear]** — "Based on your stream" data source
