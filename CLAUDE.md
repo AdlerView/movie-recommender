@@ -197,6 +197,28 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 
 ---
 
+## Subdirectory Documentation (mandatory)
+
+Every subdirectory (not root-level) MUST have a Markdown documentation file named after the directory in uppercase: `DIRNAME.md`. This file describes the directory's purpose, contents, and relationships. It is the single entry point for understanding what the directory contains and why.
+
+**Convention:** `<parent>/<dirname>/` → `<parent>/<dirname>/DIRNAME.md`
+
+**Example:** `ml/scoring/` → `ml/scoring/SCORING.md`
+
+**Rules:**
+- The file MUST exist before any code is added to the directory
+- It MUST describe: purpose, file inventory, data flow, dependencies
+- Existing topic-specific .md files (e.g., ML-PIPELINE.md, MOOD.md) MUST be merged into the DIRNAME.md file — one documentation file per directory, not multiple
+- SCORING.md is the reference implementation for this convention
+
+**Merge TODO:** The following topic-specific files need to be merged into their directory's DIRNAME.md:
+- `ml/extraction/ML-PIPELINE.md` → merge into `EXTRACTION.md`
+- `ml/classification/MOOD.md` → merge into `CLASSIFICATION.md`
+- `ml/scoring/FILTER.md` → merge into `SCORING.md`
+- `app/utils/TMDB_API.md` → merge into `UTILS.md`
+
+---
+
 ## Conventions
 
 - Streamlit files: no `if __name__ == "__main__"` (whole file runs on every interaction)
