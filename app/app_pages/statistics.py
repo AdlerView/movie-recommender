@@ -185,11 +185,11 @@ st.subheader("ML Evaluation: Keyword-to-Mood", divider="gray")
 
 _eval_results_path = (
     __import__("pathlib").Path(__file__).resolve().parent.parent.parent
-    / "evaluation" / "keyword_classifier_results.csv"
+    / "data" / "output" / "keyword_classifier_results.csv"
 )
 _eval_cm_path = (
     __import__("pathlib").Path(__file__).resolve().parent.parent.parent
-    / "evaluation" / "keyword_classifier_confusion_matrix.png"
+    / "data" / "output" / "keyword_classifier_confusion_matrix.png"
 )
 
 if _eval_results_path.exists():

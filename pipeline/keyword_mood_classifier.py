@@ -466,8 +466,8 @@ def main() -> int:
     parser.add_argument(
         "--eval-dir",
         type=Path,
-        default=Path("evaluation"),
-        help="Directory for evaluation outputs (default: evaluation/)",
+        default=Path("data/output"),
+        help="Directory for evaluation outputs (default: data/output/)",
     )
     parser.add_argument(
         "--batch-size",

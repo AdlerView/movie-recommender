@@ -56,7 +56,6 @@ No gitignore exceptions needed.
 | `app/` | Tracked | Runtime application code |
 | `pipeline/` | Tracked | Offline pipeline scripts |
 | `data/` | Partial | Pipeline data (input/, output/, user.sqlite) |
-| `evaluation/` | Tracked | ML evaluation outputs (CSV, PNG) |
 | `notebooks/` | Tracked | Jupyter notebooks |
 | `docs/` | Tracked | Project documentation |
 | `.streamlit/` | Partial | Config tracked, secrets gitignored |
@@ -66,9 +65,8 @@ No gitignore exceptions needed.
 1. Code (`*.py`, `*.ipynb`) → `app/`, `pipeline/`, or `notebooks/`
 2. Documentation (`*.md`, `*.mmd`) → `docs/`
 3. Pipeline source data, training data, hand-crafted rules → `data/input/`
-4. Pipeline-generated arrays, models, mappings → `data/output/`
-5. ML evaluation result (CSV, PNG, plots) → `evaluation/`
-6. Streamlit configuration → `.streamlit/`
+4. Pipeline-generated arrays, models, mappings, evaluation results → `data/output/`
+5. Streamlit configuration → `.streamlit/`
 
 ```
 movie-recommender/
@@ -115,15 +113,13 @@ movie-recommender/
 │   │   ├── mood_scores.npy               # tracked — 1.17M × 7, Stage 2
 │   │   ├── quality_scores.npy            # tracked — 1.17M × 1, Stage 3
 │   │   ├── movie_id_index.json           # tracked — movie_id ↔ row_index, Stage 4
-│   │   └── keyword_mood_map.json         # tracked — ~70K keyword → mood predictions
+│   │   ├── keyword_mood_map.json         # tracked — ~70K keyword → mood predictions
+│   │   ├── keyword_classifier_results.csv      # tracked — classifier comparison table
+│   │   └── keyword_classifier_confusion_matrix.png  # tracked — best model confusion matrix
 │   └── user.sqlite                         # GITIGNORED — App runtime SQLite (user ratings, watchlist)
 │
 ├── notebooks/                              # TRACKED — Jupyter notebooks
 │   └── ml_evaluation.ipynb                 # Detailed ML evaluation (academic, narrative)
-│
-├── evaluation/                             # TRACKED — ML evaluation outputs
-│   ├── keyword_classifier_results.csv     # Classifier comparison table (scaled + unscaled)
-│   └── keyword_classifier_confusion_matrix.png  # Best model confusion matrix
 │
 ├── docs/                                   # TRACKED — Project documentation
 │   ├── CONTRIBUTION.md                     # Team contribution matrix

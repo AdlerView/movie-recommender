@@ -517,13 +517,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Dates use ISO 8601 format (YYYY-MM-DD) in the URL. Invalid
-            query parameter values are ignored and removed from the URL.
-            If value is None, an empty query parameter (e.g.,
-            ?vacation=) clears the widget. Date ranges use repeated
-            parameters (e.g.,
-            ?vacation=2025-01-01&vacation=2025-01-31).
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values removed from URL. Dates use ISO 8601 (YYYY-MM-DD). Date ranges use repeated params.'
           default: None
           kwarg_only: true
       returns:
@@ -646,11 +640,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Datetimes use ISO 8601 format (YYYY-MM-DDThh:mm) in the URL.
-            Invalid query parameter values are ignored and removed from
-            the URL. If value is None, an empty query parameter
-            (e.g., ?my_key=) clears the widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL. Requires key. Datetimes use ISO 8601 (YYYY-MM-DDThh:mm) in URL.'
           default: None
           kwarg_only: true
       returns:
@@ -938,9 +928,7 @@ api:
           default: 'False'
         key:
           type: str, int, or None
-          description: 'Unique key. Stabilizes identity across reruns. Changing type/accept_multiple_files/max_upload_size resets widget even with key. Access via st.session_state[key] (read-only).'
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing type/accept_multiple_files/max_upload_size resets widget even with key. Access via st.session_state[key] (read-only). CSS class st-key-.'
           default: None
         help:
           type: str or None
@@ -1206,7 +1194,7 @@ api:
           default: special_internal_function
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing max_selections or accept_new_options resets widget even with a key. Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing max_selections or accept_new_options resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
         help:
           type: str or None
@@ -1268,14 +1256,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            An empty query parameter (e.g., ?tags=) clears the
-            widget. Invalid query parameter values are ignored and
-            removed from the URL. Multiple selections use repeated
-            parameters (e.g., ?tags=Red&tags=Blue). Duplicates are
-            deduplicated. If max_selections is set, excess values
-            are truncated. When accept_new_options is True, any
-            value is accepted.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL. Requires key. Empty param clears widget. Multiple selections use repeated params (?tags=Red&tags=Blue). Duplicates deduplicated.'
           default: None
           kwarg_only: true
       returns:
@@ -1375,10 +1356,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Invalid query parameter values are ignored and removed
-            from the URL. If value is None, an empty query
-            parameter (e.g., ?my_key=) clears the widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Invalid values ignored. Empty param clears widget when value is None.'
           default: None
           kwarg_only: true
       returns:
@@ -1528,7 +1506,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing selection_mode resets widget even with a key. Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing selection_mode resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
           kwarg_only: true
         help:
@@ -1568,12 +1546,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            An empty query parameter (e.g., ?tags=) clears the
-            widget. Invalid query parameter values are ignored and removed from
-            the URL. For selection_mode="multi", multiple selections use
-            repeated parameters (e.g., ?tags=Red&tags=Blue) and duplicates
-            are deduplicated.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Empty param clears widget. For "multi" mode, repeated params (?tags=Red&tags=Blue), duplicates deduplicated.'
           default: None
           kwarg_only: true
       returns:
@@ -1663,10 +1636,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Invalid query parameter values are ignored and removed
-            from the URL. If index is None, an empty query
-            parameter (e.g., ?my_key=) clears the widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Invalid values ignored. Empty param clears widget when index is None.'
           default: None
           kwarg_only: true
       returns:
@@ -1726,7 +1696,7 @@ api:
           kwarg_only: true
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing selection_mode resets widget even with a key. Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing selection_mode resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
           kwarg_only: true
         help:
@@ -1766,12 +1736,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            An empty query parameter (e.g., ?tags=) clears the
-            widget. Invalid query parameter values are ignored and removed from
-            the URL. For selection_mode="multi", multiple selections use
-            repeated parameters (e.g., ?tags=Red&tags=Blue) and duplicates
-            are deduplicated.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Empty param clears widget. For "multi" mode, repeated params (?tags=Red&tags=Blue), duplicates deduplicated.'
           default: None
           kwarg_only: true
       returns:
@@ -1859,10 +1824,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Invalid query parameter values are ignored and removed
-            from the URL. Range select sliders use repeated parameters
-            (e.g., ?color=red&color=blue).
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Range select sliders use repeated params (?color=red&color=blue).'
           default: None
           kwarg_only: true
       returns:
@@ -1906,7 +1868,7 @@ api:
           default: special_internal_function
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing accept_new_options resets widget even with a key. Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing accept_new_options resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
         help:
           type: str or None
@@ -1963,10 +1925,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Invalid query parameter values are ignored and removed
-            from the URL. If index is None, an empty query
-            parameter (e.g., ?my_key=) clears the widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Invalid values ignored. Empty param clears widget when index is None.'
           default: None
           kwarg_only: true
       returns:
@@ -2064,9 +2023,7 @@ api:
           default: None
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing min_value, max_value, or step resets widget even with a key (they constrain valid values). Read/update via st.session_state[key].
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing min_value/max_value/step resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
         help:
           type: str or None
@@ -2101,10 +2058,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Invalid query parameter values are ignored and removed
-            from the URL. Range sliders use repeated parameters (e.g.,
-            ?price=10&price=90).
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed. Bound params only via st.session_state. Range sliders use repeated params (?price=10&price=90).'
           default: None
           kwarg_only: true
       returns:
@@ -2148,7 +2102,7 @@ api:
           default: None
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing max_chars resets widget even with a key. Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing max_chars resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
         help:
           type: str or None
@@ -2188,9 +2142,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            An empty query parameter (e.g., ?my_key=) clears the
-            widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed from URL. Bound params only via st.session_state. Empty param clears widget.'
           default: None
           kwarg_only: true
       returns:
@@ -2216,7 +2168,7 @@ api:
           default: None
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing max_chars resets widget even with a key. Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing max_chars resets widget even with key. Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
         type:
           type: '"default" or "password"'
@@ -2273,9 +2225,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            This can't be used with type="password". An empty
-            query parameter (e.g., ?my_key=) clears the widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": updates URL, widget initializable from URL. Requires key. Default values removed from URL. Bound params only via st.session_state. Cannot be used with type="password". Empty param clears widget.'
           default: None
           kwarg_only: true
       returns:
@@ -2320,7 +2270,7 @@ api:
           default: '"now"'
         key:
           type: str, int, or None
-          description: Unique key for the widget. Stabilizes identity across reruns. Note: changing step resets widget even with a key (constrains valid values). Read/update via st.session_state[key]. Also CSS class st-key-.
+          description: 'Unique key. Stabilizes identity across reruns. Changing step resets widget even with key (constrains valid values). Read/update via st.session_state[key]. CSS class st-key-.'
           default: None
         help:
           type: str or None
@@ -2360,11 +2310,7 @@ api:
           kwarg_only: true
         bind:
           type: '"query-params" or None'
-          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized from URL. Requires key (used as query param name). Default values are removed from URL. Bound params can only be changed via st.session_state.'
-            Times use HH:MM format in the URL. Invalid query parameter
-            values are ignored and removed from the URL. If value
-            is None, an empty query parameter (e.g., ?my_key=)
-            clears the widget.
+          description: 'Syncs widget value with URL query parameter. None (default): not synced. "query-params": changes update URL, widget can be initialized/updated from URL. Requires key (used as query param name). Default values removed from URL. Bound params only changeable via st.session_state. Times use HH:MM format in URL. Invalid values are ignored and removed. Empty param (e.g. ?my_key=) clears the widget.'
           default: None
           kwarg_only: true
       returns:
@@ -2453,7 +2399,7 @@ api:
       parameters:
         altair_chart:
           type: altair.Chart
-          description: The Altair chart object to display. See https://altair-viz.github.io/gallery/ for examples.
+          description: 'The Altair chart object to display. See https://altair-viz.github.io/gallery/ for examples.'
         width:
           type: '"stretch", "content", int, or None'
           description: >-
@@ -2974,7 +2920,7 @@ api:
           kwarg_only: true
         zoom:
           type: int
-          description: Zoom level as specified in https://wiki.openstreetmap.org/wiki/Zoom_levels.
+          description: 'Zoom level as specified in https://wiki.openstreetmap.org/wiki/Zoom_levels.'
           default: None
           kwarg_only: true
         width:
@@ -3524,7 +3470,7 @@ api:
           description: The text to display as GitHub-flavored Markdown. See st.markdown body parameter for additional supported directives.
         unsafe_allow_html:
           type: bool
-          description: Whether to render HTML within body. False (default) escapes HTML tags as raw text. True renders HTML. Note: for HTML/CSS without Markdown, use st.html instead.
+          description: 'Whether to render HTML within body. False (default) escapes HTML as raw text. True renders HTML. For HTML/CSS without Markdown, use st.html instead.'
           default: 'False'
         help:
           type: str or None
@@ -3836,7 +3782,7 @@ api:
             Small text, using the syntax :small[text to show small].
         unsafe_allow_html:
           type: bool
-          description: Whether to render HTML within body. False (default) escapes HTML tags as raw text. True renders HTML. Note: for HTML/CSS without Markdown, use st.html instead.
+          description: 'Whether to render HTML within body. False (default) escapes HTML as raw text. True renders HTML. For HTML/CSS without Markdown, use st.html instead.'
           default: 'False'
         help:
           type: str or None
@@ -6930,7 +6876,7 @@ api:
           kwarg_only: true
         border:
           type: bool
-          description: Whether to show a border around the form. Defaults to True. Note: removing the border can confuse users since form widgets don't trigger reruns.
+          description: 'Whether to show a border around the form. Defaults to True. Removing the border can confuse users since form widgets don''t trigger reruns.'
           default: 'True'
           kwarg_only: true
         width:
@@ -7979,7 +7925,7 @@ api:
           description: Name of the table where the data should be copied to.
         database:
           type: str
-          description: Name of the database containing the table. By default, writes to the database currently in use. Note: if specified, schema must also be specified.
+          description: 'Name of the database containing the table. By default, writes to the database currently in use. If specified, schema must also be specified.'
           default: None
         schema:
           type: str
