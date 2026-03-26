@@ -36,7 +36,7 @@ DB_PATH = _STORE_DIR / "movies.db"
 def _connection():
     """Open a connection to the SQLite database.
 
-    Creates the data/ directory and database file if they don't exist.
+    Creates the store/ directory and database file if they don't exist.
     Uses WAL journal mode for better concurrent read performance.
 
     Yields:

@@ -283,7 +283,7 @@ Training uses the single-label subset only (1,049 keywords after
 manual review). This gives a methodologically clean 7-class
 classification problem.
 
-1. **Features:** EmbeddingGemma-300M sentence embeddings (256-dim)
+1. **Features:** EmbeddingGemma-300M sentence embeddings (768-dim)
    per keyword. Model cached at
    `~/.cache/macmini/huggingface/hub/models--google--embeddinggemma-300m`
 2. **Train/test split:** `train_test_split(stratify=y, random_state=42)`

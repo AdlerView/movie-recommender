@@ -28,7 +28,7 @@ _PROVIDER_COLORS: dict[str, str] = {
 }
 _DEFAULT_PROVIDER_COLOR = "violet"
 
-# Number of columns in the poster grid (matches Watched page)
+# Number of columns in the poster grid (matches Rate page)
 _GRID_COLS = 5
 
 st.header("Your watchlist", divider="gray", text_alignment="center")

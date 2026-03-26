@@ -484,7 +484,7 @@ Script: `pipeline/04_build_index.py`
 
 ---
 
-### Keyword-to-Mood Classifier `PENDING`
+### Keyword-to-Mood Classifier `DONE`
 
 Supervised pipeline that maps TMDB keywords to mood categories. This
 is a productive pipeline step (Phase 1b) -- the academic evaluation
@@ -493,7 +493,7 @@ of the same workflow belongs in Phase 3.
 **Phase 1b scope (build / train / select / infer):**
 
 - Load labeled TSV, filter to `assignment_type == "single"` (1,049)
-- Feature extraction: sentence embeddings (EmbeddingGemma-300M, 256-dim)
+- Feature extraction: sentence embeddings (EmbeddingGemma-300M, 768-dim)
   and/or TF-IDF baseline
 - `train_test_split(stratify=y, random_state=42)`
 - Optional scaling (RobustScaler)
@@ -615,58 +615,8 @@ CREATE TABLE user_profile_cache (
 
 ## Project Structure
 
-```
-movie-recommender/
-  data/
-    tmdb.db                          TMDB raw data (8.2 GB, offline only)
-    tmdb-keyword-frequencies.tsv     keyword frequency export
-    tmdb-keyword-frequencies_labeled_top5000.tsv   labeled seed (5K keywords)
-  store/                             NOT YET CREATED
-    keyword_svd_vectors.npy
-    director_svd_vectors.npy
-    actor_svd_vectors.npy
-    genre_vectors.npy
-    decade_vectors.npy
-    language_vectors.npy
-    runtime_normalized.npy
-    mood_scores.npy
-    quality_scores.npy
-    movie_id_index.json
-    genre_mood_map.json
-    keyword_mood_map.json
-    svd_models/
-      keyword_svd.pkl
-      director_svd.pkl
-      actor_svd.pkl
-  pipeline/                          NOT YET CREATED
-    01_extract_features.py
-    02_predict_moods.py
-    03_quality_scores.py
-    04_build_index.py
-    keyword_mood_classifier.py
-  app/
-    streamlit_app.py                 entry point (router, init, navigation)
-    app_pages/
-      discover.py                    14 filters + personalized scoring
-      rate.py                        search/browse -> rate + mood reactions
-      watchlist.py                   poster grid -> detail dialog + actions
-      statistics.py                  KPIs, charts, rankings, table
-    utils/
-      __init__.py
-      db.py                          SQLite persistence (user ratings, watchlist, dismissed)
-      tmdb.py                        TMDB API client (cached)
-      scoring.py                     NOT YET CREATED — scoring formula + dynamic weights
-      filters.py                     NOT YET CREATED — TMDB API parameter builder + local mood filter
-      user_profile.py                NOT YET CREATED — user profile computation from ratings
-      ml_eval.py                     NOT YET CREATED — shared ML evaluation logic
-    static/                          Poppins font files (18 TTFs + OFL license)
-  notebooks/
-    ml_evaluation.ipynb              NOT YET CREATED — academic ML evaluation narrative
-  docs/
-    ML-PIPELINE.md                   offline pipeline + ML evaluation spec
-    SCORING.md                       scoring formula + component details
-    FILTER.md                        14 discovery filters
-    MOOD.md                          keyword-to-mood classification
+The canonical directory structure is defined in [CLAUDE.md](CLAUDE.md)
+§ Directory Structure. See that section for the full tree.
     tmdb-schema.mmd                  ER diagram of TMDB database
 ```
 

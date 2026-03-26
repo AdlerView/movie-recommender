@@ -55,7 +55,7 @@ if "details_backfilled" not in st.session_state:
 
 
 # --- Push Statistics tab to the far right of the nav bar ---
-# The first 3 tabs (Discover, Watched, Watchlist) stay left-aligned;
+# The first 3 tabs (Discover, Rate, Watchlist) stay left-aligned;
 # the 4th tab (Statistics) gets margin-left:auto to fill remaining space.
 # Streamlit renders nav items as div.rc-overflow-item inside div.rc-overflow.
 st.markdown("""<style>

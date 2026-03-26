@@ -245,11 +245,13 @@ Supporting docs (referenced by MIGRATION.md):
 Key planned changes (see MIGRATION.md for full details):
 - Discover: 14 filter controls + personalized ML scoring (Phase 2 + 4)
 - Rate: "Based on your interests" personalized poster grid (Phase 4)
-- Watchlist: mood reactions in "Mark as watched" dialog (Phase 4)
-- Statistics: ML evaluation section + mood distribution chart (Phase 3 + 4)
+- Statistics: ML evaluation section (Phase 3)
 - Offline pipeline: feature extraction, mood prediction, quality scores (Phase 1a)
-- Keyword-to-mood classifier: supervised pipeline on 1,049 labeled keywords (Phase 1b)
 - Online scoring: user profile + 9-signal cosine similarity (Phase 2)
+
+Already completed (see MIGRATION.md + TODO.md Done):
+- Keyword-to-mood classifier (Phase 1b) — `store/keyword_mood_map.json`
+- Genre-to-mood mapping — `store/genre_mood_map.json`
 
 ### sklearn Imports Reference
 

@@ -132,7 +132,7 @@ def search_movies(query: str, page: int = 1) -> list[dict]:
     """Search for movies by title via TMDB.
 
     Searches against title, original title, and alternative titles.
-    Used on the Watched page for finding movies the user has already seen.
+    Used on the Rate page for finding movies the user has already seen.
 
     Args:
         query: Search text (min 1 character).

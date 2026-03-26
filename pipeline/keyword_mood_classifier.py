@@ -25,7 +25,7 @@ slide 34). The test set is only used once for the final report.
 
 Curse of dimensionality note (lecture 11 slide 9): KNN struggles in
 high-dimensional spaces (d > 4) because distance metrics lose
-discriminative power. Our embeddings are 256-dim, which means KNN
+discriminative power. Our embeddings are 768-dim, which means KNN
 is expected to underperform compared to linear models (LR, SVC) that
 handle high-d spaces better. We include KNN anyway for the mandatory
 course comparison, but expect it to rank lower.
@@ -215,7 +215,7 @@ def train_and_select(
         Tuple of (best_classifier, best_name, results_dataframe).
     """
     # Curse of dimensionality (lecture 11, slide 9): KNN is expected to
-    # struggle with 256-dim embeddings because distance metrics lose
+    # struggle with 768-dim embeddings because distance metrics lose
     # discriminative power in high-dimensional spaces. We include it for
     # course compliance but expect linear models to outperform.
     classifiers = {
