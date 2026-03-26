@@ -1,14 +1,15 @@
-"""Statistics page — Dashboard with KPIs, genre chart, directors, and ratings table.
+"""Statistics page — Dashboard with KPIs, charts, ML evaluation, and ratings table.
 
-Displays aggregated metrics and a sortable table of all rated movies.
-All data is pre-cached in SQLite via eager fetch (on rating) and backfill
-(on startup), so this page makes zero TMDB API calls.
+Displays aggregated metrics, a sortable table of all rated movies, and
+an ML evaluation section with classifier comparison, confusion matrix,
+cross-validation, and KNN hyperparameter tuning.
 
-Grading requirement 3: Data visualization.
+Grading requirements: 3 (Data visualization) + 5 (Machine learning).
 """
 from __future__ import annotations
 
 import altair as alt
+import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 from utils.db import (
@@ -175,6 +176,126 @@ if mood_data:
         y=alt.Y("Mood:N", sort="-x", title=None),
     )
     st.altair_chart(chart, use_container_width=True)
+
+# --- ML Evaluation (Course Requirement 5) ---
+# Keyword-to-mood classification evaluation. Uses precomputed results
+# from pipeline/keyword_mood_classifier.py (Phase 1b) + live cross-validation
+# and KNN hyperparameter tuning via ml_eval.py.
+st.subheader("ML Evaluation: Keyword-to-Mood", divider="gray")
+
+_eval_results_path = (
+    __import__("pathlib").Path(__file__).resolve().parent.parent.parent
+    / "data" / "evaluation" / "keyword_classifier_results.csv"
+)
+_eval_cm_path = (
+    __import__("pathlib").Path(__file__).resolve().parent.parent.parent
+    / "data" / "evaluation" / "keyword_classifier_confusion_matrix.png"
+)
+
+if _eval_results_path.exists():
+    # Classifier comparison table (from Phase 1b pipeline output)
+    _results_df = pd.read_csv(_eval_results_path)
+    st.caption("**Classifier comparison** (scaled + unscaled, train + validation)")
+    st.dataframe(_results_df, hide_index=True, use_container_width=True)
+
+    # Best model KPIs
+    _scaled_non_dummy = _results_df[
+        (~_results_df["Classifier"].str.startswith("Dummy"))
+        & (_results_df["Scaling"] == "Scaled")
+    ].sort_values("Val F1", ascending=False)
+    if not _scaled_non_dummy.empty:
+        _best = _scaled_non_dummy.iloc[0]
+        with st.container(horizontal=True):
+            st.metric("Best classifier", _best["Classifier"], border=True)
+            st.metric("Val Accuracy", f"{_best['Val Acc']:.1%}", border=True)
+            st.metric("Val F1 (macro)", f"{_best['Val F1']:.4f}", border=True)
+            # Overfitting indicator: train-val gap
+            _gap = _best["Train F1"] - _best["Val F1"]
+            st.metric(
+                "Train-Val Gap",
+                f"{_gap:.4f}",
+                delta=f"{'Overfitting' if _gap > 0.15 else 'OK'}",
+                delta_color="inverse" if _gap > 0.15 else "off",
+                border=True,
+            )
+
+    # Confusion matrix (saved as PNG by pipeline)
+    if _eval_cm_path.exists():
+        st.caption("**Confusion matrix** (best model on test set)")
+        st.image(str(_eval_cm_path), use_container_width=True)
+
+    # Cross-validation + KNN tuning (live, cached)
+    if st.button("Run cross-validation & KNN tuning", icon=":material/science:"):
+        from pathlib import Path
+
+        import numpy as np
+        from sklearn.preprocessing import LabelEncoder, RobustScaler
+
+        from utils.ml_eval import knn_hyperparameter_plot, run_cross_validation
+
+        # Load keyword data and embeddings (same as pipeline)
+        _tsv_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "data" / "labeled"
+            / "tmdb-keyword-frequencies_labeled_top5000.tsv"
+        )
+        if _tsv_path.exists():
+            with st.spinner("Generating embeddings and running evaluation..."):
+                _labeled = pd.read_csv(_tsv_path, sep="\t")
+                _single = _labeled[_labeled["assignment_type"] == "single"]
+                _keywords = _single["keyword_name"].tolist()
+                _labels = _single["assigned_moods"].tolist()
+
+                # Generate embeddings (cached by sentence-transformers)
+                from sentence_transformers import SentenceTransformer
+                _model = SentenceTransformer("google/embeddinggemma-300m")
+                _embeddings = _model.encode(_keywords, show_progress_bar=False,
+                                            normalize_embeddings=True)
+
+                # Encode labels and split
+                _le = LabelEncoder()
+                _y = _le.fit_transform(_labels)
+                from sklearn.model_selection import train_test_split
+                _x_tv, _x_test, _y_tv, _y_test = train_test_split(
+                    _embeddings, _y, test_size=0.10, stratify=_y, random_state=13,
+                )
+                _x_train, _x_val, _y_train, _y_val = train_test_split(
+                    _x_tv, _y_tv, test_size=0.125, stratify=_y_tv, random_state=13,
+                )
+
+                # Scale
+                _scaler = RobustScaler()
+                _x_train_s = _scaler.fit_transform(_x_train)
+                _x_val_s = _scaler.transform(_x_val)
+                _x_all_s = _scaler.fit_transform(_embeddings)
+
+                # Cross-validation (10-fold, Notebook 10-1 pattern)
+                _best_name = _scaled_non_dummy.iloc[0]["Classifier"] if not _scaled_non_dummy.empty else "MLPClassifier"
+                from utils.ml_eval import get_classifiers
+                _classifiers = get_classifiers()
+                _best_clf = _classifiers.get(_best_name, _classifiers["MLPClassifier"])
+                _cv_scores = run_cross_validation(_best_clf, _x_all_s, _y)
+
+                st.caption(f"**10-fold cross-validation** ({_best_name})")
+                with st.container(horizontal=True):
+                    st.metric("Mean accuracy", f"{_cv_scores.mean():.1%}", border=True)
+                    st.metric("Std", f"± {_cv_scores.std():.1%}", border=True)
+
+                # KNN hyperparameter tuning (k=1..20, Notebook 10-1 pattern)
+                _k_fig = knn_hyperparameter_plot(
+                    _x_train_s, _x_val_s, _y_train, _y_val,
+                )
+                st.caption("**KNN hyperparameter tuning** (k=1..20)")
+                st.pyplot(_k_fig)
+                plt.close(_k_fig)
+        else:
+            st.warning("Labeled keyword data not found.", icon=":material/warning:")
+else:
+    st.info(
+        "Run `python3 pipeline/keyword_mood_classifier.py` to generate "
+        "evaluation results.",
+        icon=":material/science:",
+    )
 
 # --- Top actors ---
 actors = load_top_actors()

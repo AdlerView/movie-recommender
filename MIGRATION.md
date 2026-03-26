@@ -769,8 +769,8 @@ No duplicated training -- evaluates what was already built.
 
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
-| 3.1 | Shared ML evaluation utility: `evaluate_classifiers()`, `best_model_report()`, `run_cross_validation()` | `app/utils/ml_eval.py` | 1b.1 (keyword classifier), 2.2 (scoring) | `PENDING` |
-| 3.2 | Statistics page: ML Evaluation section -- "Run ML Evaluation" button, classifier comparison table, confusion matrix, classification report, CV scores, best model KPIs | `app/app_pages/statistics.py` | 3.1 | `PENDING` |
+| 3.1 | Shared ML evaluation utility: `evaluate_classifiers()`, `best_model_report()`, `run_cross_validation()` | `app/utils/ml_eval.py` | 1b.1 (keyword classifier), 2.2 (scoring) | `DONE` |
+| 3.2 | Statistics page: ML Evaluation section -- "Run ML Evaluation" button, classifier comparison table, confusion matrix, classification report, CV scores, best model KPIs | `app/app_pages/statistics.py` | 3.1 | `DONE` |
 | 3.3 | Jupyter notebook: academic narrative -- problem definition, feature engineering, data distribution plots, all classifiers with commentary, scaled vs. unscaled, KNN k=1..20 plot, discussion | `notebooks/ml_evaluation.ipynb` | 3.1 | `PENDING` |
 
 **Phase 3 evaluation scope (both classification tasks):**
