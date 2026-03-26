@@ -312,8 +312,7 @@ The single-label class imbalance (Interested=332 vs. Disgusted=31) is structural
 
 1. **Class weights** in the loss function (inversely proportional to class frequency)
 2. **Oversampling** of minority classes (Surprised, Disgusted, Angry)
-3. **Multi-label training** alongside single-label — the 1634 multi-label keywords provide additional signal for underrepresented moods (Disgusted appears in 221 multi-label keywords despite only 31 single-label)
-4. **Threshold tuning** per mood at inference time
+3. **Threshold tuning** per mood at inference time
 
 ---
 

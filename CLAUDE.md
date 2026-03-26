@@ -16,7 +16,7 @@ At the start of every new session, read ALL of the following files before doing 
 **Documentation (all `.md` files):**
 - `CLAUDE.md`, `README.md`, `TODO.md`, `MIGRATION.md`, `DECISIONS.md`
 - `docs/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
-- `docs/tmdb-schema.mmd`, `docs/ML-PIPELINE.md`
+- `docs/tmdb-schema.mmd`, `docs/ML-PIPELINE.md`, `docs/FILTER.md`, `docs/MOOD.md`, `docs/SCORING.md`
 - `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
 
 **Config:**

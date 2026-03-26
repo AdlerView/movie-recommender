@@ -2,7 +2,7 @@
 
 Migration plan for the movie recommender app. The existing ML pipeline
 and UI are being replaced. This document defines the new architecture,
-data flows, scoring system, and ML pipeline.
+data flows, scoring system, ML pipeline, and implementation roadmap.
 
 **Created:** 2026-03-25
 **Updated:** 2026-03-26
@@ -13,22 +13,26 @@ data flows, scoring system, and ML pipeline.
 
 The system has two phases with strict separation:
 
-### Offline Phase (Training)
+---
+
+### Offline Phase (Training) `PENDING`
 
 Uses the 8.2 GB TMDB SQLite database (`data/tmdb.db`, 1.17M movies,
 30 tables) to precompute feature vectors and mood scores. This database
 is never queried at runtime.
 
-### Runtime Phase (Production)
+---
+
+### Runtime Phase (Production) `PARTIAL`
 
 Uses three data sources:
 
 1. **TMDB API** -- live calls for search, discovery, movie details,
-   configuration (genres, languages, certifications, providers)
+   configuration (genres, languages, certifications, providers) `DONE`
 2. **Precomputed model files** (~3 GB `.npy` arrays) -- feature vectors
-   and mood scores for all 1.17M movies, indexed by movie ID
+   and mood scores for all 1.17M movies, indexed by movie ID `PENDING`
 3. **Local user database** (~1 KB) -- ratings, mood tags, streaming
-   subscriptions, cached user profile vectors
+   subscriptions, cached user profile vectors `DONE`
 
 ---
 
@@ -36,7 +40,7 @@ Uses three data sources:
 
 ---
 
-### Flow 1: Rate a Movie
+### Flow 1: Rate a Movie `DONE`
 
 The user rates a movie after watching it.
 
@@ -55,11 +59,12 @@ The user rates a movie after watching it.
 ```
 
 **After saving:** the user profile vectors are recomputed from all
-ratings using the precomputed model files.
+ratings using the precomputed model files. *(Profile recomputation
+not yet implemented -- requires `user_profile.py` + `model/`.)*
 
 ---
 
-### Flow 2: Discover a Movie
+### Flow 2: Discover a Movie `PENDING`
 
 The user wants to find a new movie to watch.
 
@@ -82,6 +87,10 @@ The user wants to find a new movie to watch.
 | 13 | Streaming providers | Multi-toggle | TMDB API `watch/providers/movie` | Optional |
 | 14 | Only my subscriptions | Checkbox | Local user DB | Optional |
 
+*Current state: Discover has genre-only filter + card browsing. The
+14-filter UI, mood filter, and personalized scoring are not yet
+implemented.*
+
 **Sort options:**
 
 | Option | Logic |
@@ -101,20 +110,20 @@ The user wants to find a new movie to watch.
 
 ---
 
-## API Calls
+## API Calls `PARTIAL`
 
 ---
 
-### App Startup (cached, 24h TTL)
+### App Startup (cached, 24h TTL) `PARTIAL`
 
 5 calls, executed once and cached:
 
 ```
-GET /3/genre/movie/list?language=en
-GET /3/configuration/languages
-GET /3/certification/movie/list
-GET /3/watch/providers/movie?watch_region=DE&language=en
-GET /3/configuration/countries?language=en
+GET /3/genre/movie/list?language=en             DONE (used by Discover)
+GET /3/configuration/languages                  PENDING
+GET /3/certification/movie/list                 PENDING
+GET /3/watch/providers/movie?watch_region=DE    PARTIAL (used by Watchlist, not Discover)
+GET /3/configuration/countries?language=en       PENDING
 ```
 
 The provider call is re-fetched when the user changes their streaming
@@ -122,7 +131,7 @@ country.
 
 ---
 
-### Flow 1: Rate a Movie
+### Flow 1: Rate a Movie `DONE`
 
 ```
 GET /3/search/movie?query={text}&language=en-US&page=1
@@ -134,7 +143,7 @@ only basic display data is required.
 
 ---
 
-### Flow 2: Discover a Movie
+### Flow 2: Discover a Movie `PENDING`
 
 **Keyword autocomplete (debounced 300ms per keystroke):**
 
@@ -200,7 +209,7 @@ execution. Well within the 40 req/s rate limit.
 
 ---
 
-## Scoring System
+## Scoring System `PENDING`
 
 ---
 
@@ -346,15 +355,15 @@ dominates.
 
 ---
 
-## ML Pipeline
+## ML Pipeline `PENDING`
 
 ---
 
-### Offline Pipeline (run once, then on DB updates)
+### Offline Pipeline (run once, then on DB updates) `PENDING`
 
 ---
 
-#### Stage 1: Feature Extraction
+#### Stage 1: Feature Extraction `PENDING`
 
 Input: `data/tmdb.db` (8.2 GB, 1.17M movies)
 
@@ -375,7 +384,7 @@ Script: `pipeline/01_extract_features.py`
 
 ---
 
-#### Stage 2: Mood Score Prediction
+#### Stage 2: Mood Score Prediction `PENDING`
 
 For each movie: 7 mood probabilities (happy, interested, surprised,
 sad, disgusted, afraid, angry).
@@ -394,16 +403,15 @@ Documentary -> {interested: 0.8}
 ...
 ```
 
-**Signal 2: Keyword -> Mood mapping (top-500 keywords, manual)**
+**Signal 2: Keyword -> Mood mapping (supervised pipeline, ~70K
+keywords)**
 
-```
-"revenge"    -> {angry: 0.8}
-"murder"     -> {afraid: 0.5, disgusted: 0.3}
-"love"       -> {happy: 0.7}
-"tragedy"    -> {sad: 0.9}
-"plot twist" -> {surprised: 0.9}
-...
-```
+Produced by `pipeline/keyword_mood_classifier.py`. Two-stage process:
+1. Labeled seed: 5,000 keywords in
+   `data/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,049 single-
+   label after review, 1,634 multi, 2,317 none)
+2. Train classifier on single-label subset (1,049), infer remaining
+   70K+
 
 **Signal 3: Emotion classifier on overview text**
 
@@ -433,7 +441,7 @@ Script: `pipeline/02_predict_moods.py`
 
 ---
 
-#### Stage 3: Quality Scores
+#### Stage 3: Quality Scores `PENDING`
 
 Bayesian average for each movie:
 
@@ -451,14 +459,14 @@ Script: `pipeline/03_quality_scores.py`
 
 ---
 
-#### Stage 4: Save Mappings
+#### Stage 4: Save Mappings `PENDING`
 
 Output:
 
 ```
 model/
   genre_mood_map.json        19 entries
-  keyword_mood_map.json      top-500 entries
+  keyword_mood_map.json      ~70K entries
   movie_id_index.json        1.17M entries
   svd_models/
     keyword_svd.pkl
@@ -470,7 +478,40 @@ Script: `pipeline/04_build_index.py`
 
 ---
 
-### Online Pipeline (per request)
+### Keyword-to-Mood Classifier `PENDING`
+
+Supervised pipeline that maps TMDB keywords to mood categories. This
+is a productive pipeline step (Phase 1b) -- the academic evaluation
+of the same workflow belongs in Phase 3.
+
+**Phase 1b scope (build / train / select / infer):**
+
+- Load labeled TSV, filter to `assignment_type == "single"` (1,049)
+- Feature extraction: sentence embeddings (EmbeddingGemma-300M, 256-dim)
+  and/or TF-IDF baseline
+- `train_test_split(stratify=y, random_state=42)`
+- Optional scaling (RobustScaler)
+- Train 5+ classifiers: KNN, SVC, GaussianNB, LogisticRegression,
+  MLPClassifier, DummyClassifier
+- Select best model by macro-F1
+- Fit best model on full single-label training set
+- Infer mood labels for all remaining 70K+ unlabeled keywords
+- Export: `model/keyword_mood_map.json`
+
+**Phase 3 scope (evaluate / visualize / report):**
+
+- Reproducible evaluation of the Phase 1b workflow
+- `classification_report`, confusion matrix, macro-F1
+- Cross-validation (KFold, n_splits=10)
+- KNN hyperparameter tuning (k=1..20 plot)
+- Scaled vs. unscaled comparison
+- Notebook narrative + Statistics page section
+
+Script: `pipeline/keyword_mood_classifier.py`
+
+---
+
+### Online Pipeline (per request) `PENDING`
 
 ```
 1. TMDB API discover/movie with all user filters
@@ -512,7 +553,7 @@ data/tmdb.db                    8.2 GB    Full TMDB database, 30 tables, 1.17M m
 
 ---
 
-### Runtime: Model Files (read-only)
+### Runtime: Model Files (read-only) `PENDING`
 
 ```
 model/
@@ -538,7 +579,7 @@ Total: ~3 GB
 
 ---
 
-### Runtime: User Database (read-write, local)
+### Runtime: User Database (read-write, local) `DONE`
 
 ```sql
 CREATE TABLE user_ratings (
@@ -573,7 +614,8 @@ movie-recommender/
   data/
     tmdb.db                          TMDB raw data (8.2 GB, offline only)
     tmdb-keyword-frequencies.tsv     keyword frequency export
-  model/
+    tmdb-keyword-frequencies_labeled_top5000.tsv   labeled seed (5K keywords)
+  model/                             NOT YET CREATED
     keyword_svd_vectors.npy
     director_svd_vectors.npy
     actor_svd_vectors.npy
@@ -590,34 +632,41 @@ movie-recommender/
       keyword_svd.pkl
       director_svd.pkl
       actor_svd.pkl
-  pipeline/
+  pipeline/                          NOT YET CREATED
     01_extract_features.py
     02_predict_moods.py
     03_quality_scores.py
     04_build_index.py
+    keyword_mood_classifier.py
   app/
     streamlit_app.py                 entry point (router, init, navigation)
     app_pages/
       discover.py                    14 filters + personalized scoring
-      rate.py                        search/browse → rate + mood reactions
-      watchlist.py                   poster grid → detail dialog + actions
+      rate.py                        search/browse -> rate + mood reactions
+      watchlist.py                   poster grid -> detail dialog + actions
       statistics.py                  KPIs, charts, rankings, table
     utils/
       __init__.py
       db.py                          SQLite persistence (user ratings, watchlist, dismissed)
       tmdb.py                        TMDB API client (cached)
-      scoring.py                     scoring formula + dynamic weights
-      filters.py                     TMDB API parameter builder + local mood filter
-      user_profile.py                user profile computation from ratings
+      scoring.py                     NOT YET CREATED — scoring formula + dynamic weights
+      filters.py                     NOT YET CREATED — TMDB API parameter builder + local mood filter
+      user_profile.py                NOT YET CREATED — user profile computation from ratings
+      ml_eval.py                     NOT YET CREATED — shared ML evaluation logic
     static/                          Poppins font files (18 TTFs + OFL license)
+  notebooks/
+    ml_evaluation.ipynb              NOT YET CREATED — academic ML evaluation narrative
   docs/
     ML-PIPELINE.md                   offline pipeline + ML evaluation spec
+    SCORING.md                       scoring formula + component details
+    FILTER.md                        14 discovery filters
+    MOOD.md                          keyword-to-mood classification
     tmdb-schema.mmd                  ER diagram of TMDB database
 ```
 
 ---
 
-## ML Evaluation (Course Requirement 5)
+## ML Evaluation (Course Requirement 5) `PENDING`
 
 The ML evaluation follows the exact workflow taught in lectures 10-11
 and assignments 10-11. See [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md)
@@ -646,6 +695,8 @@ duplicated code.
 4. Metrics DataFrame: accuracy, precision, recall, F1 (macro)
 5. Confusion matrix + classification_report for best model
 6. 10-fold cross-validation with mean +/- std
+7. Scaled vs. unscaled comparison
+8. KNN hyperparameter tuning (k=1..20 plot)
 
 **Beyond course (for score 3):**
 
@@ -654,3 +705,232 @@ duplicated code.
 - Pre-trained emotion transformer
 - Dynamic weight shifting by rating count
 - Supervised keyword-to-mood pipeline (embeddings + classifier)
+
+---
+
+## Implementation Roadmap
+
+Phased implementation plan. Each task has a unique ID, status, file
+targets, and dependency chain. Status tags: `DONE`, `IN PROGRESS`,
+`PENDING`.
+
+**Design principle:** Phase 1b (keyword classifier) produces the
+productive pipeline output (`keyword_mood_map.json`). Phase 3 produces
+the academic evaluation of the same workflow (confusion matrix,
+cross-validation, notebook). No duplicated training -- Phase 3
+evaluates what Phase 1b built.
+
+---
+
+### Phase 0: Foundation `DONE`
+
+DB schema migration, rating scale change, mood reaction UI. All
+prerequisite changes that the rest of the system depends on.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 0.1 | DB schema v5: `user_ratings` (INTEGER 0-100), `user_rating_moods`, `user_subscriptions`, `user_profile_cache` | `app/utils/db.py` | -- | `DONE` |
+| 0.2 | Rating slider 0-100 (steps of 10), sentiment labels, color-coded track | `app/app_pages/rate.py` | 0.1 | `DONE` |
+| 0.3 | Mood reaction buttons (7 Ekman moods) on Rate dialog | `app/app_pages/rate.py`, `app/utils/db.py` | 0.1 | `DONE` |
+| 0.4 | Phase 1 cleanup: remove old keyword/mood pipeline code from all app files | all app files | -- | `DONE` |
+
+---
+
+### Phase 1a: Offline Pipeline `PENDING`
+
+Produces `model/` directory with precomputed feature arrays. Reads
+from `data/tmdb.db` (8.2 GB, offline only). Each pipeline stage is
+idempotent and can be re-run independently.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 1a.1 | Create `genre_mood_map.json` (19 genre-to-mood rules) | `model/genre_mood_map.json` | -- | `PENDING` |
+| 1a.2 | Feature extraction: keyword TF-IDF/SVD, director/actor SVD, genre/decade/language onehot, runtime | `pipeline/01_extract_features.py` -> 7 `.npy` + `movie_id_index.json` + `.pkl` | `data/tmdb.db` | `PENDING` |
+| 1a.3 | Quality scores: Bayesian average, normalize to [0,1] | `pipeline/03_quality_scores.py` -> `quality_scores.npy` | `data/tmdb.db` | `PENDING` |
+| 1a.4 | Mood prediction: 4 signals (genre + keyword + overview emotion + review emotion), dynamic weighting | `pipeline/02_predict_moods.py` -> `mood_scores.npy` | 1a.1, 1b.1, `data/tmdb.db` | `PENDING` |
+| 1a.5 | Build index: verify all model files, save final mappings | `pipeline/04_build_index.py` | 1a.2, 1a.3, 1a.4 | `PENDING` |
+
+**Runtime estimates:**
+- 1a.2: ~2h code + several hours pipeline runtime (keyword TF-IDF peaks ~8 GB RAM)
+- 1a.3: ~30 min (simplest stage)
+- 1a.4: ~2h code + 4-8h runtime (emotion classifier on ~1M texts, requires `transformers` + `torch`)
+
+**Parallelizable:** 1a.1 + 1a.2 + 1a.3 can start simultaneously.
+1a.4 needs 1a.1 and 1b.1 outputs. 1a.5 needs everything.
+
+---
+
+### Phase 1b: Keyword-to-Mood Classifier `PENDING`
+
+Supervised pipeline: train on labeled keywords, infer moods for 70K+
+unlabeled keywords. This is the productive build step -- academic
+evaluation belongs in Phase 3.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 1b.1 | Keyword classifier: load TSV, filter single-label (1,049), extract features (embeddings and/or TF-IDF), train 5+ classifiers, select best by macro-F1, infer 70K+, export | `pipeline/keyword_mood_classifier.py` -> `model/keyword_mood_map.json` | `data/tmdb-keyword-frequencies_labeled_top5000.tsv` | `PENDING` |
+
+**Detail breakdown for 1b.1:**
+
+1. Load `data/tmdb-keyword-frequencies_labeled_top5000.tsv`
+2. Filter to `assignment_type == "single"` (1,049 keywords, 7 classes)
+3. Features: EmbeddingGemma-300M sentence embeddings (256-dim) per
+   keyword. Model cached at
+   `~/.cache/macmini/huggingface/hub/models--google--embeddinggemma-300m`
+4. `train_test_split(stratify=y, random_state=42)`
+5. Optional `RobustScaler` on embedding vectors
+6. Train: KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier,
+   DummyClassifier
+7. Select best model by macro-F1 (careful: class imbalance --
+   Interested=332 vs Disgusted=31)
+8. `class_weight='balanced'` where supported
+9. Fit best model on full single-label training data
+10. Infer mood labels for all remaining 70K+ unlabeled keywords
+11. Export `model/keyword_mood_map.json`
+
+---
+
+### Phase 2: Online Scoring `PENDING`
+
+Connects `model/` to the running app. Computes user profiles from
+ratings, scores candidate movies, builds TMDB API parameters from
+filter UI.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 2.1 | User profile: load `.npy` arrays, compute weighted-average profile vectors from ratings, cache in `user_profile_cache` | `app/utils/user_profile.py` | 1a.5 (`model/` populated) | `PENDING` |
+| 2.2 | Scoring: 9-signal formula, dynamic weights by rating count, batch cosine similarity (numpy vectorized) | `app/utils/scoring.py` | 2.1 | `PENDING` |
+| 2.3 | Filters: TMDB API parameter builder from 14 filter controls, local mood filter against `mood_scores.npy` | `app/utils/filters.py` | 1a.5 (`model/` for mood filter) | `PENDING` |
+
+**Graceful degradation:** When `model/` is not populated, the app
+MUST fall back to quality + mood only (cold-start weight table row 0:
+0.60 quality + 0.35 mood + 0.05 padding). Personalized scoring is
+disabled until `model/` exists.
+
+---
+
+### Phase 3: ML Evaluation (Course Requirement 5) `PENDING`
+
+Academic evaluation of the ML workflows built in Phase 1b and Phase 2.
+Produces course-compliant output: metrics, plots, tables, notebook.
+No duplicated training -- evaluates what was already built.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 3.1 | Shared ML evaluation utility: `evaluate_classifiers()`, `best_model_report()`, `run_cross_validation()` | `app/utils/ml_eval.py` | 1b.1 (keyword classifier), 2.2 (scoring) | `PENDING` |
+| 3.2 | Statistics page: ML Evaluation section -- "Run ML Evaluation" button, classifier comparison table, confusion matrix, classification report, CV scores, best model KPIs | `app/app_pages/statistics.py` | 3.1 | `PENDING` |
+| 3.3 | Jupyter notebook: academic narrative -- problem definition, feature engineering, data distribution plots, all classifiers with commentary, scaled vs. unscaled, KNN k=1..20 plot, discussion | `notebooks/ml_evaluation.ipynb` | 3.1 | `PENDING` |
+
+**Phase 3 evaluation scope (both classification tasks):**
+
+1. **Keyword-to-mood** (from Phase 1b): `classification_report`,
+   confusion matrix, macro-F1, cross-validation, KNN k-plot, scaled
+   vs. unscaled comparison
+2. **User preference** (from Phase 2): binary classification
+   (liked >= 60 vs disliked < 60), 9 scoring features, same
+   evaluation workflow. Requires >= 50 user ratings for meaningful
+   results.
+
+---
+
+### Phase 4: UI Integration `PENDING`
+
+Rebuild Discover page with 14 filters and personalized scoring.
+Add personalized poster grid to Rate page. Add mood reactions to
+Watchlist.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 4.1 | Discover: 14 filter controls (genre, mood, certification, year, language, runtime, score, votes, keywords, streaming) | `app/app_pages/discover.py` | 2.3 (filters.py) | `PENDING` |
+| 4.2 | Discover: personalized sort option (ML scoring from rating history) | `app/app_pages/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
+| 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/app_pages/rate.py` | 2.2 (scoring.py) | `PENDING` |
+| 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/app_pages/watchlist.py` | 0.1 (DB schema) | `PENDING` |
+| 4.5 | Statistics: mood distribution chart from user reactions | `app/app_pages/statistics.py` | 0.3 (mood buttons) | `PENDING` |
+
+---
+
+### Phase 5: Polish and Deliverables `PENDING`
+
+Final quality pass and submission artifacts. Deadline: 2026-05-14.
+
+| ID | Task | File(s) | Depends on | Status |
+|---|---|---|---|---|
+| 5.1 | Statistics dashboard polish -- layout, chart interactions, visual design | `app/app_pages/statistics.py` | 3.2, 4.5 | `PENDING` |
+| 5.2 | Code documentation final pass (Req 6) -- docstrings, inline comments on all new files | all `.py` files | all phases | `PENDING` |
+| 5.3 | Contribution matrix (Req 7) | `docs/CONTRIBUTION.md` | -- | `PENDING` |
+| 5.4 | Record 4-minute video with live narration (Req 8) | video file | all phases | `PENDING` |
+| 5.5 | Final code review + Canvas upload by 23:59 | -- | 5.1-5.4 | `PENDING` |
+
+---
+
+### Dependency Graph
+
+```
+Phase 0 (DONE)
+  0.1 DB schema ─────────────────────────────────────────┐
+  0.2 Rating slider ─────────────────────────────────────┤
+  0.3 Mood buttons ──────────────────────────────────────┤
+  0.4 Phase 1 cleanup ──────────────────────────────────┤
+                                                          │
+Phase 1a + 1b (parallel start)                           │
+  1a.1 genre_mood_map.json ──────────────┐               │
+  1b.1 keyword_mood_classifier.py ───────┤               │
+  1a.2 01_extract_features.py ───────────┤               │
+  1a.3 03_quality_scores.py ─────────────┤               │
+                                          v               │
+  1a.4 02_predict_moods.py ──────────────┤               │
+                                          v               │
+  1a.5 04_build_index.py                 │               │
+           |                              │               │
+           v                              │               │
+Phase 2                                   │               │
+  2.1 user_profile.py ───────────────────┤               │
+  2.2 scoring.py ────────────────────────┤               │
+  2.3 filters.py ────────────────────────┤               │
+           |                              │               │
+           v                              │               │
+Phase 3 (academic evaluation)            │               │
+  3.1 ml_eval.py ────────────────────────┤               │
+  3.2 Statistics ML section ─────────────┤               │
+  3.3 ML evaluation notebook             │               │
+           |                              │               │
+           v                              │               │
+Phase 4 (UI integration)                 │               │
+  4.1 Discover 14 filters ───────────────┤               │
+  4.2 Discover personalized sort ────────┤               │
+  4.3 Rate "Based on interests" ─────────┤               │
+  4.4 Watchlist mood reactions ──────────┘ <──── 0.1 ────┘
+  4.5 Statistics mood chart ───────────── <──── 0.3
+           |
+           v
+Phase 5 (polish + deliverables)
+  5.1 Statistics polish
+  5.2 Code documentation
+  5.3 Contribution matrix
+  5.4 Video recording
+  5.5 Canvas upload (2026-05-14)
+```
+
+---
+
+### Timeline
+
+| Week | Date | Milestone | Tasks |
+|---|---|---|---|
+| Semester break | now | Start pipeline implementation | 1a.1, 1a.2, 1a.3, 1b.1 |
+| 07 | 2026-04-16 | Coaching 13.04: show pipeline progress | 1a.4, 1a.5, 2.1-2.3 |
+| 08 | 2026-04-23 | Scoring + filters functional | 4.1, 4.2, 4.3 |
+| 09 | 2026-04-30 | ML evaluation complete | 3.1, 3.2, 3.3, 4.4, 4.5 |
+| 10 | 2026-05-07 | Polish iteration | 5.1, 5.2, 5.3 |
+| 11 | 2026-05-14 | Upload deadline 23:59 | 5.4, 5.5 |
+
+---
+
+### Open Questions
+
+- **Pre-seeded ratings for demo:** The video needs >= 50 ratings for
+  meaningful ML evaluation. Could seed manually or create a script.
+- **transformers + torch dependency:** Stage 1a.4 requires ~2-4 GB
+  install. Only needed offline, not at runtime.
+- **Memory for pipeline:** Stage 1a.2 keyword TF-IDF peaks ~8 GB RAM.
+  Mac mini handles this; MBA (16 GB) may struggle.
