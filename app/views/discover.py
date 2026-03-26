@@ -505,9 +505,19 @@ def _show_detail_dialog(movie_id: int) -> None:
         # Overview
         st.write(details.get("overview", "No description available."))
 
-    # Streaming providers
+    # Streaming providers (country from Settings preference)
     _providers = details.get("watch/providers", {}).get("results", {})
-    _country_data = _providers.get(selected_country_code, {})
+    _pref_country_name = load_preference("streaming_country", "Switzerland")
+    try:
+        _country_list = get_countries()
+        _dialog_country_code = next(
+            (c["iso_3166_1"] for c in _country_list
+             if c.get("english_name") == _pref_country_name),
+            "CH",
+        )
+    except requests.RequestException:
+        _dialog_country_code = "CH"
+    _country_data = _providers.get(_dialog_country_code, {})
     _flatrate = _country_data.get("flatrate", [])
     if _flatrate:
         st.caption("**Streaming**")
