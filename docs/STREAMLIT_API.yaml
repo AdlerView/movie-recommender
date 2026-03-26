@@ -1092,13 +1092,7 @@ api:
           kwarg_only: true
         disabled:
           type: bool
-          description: >-
-            Whether to disable the button. If this is False (default), the
-            user can interact with the button. If this is True, the button
-            is grayed-out and can't be clicked.
-            If the first st.form_submit_button in the form is disabled,
-            the form will override submission behavior with
-            enter_to_submit=False.
+          description: Whether to disable the button. False (default) allows interaction. True grays out the button. If first form_submit_button is disabled, form overrides to enter_to_submit=False.
           default: 'False'
           kwarg_only: true
         use_container_width:
@@ -1364,13 +1358,7 @@ api:
           default: None
         value:
           type: int, float, "min" or None
-          description: >-
-            The value of this widget when it first renders. If this is
-            "min" (default), the initial value is min_value unless
-            min_value is None. If min_value is None, the widget
-            initializes with a value of 0.0 or 0.
-            If value is None, the widget will initialize with no value
-            and return None until the user provides input.
+          description: 'Initial value. "min" (default): uses min_value (or 0.0/0 if min_value is None). None: no initial value, returns None until user input.'
           default: '"min"'
         step:
           type: int, float, or None
@@ -1498,12 +1486,7 @@ api:
           kwarg_only: true
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed when the link is hovered over. If
-            this is None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip on link hover. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         disabled:
@@ -3603,12 +3586,7 @@ api:
           kwarg_only: true
         color:
           type: str
-          description: >-
-            The color to use for the badge. This defaults to "blue".
-            This can be one of the following supported colors: red, orange,
-            yellow, blue, green, violet, gray/grey, or primary. If you use
-            "primary", Streamlit will use the default primary accent color
-            unless you set the theme.primaryColor configuration option.
+          description: 'Badge color. Defaults to "blue". Options: red, orange, yellow, blue, green, violet, gray/grey, or primary (uses theme.primaryColor).'
           default: '"blue"'
           kwarg_only: true
         width:
@@ -3618,12 +3596,7 @@ api:
           kwarg_only: true
         help:
           type: str or None
-          description: >-
-            A tooltip to display when hovering over the badge. If this is
-            None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip on hover. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
     streamlit.caption:
@@ -3643,12 +3616,7 @@ api:
           default: 'False'
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the caption. If this is
-            None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the caption. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         width:
@@ -3762,23 +3730,12 @@ api:
           default: None
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the header. If this is
-            None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the header. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         divider:
           type: bool, "blue", "green", "orange", "red", "violet", "yellow", "gray"/"grey", or "rainbow"
-          description: >-
-            Shows a colored divider below the header. If this is True,
-            successive headers will cycle through divider colors, except gray
-            and rainbow. That is, the first header will have a blue line, the
-            second header will have a green line, and so on. If this is a
-            string, the color can be set to one of the following: blue, green,
-            orange, red, violet, yellow, gray/grey, or rainbow.
+          description: 'Colored divider below the header. True: cycles through colors. String: specific color (blue, green, orange, red, violet, yellow, gray/grey, rainbow). False (default): no divider.'
           default: 'False'
           kwarg_only: true
         width:
@@ -3891,12 +3848,7 @@ api:
           description: The string or SymPy expression to display as LaTeX. Use raw Python strings (r"...") since LaTeX uses many backslashes.
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the LaTeX expression. If
-            this is None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the LaTeX expression. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         width:
@@ -3976,12 +3928,7 @@ api:
           default: 'False'
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the Markdown. If this is
-            None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the Markdown. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         width:
@@ -4021,23 +3968,12 @@ api:
           default: None
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the subheader. If this is
-            None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the subheader. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         divider:
           type: bool, "blue", "green", "orange", "red", "violet", "yellow", "gray"/"grey", or "rainbow"
-          description: >-
-            Shows a colored divider below the header. If this is True,
-            successive headers will cycle through divider colors, except gray
-            and rainbow. That is, the first header will have a blue line, the
-            second header will have a green line, and so on. If this is a
-            string, the color can be set to one of the following: blue, green,
-            orange, red, violet, yellow, gray/grey, or rainbow.
+          description: 'Colored divider below the header. True: cycles through colors. String: specific color (blue, green, orange, red, violet, yellow, gray/grey, rainbow). False (default): no divider.'
           default: 'False'
           kwarg_only: true
         width:
@@ -4071,12 +4007,7 @@ api:
           description: The string to display.
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the text. If this is None
-            (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the text. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         width:
@@ -4116,12 +4047,7 @@ api:
           default: None
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the title. If this is
-            None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the title. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         width:
@@ -4599,13 +4525,7 @@ api:
           default: '"normal"'
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed next to the metric label. Streamlit
-            only displays the tooltip when label_visibility="visible". If
-            this is None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip next to the metric label (only when label_visibility="visible"). None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         label_visibility:
@@ -6174,12 +6094,7 @@ api:
             supported Markdown directives.
         help:
           type: str or None
-          description: >-
-            A tooltip that gets displayed when the popover button is hovered
-            over. If this is None (default), no tooltip is displayed.
-            The tooltip can optionally contain GitHub-flavored Markdown,
-            including the Markdown directives described in the body
-            parameter of st.markdown.
+          description: A tooltip on popover button hover. None (default) means no tooltip. Supports GitHub-flavored Markdown.
           default: None
           kwarg_only: true
         type:
@@ -6505,12 +6420,7 @@ api:
           default: '"content"'
         use_column_width:
           type: '"auto", "always", "never", or bool'
-          description: >-
-            If "auto", set the image's width to its natural size,
-            but do not exceed the width of the column.
-            If "always" or True, set the image's width to the column width.
-            If "never" or False, set the image's width to its natural size.
-            Note: if set, use_column_width takes precedence over the width parameter.
+          description: '"auto": natural size capped at column width. "always"/True: match column width. "never"/False: natural size. Takes precedence over width param.'
           default: None
         clamp:
           type: bool
@@ -6568,10 +6478,7 @@ api:
           kwarg_only: true
         link:
           type: str or None
-          description: >-
-            The external URL to open when a user clicks on the logo. The URL must
-            start with "http://" or "https://". If link is None (default),
-            the logo will not include a hyperlink.
+          description: 'External URL to open on logo click (must start with "http://" or "https://"). None (default) means no hyperlink.'
           default: None
           kwarg_only: true
         icon_image:
@@ -7084,17 +6991,7 @@ api:
           kwarg_only: true
         dismissible:
           type: bool
-          description: >-
-            Whether the modal dialog can be dismissed by the user. If this is
-            True (default), the user can dismiss the dialog by clicking
-            outside of it, clicking the "X" in its upper-right corner, or
-            pressing ESC on their keyboard. If this is False, the "X"
-            in the upper-right corner is hidden and the dialog must be closed
-            programmatically by calling st.rerun() inside the dialog function.
-            Note
-            Setting dismissible to False does not guarantee that all
-            interactions in the main app are blocked. Don't rely on
-            dismissible for security-critical checks.
+          description: 'Whether user can dismiss the dialog. True (default): dismiss by clicking outside, "X", or ESC. False: must close programmatically via st.rerun(). Note: False doesn''t block all main app interactions.'
           default: 'True'
           kwarg_only: true
         icon:
@@ -7151,18 +7048,10 @@ api:
       parameters:
         key:
           type: str
-          description: >-
-            A string that identifies the form. Each form must have its own
-            key. (This key is not displayed to the user in the interface.)
-            Additionally, if key is provided, it will be used as a
-            CSS class name prefixed with st-key-.
+          description: A string that identifies the form. Each form must have a unique key. Not displayed to user. Also used as CSS class st-key-.
         clear_on_submit:
           type: bool
-          description: >-
-            If True, all widgets inside the form will be reset to their default
-            values after the user presses the Submit button. Defaults to False.
-            (Note that Custom Components are unaffected by this flag, and
-            will not be reset to their defaults on form submission.)
+          description: If True, all widgets reset to defaults after Submit. Defaults to False. Custom Components are unaffected by this flag.
           default: 'False'
         enter_to_submit:
           type: bool

@@ -97,7 +97,6 @@ movie-recommender/
 │
 ├── store/                                  # PARTIAL — Pipeline inputs/outputs (large gitignored, small tracked)
 │   ├── tmdb.sqlite                         # GITIGNORED — Offline TMDB database (8.2 GB, 1.17M movies)
-│   ├── exports/                            # GITIGNORED — TMDB daily ID exports (source for tmdb.sqlite)
 │   ├── user.sqlite                         # GITIGNORED — App runtime SQLite (user ratings, watchlist)
 │   ├── tmdb-keyword-frequencies_labeled_top5000.tsv  # tracked — 5K keywords with mood labels (hand-curated)
 │   ├── genre_mood_map.json                 # tracked — 19 genre → mood rules (hand-crafted)
