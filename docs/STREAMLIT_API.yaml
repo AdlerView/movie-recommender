@@ -9,6 +9,19 @@ metadata:
   - streamlit/lib/streamlit (source code)
 api:
   widgets:
+    _overview:
+      categories:
+        button_elements: 'st.button, st.download_button, st.form_submit_button, st.link_button, st.page_link'
+        selection_elements: 'st.checkbox, st.color_picker, st.feedback, st.multiselect, st.pills, st.radio, st.segmented_control, st.select_slider, st.selectbox, st.toggle'
+        numeric_input: 'st.number_input, st.slider'
+        date_time_input: 'st.date_input, st.datetime_input, st.time_input'
+        text_input: 'st.text_input, st.text_area, st.chat_input'
+        other_input: 'st.audio_input, st.camera_input, st.data_editor, st.file_uploader'
+      label_visibility: 'All widgets with labels support label_visibility parameter: "visible" (default, shows label), "hidden" (empty spacer, no text), "collapsed" (no label, no spacer). Never set an empty label for accessibility — use label_visibility instead.'
+      community_components: 'stqdm (progress bars), streamlit-timeline (TimelineJS), camera-input-live (live webcam), streamlit-ace (code editor), streamlit-chat (chatbot UI), streamlit-option-menu (sidebar menus), Streamlit Extras (toggles, etc.).'
+      notes:
+      - 'st.button is deeply tied to st.session_state. See the Button behavior guide for patterns like toggling, conditional logic, and forms.'
+      - 'st.camera_input returns UploadedFile (BytesIO subclass). Works with PIL, NumPy, OpenCV, TensorFlow, torchvision, PyTorch via .getvalue() for bytes.'
     streamlit.audio_input:
       signature: st.audio_input(label, *, sample_rate=16000, key=None, help=None, on_change=None, args=None, kwargs=None,
         disabled=False, label_visibility="visible", width="stretch")
@@ -490,7 +503,7 @@ api:
         step:
           type: int or timedelta
           description: The stepping interval in seconds. Defaults to 900 (15 minutes). Also accepts datetime.timedelta. Must be between 60 seconds and 23 hours.
-          default: 0:15:00
+          default: "0:15:00"
           kwarg_only: true
         disabled:
           type: bool
@@ -1662,7 +1675,7 @@ api:
         step:
           type: int or timedelta
           description: The stepping interval in seconds. Defaults to 900 (15 minutes). Also accepts datetime.timedelta. Must be between 60 seconds and 23 hours.
-          default: 0:15:00
+          default: "0:15:00"
           kwarg_only: true
         width:
           type: '"stretch" or int'
@@ -1734,6 +1747,13 @@ api:
       - type: bool
         description: Whether or not the toggle is checked.
   charts:
+    _overview:
+      simple_charts: 'st.area_chart, st.bar_chart, st.line_chart, st.scatter_chart, st.map — syntax-sugar around st.altair_chart. Easier but less customizable.'
+      advanced_charts: 'st.altair_chart (Vega-Altair), st.vega_lite_chart (Vega-Lite), st.plotly_chart (Plotly), st.pydeck_chart (PyDeck/deck.gl), st.pyplot (Matplotlib), st.graphviz_chart (dagre-d3).'
+      deprecated: 'st.bokeh_chart was deprecated in 1.49.0 and removed in 1.52.0. Use the streamlit-bokeh custom component instead.'
+      community_components: 'Plost (simple plotting), HiPlot (high-dimensional), ECharts (streamlit-echarts), Folium (streamlit-folium maps), spaCy-Streamlit (NLP viz), Agraph (graph viz), Lottie (animations), Plotly Events (interactive).'
+      add_rows_deprecation: '.add_rows() is planned for deprecation on all simple chart types (area, bar, line, scatter, map) and vega_lite_chart. See GitHub issue #13063.'
+      theming: 'All Vega-based charts (altair, vega_lite) and Plotly charts support theme="streamlit" (default) or theme=None (native library theme). Custom colors/fonts override the Streamlit theme. Available since 1.16.0. Customizable via theme.chartCategoricalColors and theme.chartSequentialColors config options.'
     streamlit.altair_chart:
       signature: st.altair_chart(altair_chart, *, width=None, height="content", use_container_width=None, theme="streamlit",
         key=None, on_select="ignore", selection_mode=None)
@@ -1781,6 +1801,21 @@ api:
       returns:
       - type: element or dict
         description: 'If on_select is "ignore" (default), returns an internal placeholder (supports .add_rows()). Otherwise, returns a dict-like VegaLiteState object with key and attribute notation.'
+      example: |
+        import altair as alt
+        from vega_datasets import data
+
+        source = data.cars()
+        chart = alt.Chart(source).mark_circle().encode(
+            x='Horsepower',
+            y='Miles_per_Gallon',
+            color='Origin',
+        ).interactive()
+
+        st.altair_chart(chart, theme="streamlit", use_container_width=True)
+      notes:
+      - 'Theming: theme="streamlit" (default) applies Streamlit palette. theme=None uses native Altair theme. Custom colors/fonts always override the Streamlit theme.'
+      - 'Gallery: https://altair.streamlit.app for many themed examples.'
     streamlit.area_chart:
       signature: st.area_chart(data=None, *, x=None, y=None, x_label=None, y_label=None, color=None, stack=None, width="stretch",
         height="content", use_container_width=None)
@@ -2078,6 +2113,20 @@ api:
       returns:
       - type: element or dict
         description: 'If on_select is "ignore" (default), returns an internal placeholder. Otherwise, returns a dict-like PlotlyState object with key and attribute notation.'
+      example: |
+        import plotly.express as px
+
+        df = px.data.gapminder()
+        fig = px.scatter(
+            df.query("year==2007"),
+            x="gdpPercap", y="lifeExp",
+            size="pop", color="continent",
+            hover_name="country", log_x=True, size_max=60,
+        )
+        st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+      notes:
+      - 'Theming: theme="streamlit" (default) applies Streamlit palette. theme=None uses native Plotly theme. Custom colorscales always override the Streamlit theme.'
+      - 'Gallery: https://plotly.streamlit.app for many themed examples.'
     streamlit.pydeck_chart:
       signature: st.pydeck_chart(pydeck_obj=None, *, width="stretch", use_container_width=None, height=500, selection_mode="single-object",
         on_select="ignore", key=None)
@@ -2125,6 +2174,20 @@ api:
       signature: st.pyplot(fig=None, clear_figure=None, *, width="stretch", use_container_width=None, **kwargs)
       description: 'Display a matplotlib.pyplot figure. Requires matplotlib>=3.0.0 (pip install streamlit[charts]).'
       source: lib/streamlit/elements/pyplot.py#L38
+      warning: 'Thread safety: Matplotlib does not work well with threads. In deployed apps with concurrent users, wrap Matplotlib code with threading.RLock to avoid corruption.'
+      example: |
+        import matplotlib.pyplot as plt
+        import numpy as np
+        from threading import RLock
+
+        _lock = RLock()
+        x = np.random.normal(1, 1, 100)
+        y = np.random.normal(1, 1, 100)
+
+        with _lock:
+            fig, ax = plt.subplots()
+            ax.scatter(x, y)
+            st.pyplot(fig)
       parameters:
         fig:
           type: Matplotlib Figure
@@ -2259,7 +2322,26 @@ api:
       returns:
       - type: element or dict
         description: 'If on_select is "ignore" (default), returns an internal placeholder (supports .add_rows()). Otherwise, returns a dict-like VegaLiteState object with key and attribute notation.'
+      example: |
+        from vega_datasets import data
+
+        source = data.cars()
+        chart = {
+            "mark": "point",
+            "encoding": {
+                "x": {"field": "Horsepower", "type": "quantitative"},
+                "y": {"field": "Miles_per_Gallon", "type": "quantitative"},
+                "color": {"field": "Origin", "type": "nominal"},
+            },
+        }
+        st.vega_lite_chart(source, chart, theme="streamlit", use_container_width=True)
+      notes:
+      - 'Theming: Same as st.altair_chart — theme="streamlit" (default) or theme=None. Custom colors always override.'
   text:
+    _overview:
+      description: 'Text elements for display and formatting. Heading hierarchy: st.title (h1, one per app) → st.header (h2) → st.subheader (h3). Body text: st.markdown (rich), st.text (plain/monospace), st.caption (small). Utilities: st.code (syntax-highlighted), st.latex (KaTeX), st.html (raw HTML), st.help (docstrings), st.echo (show+execute code), st.divider (horizontal rule), st.badge (colored label).'
+      swiss_army_knife: 'st.write() auto-detects type and delegates to the right element (str→markdown, df→dataframe, fig→pyplot, etc.). Magic commands (bare expressions) are equivalent to st.write().'
+      community_components: 'st-annotated-text (NER-style highlights), streamlit-drawable-canvas (Fabric.js sketching), streamlit-tags (tag input), NLU (text mining), Streamlit Extras (mentions).'
     streamlit.badge:
       signature: st.badge(label, *, icon=None, color="blue", width="content", help=None)
       description: 'Display a colored badge with icon and label. Equivalent to st.markdown(":blue-badge[Home]"). Badges can also be inserted via the :color-badge[] Markdown directive.'
@@ -2398,7 +2480,7 @@ api:
         obj:
           type: any
           description: The object whose information should be displayed. If unspecified, displays help for Streamlit itself.
-          default: <module 'streamlit' from '/Users/dmatthews/Documents/GitHub/streamlit/lib/streamlit/__init__.py'>
+          default: "<module 'streamlit' from '/Users/dmatthews/Documents/GitHub/streamlit/lib/streamlit/__init__.py'>"
         width:
           type: '"stretch" or int'
           description: '"stretch" (default): matches parent. Integer: fixed pixels, capped at parent.'
@@ -2550,6 +2632,11 @@ api:
           default: '"left"'
           kwarg_only: true
   data:
+    _overview:
+      description: 'Display and interact with raw data. st.dataframe for interactive tables, st.data_editor for editable tables, st.table for static tables, st.metric for KPIs, st.json for JSON.'
+      recommendation: 'For most cases, use st.dataframe (interactive: sort, resize, search, copy to clipboard). Use st.table only for small, styled tables (confusion matrix, leaderboard). Use st.data_editor when users need to edit data.'
+      community_components: 'Streamlit Aggrid (AG Grid), Streamlit Folium (maps), Pandas Profiling, Image Coordinates, Plotly Events, Streamlit Extras (metric cards).'
+      deprecated: 'st.experimental_data_editor deprecated since 1.23.0 — use st.data_editor instead.'
     streamlit.data_editor:
       signature: st.data_editor(data, *, width="stretch", height="auto", use_container_width=None, hide_index=None, column_order=None,
         column_config=None, num_rows="fixed", disabled=False, key=None, on_change=None, args=None, kwargs=None, row_height=None,
@@ -2638,6 +2725,9 @@ api:
         column_config=None, key=None, on_select="ignore", selection_mode="multi-row", row_height=None, placeholder=None)
       description: Display a dataframe as an interactive table. Works with collection-like and dataframe-like objects.
       source: lib/streamlit/elements/arrow.py#L311
+      notes:
+      - 'Interactivity: End users can sort, resize columns, search, and copy data to clipboard.'
+      - 'Column configuration: Use column_config parameter with st.column_config types to add images, charts, clickable URLs, make columns editable, set categorical options, hide index, and more.'
       parameters:
         data:
           type: dataframe-like, collection-like, or None
@@ -2813,6 +2903,26 @@ api:
           default: '"content"'
           kwarg_only: true
   column_config:
+    _overview:
+      description: 'st.column_config configures data display and interaction in st.dataframe and st.data_editor. Supports text, numbers, charts, images, URLs, checkboxes, selectboxes, dates, and more.'
+      quick_examples:
+        Column: 'Column("Streamlit Widgets", width="medium", help="Streamlit **widget** commands")'
+        TextColumn: 'TextColumn("Widgets", max_chars=50, validate="^st\\.[a-z_]+$")'
+        NumberColumn: 'NumberColumn("Price (in USD)", min_value=0, format="$%d")'
+        CheckboxColumn: 'CheckboxColumn("Your favorite?", help="Select your **favorite** widgets")'
+        SelectboxColumn: 'SelectboxColumn("App Category", options=["LLM", "Data Viz"])'
+        MultiselectColumn: 'MultiselectColumn("App Category", options=["LLM", "Visualization"])'
+        DatetimeColumn: 'DatetimeColumn("Appointment", min_value=datetime(2023, 6, 1), format="D MMM YYYY, h:mm a")'
+        DateColumn: 'DateColumn("Birthday", max_value=date(2005, 1, 1), format="DD.MM.YYYY")'
+        TimeColumn: 'TimeColumn("Appointment", min_value=time(8, 0, 0), format="hh:mm a")'
+        LinkColumn: 'LinkColumn("Trending apps", max_chars=100, validate="^https://.*$")'
+        ImageColumn: 'ImageColumn("Preview Image", help="The preview screenshots")'
+        ProgressColumn: 'ProgressColumn("Sales volume", min_value=0, max_value=1000, format="$%f")'
+        LineChartColumn: 'LineChartColumn("Sales (last 6 months)", y_min=0, y_max=100)'
+        BarChartColumn: 'BarChartColumn("Marketing spend", y_min=0, y_max=100)'
+        AreaChartColumn: 'AreaChartColumn("Sales (last 6 months)", y_min=0, y_max=100)'
+        JSONColumn: 'JSONColumn("Properties", width="medium")'
+        ListColumn: 'ListColumn("Sales (last 6 months)", width="medium")'
     streamlit.column_config.AreaChartColumn:
       signature: st.column_config.AreaChartColumn(label=None, *, width=None, help=None, pinned=None, y_min=None, y_max=None,
         color=None)
@@ -3608,6 +3718,20 @@ api:
           default: None
           kwarg_only: true
   layout:
+    _overview:
+      description: 'Control how elements are arranged on screen. Two notation styles: object notation (st.sidebar.selectbox(...)) or with notation (with st.sidebar: st.selectbox(...)).'
+      community_components: 'Streamlit Elements (draggable/resizable dashboards), streamlit-pydantic (auto-generate UI from Pydantic models), st_pages (experimental multipage).'
+    sidebar:
+      description: 'Persistent left panel for organizing widgets. Resizable by dragging the right border.'
+      notation: 'Object notation: st.sidebar.[element_name]. With notation: with st.sidebar: st.[element_name].'
+      limitation: 'st.echo, st.spinner, and st.toast only work with "with" notation — not with object notation.'
+      example: |
+        # Object notation
+        add_selectbox = st.sidebar.selectbox("Contact method", ("Email", "Phone"))
+
+        # With notation
+        with st.sidebar:
+            add_radio = st.radio("Shipping", ("Standard", "Express"))
     streamlit.columns:
       signature: st.columns(spec, *, gap="small", vertical_alignment="top", border=False, width="stretch")
       description: 'Insert containers laid out as side-by-side columns. Inserts a number of multi-element containers laid out side-by-side and returns a list of container objects. To add elements to the returned containers, you can use the with notation (preferred) or just call methods directly on the returned object. See examples below. Note: To follow best design practices and maintain a good appearance on all screen sizes, don''t nest columns more than once.'
@@ -4241,13 +4365,25 @@ api:
           kwarg_only: true
     streamlit.echo:
       signature: st.echo(code_location="above")
-      description: Use in a with block to draw some code on the app, then execute it.
+      description: Use in a with block to draw some code on the app, then execute it. Everything inside the with block is both printed to the screen AND executed. Useful for tutorials and self-documenting apps.
       source: lib/streamlit/commands/echo.py#L33
       parameters:
         code_location:
           type: '"above" or "below"'
           description: Whether to show the echoed code before or after the results of the executed code block.
           default: '"above"'
+      example: |
+        with st.echo():
+            # This code will be printed AND executed
+            def get_punctuation():
+                return '!!!'
+            greeting = "Hi there, "
+            st.write(greeting, "John", get_punctuation())
+        # Code after the with block is NOT printed
+        st.write('Done!')
+      notes:
+      - 'Multiple st.echo() blocks allowed in the same file.'
+      - 'Only works with "with" notation in sidebar (not object notation).'
     streamlit.form:
       signature: st.form(key, clear_on_submit=False, *, enter_to_submit=True, border=True, width="stretch", height="content")
       description: 'Create a form that batches elements together with a "Submit" button. A form is a container that visually groups other elements and widgets together, and contains a Submit button. When the form''s Submit button is pressed, all widget values inside the form will be sent to Streamlit in a batch. To add elements to a form object, you can use with notation (preferred) or just call methods directly on the form. See examples below. Forms have a few constraints: Every form must contain a st.form_submit_button. st.button and st.download_button cannot be added to a form. Forms can appear anywhere in your app (sidebar, columns, etc), but they cannot be embedded inside other forms. Within a form, the only widget that can have a callback function is st.form_submit_button.'
@@ -4390,6 +4526,16 @@ api:
           description: 'The scope for the data cache. If this is "global" (default), the data is cached globally. If this is "session", the data is removed from the cache when the session disconnects. Because a session-scoped cache is cleared when a session disconnects, an unstable network connection can cause the cache to populate multiple times in a single session. If this is a problem, you might consider adjusting the server.websocketPingInterval configuration option.'
           default: '"global"'
           kwarg_only: true
+      example: |
+        @st.cache_data
+        def long_function(param1, param2):
+            # Perform expensive computation here or fetch data from the web
+            return data
+      notes:
+      - 'Security: st.cache_data implicitly uses pickle. Only cache trusted return values — malicious pickle data can execute arbitrary code during unpickling.'
+      - 'Widget replay: Cached functions can contain st.* commands (e.g. st.success). Streamlit saves them on first run and replays them on cache hits.'
+      - 'Widgets in cached functions: Set experimental_allow_widgets=True to use input widgets inside cached functions. Each widget permutation creates a separate cache entry — risk of memory explosion with multiple sliders.'
+      - 'Unsupported widgets in cached functions: st.file_uploader and st.camera_input cannot be used inside cached functions.'
     streamlit.cache_resource:
       signature: st.cache_resource(func, *, ttl, max_entries, show_spinner, show_time=False, validate, hash_funcs=None, on_release=None,
         scope="global")
@@ -4437,14 +4583,46 @@ api:
           description: 'The scope for the resource cache. If this is "global" (default), the resource is cached globally. If this is "session", the resource is removed from the cache when the session disconnects. Because a session-scoped cache is cleared when a session disconnects, an unstable network connection can cause the cache to populate multiple times in a single session. If this is a problem, you might consider adjusting the server.websocketPingInterval configuration option.'
           default: '"global"'
           kwarg_only: true
+      example: |
+        @st.cache_resource
+        def load_model():
+            model = pipeline("sentiment-analysis")
+            st.success("Loaded NLP model from Hugging Face!")  # replayed on cache hits
+            return model
+      notes:
+      - 'Widget replay: Same as st.cache_data — st.* commands inside cached functions are saved on first run and replayed on subsequent runs.'
+      - 'Widgets in cached functions: Set experimental_allow_widgets=True to enable. Same memory explosion caveat as st.cache_data.'
+      - 'Unsupported widgets in cached functions: st.file_uploader and st.camera_input.'
     streamlit.cache_data.clear:
       signature: st.cache_data.clear()
       description: Clear all in-memory and on-disk data caches.
       source: lib/streamlit/runtime/caching/cache_data_api.py#L698
+      example: |
+        @st.cache_data
+        def square(x):
+            return x**2
+
+        @st.cache_data
+        def cube(x):
+            return x**3
+
+        if st.button("Clear All"):
+            st.cache_data.clear()  # clears both square and cube caches
     streamlit.cache_resource.clear:
       signature: st.cache_resource.clear()
       description: Clear all cache_resource caches.
       source: lib/streamlit/runtime/caching/cache_resource_api.py#L631
+      example: |
+        @st.cache_resource
+        def get_database_session(url):
+            return session
+
+        @st.cache_resource
+        def get_model(model_type):
+            return BertModel.from_pretrained(model_type)
+
+        if st.button("Clear All"):
+            st.cache_resource.clear()  # clears both caches
     streamlit.context:
       signature: st.context()
       description: An interface to access user session context. Provides read-only access to headers and cookies via st.context.headers and st.context.cookies (dict-like objects).
@@ -4858,6 +5036,20 @@ api:
           description: 'Configure the menu that appears on the top-right side of this app. The keys in this dict denote the menu item to configure. The following keys can have string or None values: "Get help": The URL this menu item should point to. "Report a Bug": The URL this menu item should point to. "About": A markdown string to show in the About dialog. A URL may also refer to an email address e.g. mailto:john@example.com. If you do not include a key, its menu item will be hidden (unless it was set by a previous call to st.set_page_config). To remove an item that was specified in a previous call to st.set_page_config, set its value to None in the dictionary.'
           default: None
   write_magic:
+    _overview:
+      description: 'Two easy ways to display information: st.write (explicit) and magic commands (implicit). Should typically be the first thing you try.'
+      magic:
+        description: 'Any variable or literal on its own line is auto-written via st.write. Smart enough to ignore docstrings.'
+        limitation: 'Magic only works in the main app file, NOT in imported files (GitHub issue #288).'
+        disable: '[runner] magicEnabled = false in config.toml'
+        example: |
+          '''
+          # This is the document title
+          This is some _markdown_.
+          '''
+          df  # draws the dataframe
+          'x', x  # draws the string 'x' and then the value of x
+          fig  # draws a Matplotlib chart
     streamlit.write:
       signature: st.write(*args, unsafe_allow_html=False)
       description: 'Display arguments in the app. The Swiss Army knife of Streamlit: does different things depending on input type. Accepts multiple arguments.'
@@ -4889,6 +5081,8 @@ api:
       returns:
       - type: str or list
         description: The full response. String if output is text only, otherwise a list of streamed objects. Compatible as input for st.write.
+      notes:
+      - 'Incompatible streams: Wrap in a generator function that yields preprocessed chunks. Example: for chunk in unsupported_stream: yield preprocess(chunk)'
   user_auth:
     streamlit.login:
       signature: st.login(provider=None)
@@ -4926,6 +5120,11 @@ api:
           type: TokensProxy
           description: A read-only, dict-like object for accessing exposed tokens from the identity provider.
   custom_components:
+    _overview:
+      description: 'Custom components extend Streamlit beyond built-in widgets with custom UI elements. Two versions available.'
+      v2: 'Better performance, no iframes, multiple callbacks, shadow DOM style isolation. Register with st.components.v2.component(), mount with returned callable. Frontend TypeScript types via npm: @streamlit/component-v2-lib (FrontendRenderer, FrontendRendererArgs, FrontendState, CleanupFunction).'
+      v1: 'Runs in iframes, single callback (Streamlit.setComponentValue). Register with st.components.v1.declare_component(). Deprecated direct import pattern — use "from streamlit.components.v1 import declare_component" instead.'
+      npm_install: 'npm i @streamlit/component-v2-lib'
     streamlit.components.v1.declare_component:
       signature: st.components.v1.declare_component(name, path=None, url=None)
       description: 'Create a custom component and register it if there is a ScriptRunContext. The component is not registered when there is no ScriptRunContext. This can happen when a CustomComponent is executed as standalone command (e.g. for testing). To use this function, import it from the streamlit.components.v1 module. Warning: Using st.components.v1.declare_component directly (instead of importing its module) is deprecated and will be disallowed in a later version.'
@@ -5062,6 +5261,21 @@ api:
       - type: BidiComponentManager
         description: The singleton BidiComponentManager instance.
   query_params:
+    _overview:
+      description: 'st.query_params provides a dictionary-like interface to access query parameters in the app URL. Supports key and attribute notation (st.query_params["key"] and st.query_params.key). All keys and values are strings.'
+      repeated_keys: 'When a key is repeated in the URL (?a=1&a=2&a=3), dict-like access returns only the last value ("3"). Use .get_all("a") to get all values as a list. To set repeated keys, assign a list: st.query_params.a = ["1", "2", "3"].'
+      limitation: 'st.query_params cannot get or set embedding options (embed, embed_options). Attempting to do so raises AttributeError or StreamlitAPIException.'
+      example: |
+        # Read query params
+        if st.query_params["first_key"] == "1":
+            do_something()
+
+        # Attribute notation
+        if st.query_params.second_key == "two":
+            do_something_else()
+
+        # Write (auto-converted to str, updates URL)
+        st.query_params.first_key = 2
     streamlit.query_params.clear:
       signature: st.query_params.clear()
       description: Clear all query parameters from the URL of the app.
@@ -5194,6 +5408,15 @@ api:
       signature: CachedFunc.clear(*args, **kwargs)
       description: Clear the cached function's associated cache. No args clears all cached values. With args, clears only the cached value for those specific arguments.
       source: lib/streamlit/runtime/caching/cache_utils.py#L423
+      example: |
+        @st.cache_data
+        def square(x):
+            return x**2
+
+        square(2)  # cached
+        square(3)  # cached
+        square.clear(2)  # clears only square(2)
+        square.clear()   # clears all square caches
       parameters:
         '*args':
           type: Any
@@ -5233,10 +5456,10 @@ api:
       description: 'Schema for custom component result object. Dict-like with key/attribute notation containing all state and trigger values.'
       source: lib/streamlit/components/v2/bidi_component/state.py#L34
       parameters:
-        '&lt;state_keys&gt;':
+        '<state_keys>':
           type: Any
           description: All state values from the component. Persistent across reruns until explicitly changed. Multiple state keys as attributes.
-        '&lt;trigger_keys&gt;':
+        '<trigger_keys>':
           type: Any
           description: All trigger values from the component. Transient, reset to None after one script run. Multiple trigger keys as attributes.
     TokensProxy:
@@ -5890,23 +6113,22 @@ api:
       source: lib/streamlit/testing/v1/element_tree.py#L182
   component_v2:
     '@streamlit/component-v2-lib/FrontendRenderer':
-      signature: 'FrontendRenderer&lt;TState extends FrontendState = FrontendState, TData = unknown&gt; = (componentArgs:
-        FrontendRendererArgs&lt;TState, TData&gt;) =&gt; CleanupFunction | void'
+      signature: "FrontendRenderer<TState extends FrontendState = FrontendState, TData = unknown> = (componentArgs: FrontendRendererArgs<TState, TData>) => CleanupFunction | void"
       description: "The Streamlit v2 component signature. The default export function from your JS/TS code, called when mounted in the frontend with all arguments for building UI and state."
       source: frontend/component-v2-lib/src/types.ts#L227
       parameters:
         FrontendRendererArgs:
-          type: FrontendRendererArgs&lt;TState, TData&gt;
+          type: "FrontendRendererArgs<TState, TData>"
           description: The inputs and utilities provided by Streamlit to your component.
       returns:
       - type: CleanupFunction | void
         description: An optional cleanup function that Streamlit will call when the component is unmounted.
     '@streamlit/component-v2-lib/FrontendState':
-      signature: FrontendState = Record&lt;string, unknown&gt;
+      signature: "FrontendState = Record<string, unknown>"
       description: 'Base interface for custom component state shape. Persistent key-value store of state and trigger values. Extend to add type-safe key-value pairs. Each key maps to an on_<key>_change callback in Python.'
       source: frontend/component-v2-lib/src/types.ts#L40
     '@streamlit/component-v2-lib/FrontendRendererArgs':
-      signature: FrontendRendererArgs&lt;TState extends FrontendState = FrontendState, TData = unknown,&gt;
+      signature: "FrontendRendererArgs<TState extends FrontendState = FrontendState, TData = unknown>"
       description: 'Arguments passed to a custom component''s default export function. Provides data payload from Python, state management utilities, and DOM container. Typically destructured for access.'
       source: frontend/component-v2-lib/src/types.ts#L114
       parameters:
@@ -5964,7 +6186,7 @@ api:
       returns:
       - type: None
     '@streamlit/component-v2-lib/ArrowData':
-      signature: ArrowData = Uint8Array&lt;ArrayBufferLike&gt; | null
+      signature: "ArrowData = Uint8Array<ArrayBufferLike> | null"
       description: 'Type for Arrow-serialized data from Python. Use when defining interfaces for Apache Arrow serialized data.'
       source: frontend/component-v2-lib/src/types.ts#L50
     '@streamlit/component-v2-lib/CleanupFunction':
@@ -5977,6 +6199,11 @@ api:
 config_toml:
   description: Complete Streamlit configuration reference. Set in .streamlit/config.toml (per-project) or ~/.streamlit/config.toml
     (global). Per-project takes precedence. Env vars and CLI flags override both.
+  file_locations:
+    per_project: '.streamlit/config.toml (relative to working directory where you call streamlit run)'
+    global_macos_linux: '~/.streamlit/config.toml'
+    global_windows: '%userprofile%/.streamlit/config.toml'
+  cli: 'Run "streamlit config show" to see all current configuration values.'
   global:
     disableWidgetStateDuplicationWarning:
       default: false
@@ -6084,9 +6311,34 @@ config_toml:
     sslCertFile:
       default: unset
       description: SSL certificate file for HTTPS. NOT for production.
+    folderWatchList:
+      default: '[]'
+      description: 'List of additional directories to watch for changes. Paths must be absolute.'
+    folderWatchBlacklist:
+      default: '[]'
+      description: 'List of directories to ignore for changes. Paths can be absolute or relative to CWD.'
+    cookieSecret:
+      default: randomly generated
+      description: 'Symmetric key for signed cookies. Set identical across all replicas for multi-replica deployments.'
+    showEmailPrompt:
+      default: true
+      description: 'Show terminal email prompt on first local run. Hidden when server.headless=True.'
+    corsAllowedOrigins:
+      default: '[]'
+      description: 'Allowed origin list when enableCORS=True. Example: ["http://example.com", "https://streamlit.io"].'
+    websocketPingInterval:
+      default: unset
+      description: 'Interval (seconds) for WebSocket keep-alive pings. Adjust if experiencing frequent disconnections in proxy setups. For Tornado >=6.5, values <30 may cause issues.'
+    useStarlette:
+      default: false
+      description: 'Experimental: Use Starlette-based server instead of Tornado. May be removed in the future.'
     sslKeyFile:
       default: unset
       description: SSL key file for HTTPS. NOT for production.
+  mapbox:
+    token:
+      default: '""'
+      description: 'DEPRECATED (removal on or after 2026-05-01). Use MAPBOX_API_KEY env var or PyDeck api_keys argument instead.'
   browser:
     serverAddress:
       default: localhost
@@ -6106,19 +6358,32 @@ config_toml:
       baseFontSize: 'Root font size in pixels (default: 16).'
       baseFontWeight: 'Root font weight 100-600 (default: 400).'
       showSidebarBorder: Show vertical separator between sidebar and main content.
-      chartCategoricalColors: Array of colors for categorical chart data.
-      chartSequentialColors: Exactly 10 colors for sequential/continuous gradient.
-      chartDivergingColors: Exactly 10 colors for diverging data.
+      chartCategoricalColors:
+        description: 'Array of colors for categorical chart data. Applied to Plotly, Altair, and Vega-Lite. Cycles if more categories than colors.'
+        defaults_light: '["#0068c9", "#83c9ff", "#ff2b2b", "#ffabab", "#29b09d", "#7defa1", "#ff8700", "#ffd16a", "#6d3fc0", "#d5dae5"]'
+        defaults_dark: '["#83c9ff", "#0068c9", "#ffabab", "#ff2b2b", "#7defa1", "#29b09d", "#ffd16a", "#ff8700", "#6d3fc0", "#d5dae5"]'
+      chartSequentialColors:
+        description: 'Exactly 10 colors for sequential/continuous gradient. Applied to Plotly, Altair, and Vega-Lite.'
+        defaults_light: '["#e4f5ff", "#c7ebff", "#a6dcff", "#83c9ff", "#60b4ff", "#3d9df3", "#1c83e1", "#0068c9", "#0054a3", "#004280"]'
+        defaults_dark: '["#004280", "#0054a3", "#0068c9", "#1c83e1", "#3d9df3", "#60b4ff", "#83c9ff", "#a6dcff", "#c7ebff", "#e4f5ff"]'
+      chartDivergingColors:
+        description: 'Exactly 10 colors for diverging data. Applied to Plotly, Altair, and Vega-Lite.'
+        defaults: '["#7d353b", "#bd4043", "#ff4b4b", "#ff8c8c", "#ffc7c7", "#a6dcff", "#60b4ff", "#1c83e1", "#0054a3", "#004280"]'
     colors:
       primaryColor: Primary accent color for interactive elements.
       backgroundColor: App background color.
       secondaryBackgroundColor: Widget background color.
       textColor: Text color.
-      palette_colors: redColor, orangeColor, yellowColor, blueColor, greenColor, violetColor, grayColor — each configurable
-        with hex values.
-      palette_backgrounds: redBackgroundColor, orangeBackgroundColor, etc. — derived from palette colors at 10%/20% opacity
-        if not set.
-      palette_text: redTextColor, orangeTextColor, etc. — derived from palette colors, darkened/lightened 15%.
+      palette_colors:
+        description: 'redColor, orangeColor, yellowColor, blueColor, greenColor, violetColor, grayColor — each configurable with hex values.'
+        defaults_light: 'red=#ff4b4b, orange=#ffa421, yellow=#faca2b, blue=#1c83e1, green=#21c354, violet=#803df5, gray=#a3a8b8'
+        defaults_dark: 'red=#ff2b2b, orange=#ff8700, yellow=#ffe312, blue=#0068c9, green=#09ab3b, violet=#803df5, gray=#555867'
+      palette_backgrounds:
+        description: 'redBackgroundColor, orangeBackgroundColor, etc. — derived from palette colors at 10%/20% opacity if not set.'
+        derivation: 'Light theme: paletteColor at 10% opacity. Dark theme: paletteColor at 20% opacity.'
+      palette_text:
+        description: 'redTextColor, orangeTextColor, etc. — derived from palette colors, darkened/lightened 15%.'
+        derivation: 'Light theme: paletteColor darkened 15%. Dark theme: paletteColor lightened 15%.'
       linkColor: Defaults to blueTextColor.
       linkUnderline: Whether links show underlines.
       codeTextColor: Defaults to greenTextColor.
@@ -6126,8 +6391,13 @@ config_toml:
     typography:
       font: '"sans-serif", "serif", "monospace", custom fontFaces name, CSS URL "FontName:url", or comma-separated fallbacks.'
       headingFont: Heading font family (defaults to theme.font).
-      headingFontSizes: 'Array of h1-h6 sizes. Defaults: ["2.75rem", "2.25rem", "1.75rem", "1.5rem", "1.25rem", "1rem"].'
-      headingFontWeights: 'Array of h1-h6 weights. Defaults: [700, 600, 600, 600, 600, 600].'
+      headingFontSizes:
+        description: 'Array of h1-h6 sizes. Fewer than 6 values fills remaining with defaults. Single value applies to all.'
+        defaults_main: '["2.75rem", "2.25rem", "1.75rem", "1.5rem", "1.25rem", "1rem"]'
+        defaults_sidebar: '["1.5rem", "1.25rem", "1.125rem", "1rem", "0.875rem", "0.75rem"]'
+        note: 'Heading font sizes set in [theme] are NOT inherited by [theme.sidebar]. Sidebar has its own smaller defaults.'
+      headingFontWeights:
+        description: 'Array of h1-h6 weights. Defaults: [700, 600, 600, 600, 600, 600]. Not inherited by sidebar.'
       codeFont: Code/monospace font family.
       codeFontSize: 'Code font size (default: 0.875rem).'
       codeFontWeight: 'Code font weight 100-600 (default: 400).'
@@ -6145,6 +6415,80 @@ config_toml:
       - <project>/.streamlit/secrets.toml
       description: List of secrets file locations (TOML or Kubernetes-style). Later files take precedence.
 concepts:
+  architecture:
+    topic: Client-server architecture, WebSocket connections, and deployment
+    key_points:
+    - 'Client-server model: Python backend (server) runs on one machine, browser frontend (client) may be on another. Server handles all compute for all users.'
+    - 'Each browser tab creates a new WebSocket connection = new session. Sessions are independent.'
+    - 'Server built on Tornado (WebSocket). Experimental Starlette server available via useStarlette config.'
+    - 'App has no access to user files/directories/OS. Only files uploaded via st.file_uploader are accessible.'
+    - 'Programs opened outside Python (e.g. webbrowser) run on the server, not the user machine.'
+    gotchas:
+    - 'Load balancing: Without session affinity/stickiness, HTTP media requests may hit wrong replica → MediaFileStorageError. Enable session stickiness in proxy.'
+    - 'Workarounds for media without stickiness: Base64 encode data URIs (passes through WebSocket), or save to external storage (S3) and pass URLs.'
+    - 'File uploads also affected by load balancing — session stickiness is the general solution.'
+  button_behavior:
+    topic: Button state management patterns and anti-patterns
+    key_points:
+    - 'Buttons return True once (on click rerun) then immediately False. Content inside if st.button() disappears on next action.'
+    - 'Good inside buttons: transient messages, once-per-click saves to session_state/file/DB.'
+    - 'Bad inside buttons: persistent elements, other widgets, processes without state saving.'
+    patterns:
+    - 'Stateful button: Store clicked=True in session_state via on_click callback. Condition persistent content on session_state.clicked.'
+    - 'Toggle button: Use callback to flip boolean in session_state (not st.session_state.button = not st.session_state.button).'
+    - 'Stage/wizard: Store stage number in session_state. Advance via callbacks. Use >= checks for progressive disclosure.'
+    - 'Dynamic widgets: Use index in keys (f"first_{index}") to avoid DuplicateWidgetID. Track row count in session_state.'
+    - 'Modify other widgets: Use callbacks (preferred), or put logic before widget with key check, or use st.container for reordering.'
+    anti_patterns:
+    - 'Buttons nested inside buttons — inner button never executes.'
+    - 'Widgets nested inside buttons — widget disappears on next action, user loses input.'
+    - 'Processing inside button without saving to session_state — results disappear.'
+  custom_classes:
+    topic: Using custom Python classes safely across reruns
+    key_points:
+    - 'Problem: Streamlit re-executes script on each rerun, redefining classes. isinstance() fails because session_state holds instance of old class.'
+    - 'Solution: Define classes in separate module files and import them. Streamlit does not re-import unchanged files during session.'
+    - 'Enum coercion: runner.enumCoercion config ("off", "nameOnly", "nameAndValue") controls how Enum members are matched across redefinitions.'
+  animate_elements:
+    topic: Updating and replacing elements in place
+    key_points:
+    - 'Element commands (st.markdown, st.image, etc.) return element objects. Call .empty() to clear, or call any st.* method to replace.'
+    - 'Container commands (st.container, st.columns, st.tabs) return container objects for grouping.'
+    - 'Widget commands (st.slider, st.button, etc.) return Python values (int, str, bool), not objects.'
+    - 'Widget-mode elements: st.dataframe with on_select="rerun" returns selection dict instead of element object. Tabs/expander/popover with on_change track state.'
+    - 'st.empty: Single-element placeholder. Each write replaces previous. Nest st.container inside for multi-element replacement.'
+    - 'st.progress: Call .progress(value) on returned object to update. .empty() to clear.'
+    - 'st.status: Call .update(label=, state=, expanded=) to change icon and label.'
+    - 'st.toast: Call .toast(new_text) on returned object to update in place.'
+    - '.add_rows(): Deprecated (feedback: GitHub #13063). Supported on st.dataframe, st.table, and simple chart elements.'
+  dataframes_guide:
+    topic: Working with st.dataframe and st.data_editor in depth
+    key_points:
+    - 'UI features: column sorting, resizing, hiding, reordering, pinning, number/date formatting, fullscreen, search (Cmd+F), download CSV, copy to clipboard.'
+    - 'data_editor modes: num_rows="fixed" (default), "dynamic" (add+delete, sorting disabled), "add" (add only), "delete" (delete only, sorting enabled).'
+    - 'Access edited data via session_state[key]: returns {edited_rows: {row_idx: {col: val}}, added_rows: [{col: val}], deleted_rows: [row_idx]}.'
+    - 'Editable column types: Text, Number, Link, Checkbox, Selectbox, Date, Time, Datetime. Charts/images/lists not yet editable.'
+    - 'Empty dataframe input: Use column_config to specify types for user-collected tabular input.'
+    - 'Large datasets: >150K rows disables sorting. Performance depends on server.maxMessageSize, server memory, browser memory.'
+    - 'Copy-paste: Works between data_editor and Google Sheets/Excel. iframes need clipboard-write/clipboard-read permissions.'
+    gotchas:
+    - 'All column names cast to strings internally.'
+    - 'CategoricalIndex and MultiIndex not supported for editing.'
+    - 'Sorting disabled when num_rows="dynamic" or >150K rows.'
+  timezone_handling:
+    topic: How Streamlit handles datetime timezones
+    key_points:
+    - 'Streamlit does NOT auto-adjust datetime to user timezone. Backend datetime is shown as-is on frontend.'
+    - 'Naive datetime (no tz): displayed without timezone info.'
+    - 'Timezone-aware datetime: displayed in the specified timezone, not converted to user local.'
+  multithreading:
+    topic: Threading considerations in Streamlit apps
+    key_points:
+    - 'Streamlit uses server thread (Tornado) + script threads (one per script run per session).'
+    - 'Custom threads raise NoSessionContext if they call st.* commands.'
+    - 'Pattern 1: Do not use st.* commands in custom threads — collect results and return to main thread.'
+    - 'Pattern 2: Copy ScriptRunContext to custom thread (advanced, unsupported).'
+    - 'Consider fragments and caching before reaching for threads.'
   session_state:
     topic: Sharing variables between reruns for each user session
     key_points:
@@ -6155,15 +6499,19 @@ concepts:
     - 'Widgets with a key parameter auto-sync to session_state: st.text_input("Name", key="name") -> st.session_state.name'
     - Setting st.session_state.celsius BEFORE a slider with key="celsius" sets its initial value.
     - Callbacks (on_change/on_click) with args and kwargs run as a PREFIX to the script rerun.
+    - 'on_change widgets: st.checkbox, st.color_picker, st.date_input, st.data_editor, st.file_uploader, st.multiselect, st.number_input, st.radio, st.select_slider, st.selectbox, st.slider, st.text_area, st.text_input, st.time_input, st.toggle.'
+    - 'on_click widgets: st.button, st.download_button, st.form_submit_button.'
     - st.form_submit_button supports on_click callbacks with session state for batch processing.
     - 'Delete with: del st.session_state[key]. Clear all via Settings > Clear Cache + Rerun.'
     gotchas:
     - Session state is tied to WebSocket. Reloading browser tab or navigating via Markdown link resets it.
-    - CANNOT set widget values via session state for st.button and st.file_uploader (raises StreamlitAPIException).
-    - Cannot modify a widget value via session_state after the widget is instantiated in the current run.
+    - 'CANNOT set widget values via session state for st.button, st.download_button, and st.file_uploader (raises StreamlitAPIException). These widgets have ephemeral True states valid for a single run only.'
+    - 'Cannot modify a widget value via session_state after the widget is instantiated in the current run. Set session_state BEFORE the widget call.'
     - Setting both a widget default AND session_state value for the same key triggers a warning on first run.
     - Only st.form_submit_button supports callbacks inside forms.
     - Accessing an uninitialized session state variable throws an exception.
+    - 'Session State exists only while tab is open and connected. Closing tab or server crash wipes everything.'
+    - 'Session State is NOT persisted to disk. Use caching with persist="disk" or external storage for persistence.'
     config:
       runner.enforceSerializableSessionState: When true, only pickle-serializable objects allowed in session state.
   widget_behavior:
@@ -6177,8 +6525,13 @@ concepts:
     - Widget state is NOT preserved between pages. Widgets not rendered in a run are deleted from session_state.
     - 'Placeholder key pattern for cross-page state: widget uses _my_key, callback copies to my_key, restore before widget
       call.'
-    - bind="query-params" (v1.55.0+) syncs widget value with URL query parameters. Default values omitted from URL.
+    - 'bind="query-params" (v1.55.0+): Syncs widget value with URL. key is used as query param name. Default values omitted. Range widgets use repeated params (?price=10&price=90). Programmatic changes only via st.session_state, not st.query_params.'
+    - 'Trigger widgets (button, download_button, chat_input, file_uploader, camera_input, audio_input) do NOT support bind.'
     - DuplicateWidgetID error if two identical widgets exist on same page without unique keys.
+    patterns:
+    - 'Placeholder key for cross-page state: Widget uses _my_key, callback copies to my_key on change. Before widget call, copy my_key back to _my_key. Functionalized: store_value(key)/load_value(key) helpers.'
+    - 'Filterable dashboard with shareable URL: st.selectbox(..., key="category", bind="query-params") + st.slider(..., key="max_price", bind="query-params"). URL like ?category=Electronics&max_price=200 initializes widgets.'
+    - 'Multipage widget persistence: (1) Put widgets in entrypoint file (preferred), (2) use _key/key placeholder pattern, (3) re-save keys in session_state before widget cleanup.'
     gotchas:
     - Callback args/kwargs are evaluated when widget command runs, not when user interacts. Use st.session_state inside callback.
     - Deleting a key from session state does NOT revert the widget to its default.
@@ -6199,7 +6552,9 @@ concepts:
     - 'show_spinner: True (default), False, or custom string.'
     - 'Unhashable params: Prefix with underscore (_param) to exclude from hashing.'
     - 'hash_funcs: Dict mapping types to custom hash functions. Avoid id() as hash func.'
-    - Cached functions can contain st.* commands — they are replayed on cache hits.
+    - 'Cached functions can contain st.* commands — they are saved on first run and replayed on cache hits. This works for both @st.cache_data and @st.cache_resource.'
+    - 'experimental_allow_widgets=True: Enables input widgets (st.slider, st.checkbox, etc.) inside cached functions. Each widget value permutation = separate cache entry. Danger: 5 sliders × 100MB DataFrame = massive cache. Use sparingly.'
+    - 'Unsupported widgets in cached functions: st.file_uploader, st.camera_input.'
     - scope="global" (default) or "session" for per-session caching.
     - 'Clear: func.clear() for individual, st.cache_data.clear() / st.cache_resource.clear() for all.'
     gotchas:
@@ -6209,6 +6564,15 @@ concepts:
     - TTL is ignored when persist="disk".
     - TTL expiration only happens when expired resources are accessed, not proactively.
     - Session-scoped cache clears on disconnect — unstable networks cause multiple populates.
+    - 'Do NOT use id() as hash_funcs — it returns different values for identical objects across reruns. Use deterministic hash based on object attributes instead.'
+    - 'hash_funcs exception: id IS correct when passing result of @st.cache_resource to another cached function (singleton identity is stable).'
+    decision_table:
+      cache_data: 'CSV/text reads, DataFrame transforms, NumPy arrays, DB queries, API calls, ML inference, image processing, basic types (str/int/float).'
+      cache_resource: 'ML models (transformers/PyTorch/TF), DB connections (psycopg2/SQLAlchemy/sqlite3), file handles, threads, lazy frames (Polars LazyFrame).'
+      charts: 'Usually cache_data. Some chart libraries need cache_resource if chart object not serializable — do not mutate after creation.'
+    performance:
+      note: 'cache_data becomes slow >100M rows due to pickle serialization. Benchmark: 100M rows × 4 cols = 14s first run, 2s subsequent. cache_resource: 0.2s first, 0s subsequent.'
+      workaround: 'For >100M rows, consider cache_resource instead — but ensure no mutations (shared singleton). Thread-safe access required.'
   forms:
     topic: Batching user input to prevent reruns until submission
     key_points:
@@ -6235,6 +6599,10 @@ concepts:
     - Fragment return values are ignored during fragment reruns; use session state to share data.
     - 'Fragments vs Forms: Forms batch input; fragments immediately process but limit rerun scope.'
     - 'Fragments vs Callbacks: Callbacks are a single prefix to a full rerun; fragments are repeatable partial reruns.'
+    patterns:
+    - 'Streaming start/stop: Store run_every in session state, toggle via button callback. Pass variable to @st.fragment(run_every=run_every). None=stopped, float=interval in seconds.'
+    - 'Multi-container fragment: Fragments writing to external containers accumulate elements. Fix: pass st.empty() containers as arguments, then create st.container() inside them on each rerun.'
+    - 'Conditional full rerun: Track previous state in session_state, compare on each fragment rerun. Call st.rerun() when a broader update is needed (e.g. month changed → update monthly panel).'
     gotchas:
     - Using caching and fragments on the same function is unsupported.
     - Fragments can't detect changes in input values; use session state for dynamic I/O.
@@ -6278,6 +6646,10 @@ concepts:
     - Navigating between pages by URL creates new session and resets session_state. Use Streamlit nav commands to preserve
       state.
     - Widget state is NOT preserved between pages.
+    patterns:
+    - 'Role-based dynamic nav (st.navigation): Build page_dict conditionally based on session_state.role. Merge account pages: st.navigation({"Account": account_pages} | page_dict). Unauthenticated → st.navigation([st.Page(login)]). Set default= dynamically per role.'
+    - 'Custom nav (st.page_link): Set client.showSidebarNavigation=false. Create menu() function using st.sidebar.page_link() with disabled= for role-gating. Use menu_with_redirect() on sub-pages to redirect unauthenticated users via st.switch_page().'
+    - 'Row selections in dataframe: st.dataframe(df, on_select="rerun", selection_mode="multi-row"). Access via event.selection.rows (positional indices). Filter with df.iloc[indices].'
   authentication:
     topic: User authentication via OpenID Connect (OIDC)
     key_points:
@@ -6319,3 +6691,27 @@ concepts:
     - Interactive charts always have square corners. st.chat_input/st.audio_input always fully rounded.
     - Inline code font size is fixed at 0.75em, not affected by codeFontSize.
     - External fonts may transmit user IP to third-party servers.
+    patterns:
+    - 'Static font files: (1) server.enableStaticServing=true, (2) put .ttf/.woff files in static/ dir, (3) define [[theme.fontFaces]] with family, url="app/static/FontName.ttf", weight, style for each weight/style combo, (4) set [theme] font="family-name". Avoid spaces in family names for easier fallback declaration.'
+    - 'Altair chart annotations: Create annotation_layer with alt.Chart(annotations_df).mark_text(). Combine with data_layer via + operator: combined_chart = data_layer + annotation_layer. Use .interactive() for pan/zoom.'
+  faq:
+    topic: Common questions and quick solutions
+    entries:
+    - question: How to download a DataFrame as CSV?
+      answer: 'Cache the conversion with @st.cache_data, then use st.download_button: csv = df.to_csv(index=False).encode("utf-8"); st.download_button("Download", csv, "file.csv", "text/csv").'
+    - question: How to insert elements out of order?
+      answer: 'Use st.empty() as placeholders. Create them in the desired display position, then write to them later: slot = st.empty(); slot.text("Filled later").'
+    - question: 'How to remove "· Streamlit" from browser tab title?'
+      answer: 'Use st.set_page_config(page_title="Your Title"). This replaces the default title entirely.'
+    - question: How to watch for changes in imported modules?
+      answer: 'By default, Streamlit only watches the CWD. Add parent directories to PYTHONPATH: export PYTHONPATH=$PYTHONPATH:/path/to/module.'
+    - question: Why does my widget only update every second click?
+      answer: 'Use callbacks with st.session_state[key], not the widget variable. Widget variables reflect the PREVIOUS value during the rerun. Callbacks execute BEFORE the rerun and see the new value.'
+    - question: Can I nest st.columns?
+      answer: 'Since v1.46.0, nesting limits were removed. However, avoid deep nesting — it causes bad UX on different screen sizes.'
+    - question: How to use custom Mapbox styles with st.pydeck_chart?
+      answer: 'Add the Mapbox token to .streamlit/config.toml [mapbox] section (deprecated) or use MAPBOX_API_KEY env var. Streamlit does NOT read tokens from inside the PyDeck spec.'
+    - question: How to serve static files (images, fonts, etc.)?
+      answer: 'Set server.enableStaticServing=true in config.toml. Place files in a static/ directory next to your app. Files are accessible at the relative URL app/static/{filename}.'
+    - question: How to test a Streamlit app?
+      answer: 'Use st.testing.v1.AppTest to simulate running the app. Create with .from_file(), .from_function(), or .from_string(). Call .run() to execute. Assert on at.button, at.slider, at.text, etc. Works with pytest.'
