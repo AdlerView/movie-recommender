@@ -3278,18 +3278,7 @@ api:
     streamlit.column_config.MultiselectColumn:
       signature: st.column_config.MultiselectColumn(label=None, *, width=None, help=None, disabled=None, required=None, pinned=None,
         default=None, options=None, accept_new_options=None, color=None, format_func=None)
-      description: >-
-        Configure a multiselect column in st.dataframe or st.data_editor.
-        This command needs to be used in the column_config parameter of
-        st.dataframe or st.data_editor. When used with st.data_editor,
-        users can select options from a dropdown menu. You can configure the
-        column to allow freely typed options, too.
-        You can also use this column type to display colored labels in a read-only
-        st.dataframe.
-        Note
-        Editing for non-string or mixed type lists can cause issues with Arrow
-        serialization. We recommend that you disable editing for these columns
-        or convert all list values to strings.
+      description: 'Configure a multiselect column in st.dataframe or st.data_editor. This command needs to be used in the column_config parameter of st.dataframe or st.data_editor. When used with st.data_editor, users can select options from a dropdown menu. You can configure the column to allow freely typed options, too. You can also use this column type to display colored labels in a read-only st.dataframe. Note: Editing for non-string or mixed type lists can cause issues with Arrow serialization. We recommend that you disable editing for these columns or convert all list values to strings.'
       source: lib/streamlit/elements/lib/column_types.py#L1731
       parameters:
         label:
@@ -3600,21 +3589,7 @@ api:
           kwarg_only: true
         format:
           type: str, "localized", "iso8601", or None
-          description: >-
-            A format string controlling how times are displayed.
-            This can be one of the following values:
-            None (default): Show the time in "HH:mm:ss" format (e.g.
-            "20:00:00").
-            "localized": Show the time in the default locale format (e.g.
-            "12:00:00 PM" in the America/Los_Angeles timezone).
-            "iso8601": Show the time in ISO 8601 format (e.g.
-            "20:00:00.000Z").
-            A momentJS format string: Format the time with a string, like
-            "ha" to show "8pm". For available formats, see
-            momentJS.
-            Formatting from column_config always takes precedence over
-            formatting from pandas.Styler. The formatting does not impact the
-            return value when used in st.data_editor.
+          description: 'A format string controlling how times are displayed. This can be one of the following values: None (default): Show the time in "HH:mm:ss" format (e.g. "20:00:00"). "localized": Show the time in the default locale format (e.g. "12:00:00 PM" in the America/Los_Angeles timezone). "iso8601": Show the time in ISO 8601 format (e.g. "20:00:00.000Z"). A momentJS format string: Format the time with a string, like "ha" to show "8pm". For available formats, see momentJS. Formatting from column_config always takes precedence over formatting from pandas.Styler. The formatting does not impact the return value when used in st.data_editor.'
           default: None
           kwarg_only: true
         min_value:
@@ -3635,44 +3610,15 @@ api:
   layout:
     streamlit.columns:
       signature: st.columns(spec, *, gap="small", vertical_alignment="top", border=False, width="stretch")
-      description: >-
-        Insert containers laid out as side-by-side columns.
-        Inserts a number of multi-element containers laid out side-by-side and
-        returns a list of container objects.
-        To add elements to the returned containers, you can use the with notation
-        (preferred) or just call methods directly on the returned object. See
-        examples below.
-        Note
-        To follow best design practices and maintain a good appearance on
-        all screen sizes, don't nest columns more than once.
+      description: 'Insert containers laid out as side-by-side columns. Inserts a number of multi-element containers laid out side-by-side and returns a list of container objects. To add elements to the returned containers, you can use the with notation (preferred) or just call methods directly on the returned object. See examples below. Note: To follow best design practices and maintain a good appearance on all screen sizes, don''t nest columns more than once.'
       source: lib/streamlit/elements/layouts.py#L382
       parameters:
         spec:
           type: int or Iterable of numbers
-          description: >-
-            Controls the number and width of columns to insert. Can be one of:
-            An integer that specifies the number of columns. All columns have equal
-            width in this case.
-            An Iterable of numbers (int or float) that specify the relative width of
-            each column. E.g. [0.7, 0.3] creates two columns where the first
-            one takes up 70% of the available with and the second one takes up 30%.
-            Or [1, 2, 3] creates three columns where the second one is two times
-            the width of the first one, and the third one is three times that width.
+          description: 'Controls the number and width of columns to insert. Can be one of: An integer that specifies the number of columns. All columns have equal width in this case. An Iterable of numbers (int or float) that specify the relative width of each column. E.g. [0.7, 0.3] creates two columns where the first one takes up 70% of the available width and the second one takes up 30%. Or [1, 2, 3] creates three columns where the second one is two times the width of the first one, and the third one is three times that width.'
         gap:
           type: '"xxsmall", "xsmall", "small", "medium", "large", "xlarge", "xxlarge", or None'
-          description: >-
-            The size of the gap between the columns. This can be one of the
-            following:
-            "xxsmall": 0.25rem gap between the columns.
-            "xsmall": 0.5rem gap between the columns.
-            "small" (default): 1rem gap between the columns.
-            "medium": 2rem gap between the columns.
-            "large": 4rem gap between the columns.
-            "xlarge": 6rem gap between the columns.
-            "xxlarge": 8rem gap between the columns.
-            None: No gap between the columns.
-            The rem unit is relative to the theme.baseFontSize
-            configuration option.
+          description: 'The size of the gap between the columns. This can be one of the following: "xxsmall": 0.25rem gap between the columns. "xsmall": 0.5rem gap between the columns. "small" (default): 1rem gap between the columns. "medium": 2rem gap between the columns. "large": 4rem gap between the columns. "xlarge": 6rem gap between the columns. "xxlarge": 8rem gap between the columns. None: No gap between the columns. The rem unit is relative to the theme.baseFontSize configuration option.'
           default: '"small"'
           kwarg_only: true
         vertical_alignment:
@@ -3696,14 +3642,7 @@ api:
     streamlit.container:
       signature: st.container(*, border=None, key=None, width="stretch", height="content", horizontal=False, horizontal_alignment="left",
         vertical_alignment="top", gap="small")
-      description: >-
-        Insert a multi-element container.
-        Inserts an invisible container into your app that can be used to hold
-        multiple elements. This allows you to, for example, insert multiple
-        elements into your app out of order.
-        To add elements to the returned container, you can use the with
-        notation (preferred) or just call commands directly on the returned
-        object. See examples below.
+      description: 'Insert a multi-element container. Inserts an invisible container into your app that can be used to hold multiple elements. This allows you to, for example, insert multiple elements into your app out of order. To add elements to the returned container, you can use the with notation (preferred) or just call commands directly on the returned object. See examples below.'
       source: lib/streamlit/elements/layouts.py#L104
       parameters:
         border:
@@ -3718,16 +3657,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the container. This can be one of the following:
-            "stretch" (default): The width of the container matches the
-            width of the parent container.
-            "content": The width of the container matches the width of
-            its content.
-            An integer specifying the width in pixels: The container has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the container matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the container matches the width of the parent container. "content": The width of the container matches the width of its content. An integer specifying the width in pixels: The container has a fixed width. If the specified width is greater than the width of the parent container, the width of the container matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         height:
@@ -3742,109 +3672,32 @@ api:
           kwarg_only: true
         horizontal_alignment:
           type: '"left", "center", "right", or "distribute"'
-          description: >-
-            The horizontal alignment of the elements inside the container. This
-            can be one of the following:
-            "left" (default): Elements are aligned to the left side of
-            the container.
-            "center": Elements are horizontally centered inside the
-            container.
-            "right": Elements are aligned to the right side of the
-            container.
-            "distribute": Elements are distributed evenly in the
-            container. This increases the horizontal gap between elements to
-            fill the width of the container. A standalone element is aligned
-            to the left.
-            When horizontal is False, "distribute" aligns the
-            elements the same as "left".
+          description: 'The horizontal alignment of the elements inside the container. This can be one of the following: "left" (default): Elements are aligned to the left side of the container. "center": Elements are horizontally centered inside the container. "right": Elements are aligned to the right side of the container. "distribute": Elements are distributed evenly in the container. This increases the horizontal gap between elements to fill the width of the container. A standalone element is aligned to the left. When horizontal is False, "distribute" aligns the elements the same as "left".'
           default: '"left"'
           kwarg_only: true
         vertical_alignment:
           type: '"top", "center", "bottom", or "distribute"'
-          description: >-
-            The vertical alignment of the elements inside the container. This
-            can be one of the following:
-            "top" (default): Elements are aligned to the top of the
-            container.
-            "center": Elements are vertically centered inside the
-            container.
-            "bottom": Elements are aligned to the bottom of the
-            container.
-            "distribute": Elements are distributed evenly in the
-            container. This increases the vertical gap between elements to
-            fill the height of the container. A standalone element is aligned
-            to the top.
-            When horizontal is True, "distribute" aligns the
-            elements the same as "top".
+          description: 'The vertical alignment of the elements inside the container. This can be one of the following: "top" (default): Elements are aligned to the top of the container. "center": Elements are vertically centered inside the container. "bottom": Elements are aligned to the bottom of the container. "distribute": Elements are distributed evenly in the container. This increases the vertical gap between elements to fill the height of the container. A standalone element is aligned to the top. When horizontal is True, "distribute" aligns the elements the same as "top".'
           default: '"top"'
           kwarg_only: true
         gap:
           type: '"xxsmall", "xsmall", "small", "medium", "large", "xlarge", "xxlarge", or None'
-          description: >-
-            The minimum gap size between the elements inside the container.
-            This can be one of the following:
-            "xxsmall": 0.25rem gap between the elements.
-            "xsmall": 0.5rem gap between the elements.
-            "small" (default): 1rem gap between the elements.
-            "medium": 2rem gap between the elements.
-            "large": 4rem gap between the elements.
-            "xlarge": 6rem gap between the elements.
-            "xxlarge": 8rem gap between the elements.
-            None: No gap between the elements.
-            The rem unit is relative to the theme.baseFontSize
-            configuration option.
-            The minimum gap applies to both the vertical and horizontal gaps
-            between the elements. Elements may have larger gaps in one
-            direction if you use a distributed horizontal alignment or fixed
-            height.
+          description: 'The minimum gap size between the elements inside the container. This can be one of the following: "xxsmall": 0.25rem gap between the elements. "xsmall": 0.5rem gap between the elements. "small" (default): 1rem gap between the elements. "medium": 2rem gap between the elements. "large": 4rem gap between the elements. "xlarge": 6rem gap between the elements. "xxlarge": 8rem gap between the elements. None: No gap between the elements. The rem unit is relative to the theme.baseFontSize configuration option. The minimum gap applies to both the vertical and horizontal gaps between the elements. Elements may have larger gaps in one direction if you use a distributed horizontal alignment or fixed height.'
           default: '"small"'
           kwarg_only: true
     streamlit.empty:
       signature: st.empty()
-      description: >-
-        Insert a single-element container.
-        Inserts a container into your app that can be used to hold a single element.
-        This allows you to, for example, remove elements at any point, or replace
-        several elements at once (using a child multi-element container).
-        To insert/replace/clear an element on the returned container, you can
-        use with notation or just call methods directly on the returned object.
-        See examples below.
+      description: 'Insert a single-element container. Inserts a container into your app that can be used to hold a single element. This allows you to, for example, remove elements at any point, or replace several elements at once (using a child multi-element container). To insert/replace/clear an element on the returned container, you can use with notation or just call methods directly on the returned object. See examples below.'
       source: lib/streamlit/elements/empty.py#L28
     streamlit.expander:
       signature: st.expander(label, expanded=False, *, key=None, icon=None, width="stretch", on_change="ignore", args=None,
         kwargs=None)
-      description: >-
-        Insert a multi-element container that can be expanded/collapsed.
-        Inserts a container into your app that can be used to hold multiple elements
-        and can be expanded or collapsed by the user. When collapsed, all that is
-        visible is the provided label.
-        To add elements to the returned container, you can use the with notation
-        (preferred) or just call methods directly on the returned object. See
-        examples below.
-        By default, all content within the expander is computed and sent to the
-        frontend, even if the expander is closed. To enable lazy execution
-        where content only runs when the expander is open, use
-        on_change="rerun" or pass a callable to on_change. The .open
-        property indicates whether the expander is currently open, letting you
-        conditionally render expensive content.
-        Note
-        To follow best design practices and maintain a good appearance on
-        all screen sizes, don't nest expanders.
+      description: 'Insert a multi-element container that can be expanded/collapsed. Inserts a container into your app that can be used to hold multiple elements and can be expanded or collapsed by the user. When collapsed, all that is visible is the provided label. To add elements to the returned container, you can use the with notation (preferred) or just call methods directly on the returned object. See examples below. By default, all content within the expander is computed and sent to the frontend, even if the expander is closed. To enable lazy execution where content only runs when the expander is open, use on_change="rerun" or pass a callable to on_change. The .open property indicates whether the expander is currently open, letting you conditionally render expensive content. Note: To follow best design practices and maintain a good appearance on all screen sizes, don''t nest expanders.'
       source: lib/streamlit/elements/layouts.py#L960
       parameters:
         label:
           type: str
-          description: >-
-            A string to use as the header for the expander. The label can optionally
-            contain GitHub-flavored Markdown of the following types: Bold, Italics,
-            Strikethroughs, Inline Code, Links, and Images. Images display like
-            icons, with a max height equal to the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'A string to use as the header for the expander. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
         expanded:
           type: bool
           description: If True, initializes the expander in "expanded" state. Defaults to False (collapsed).
@@ -3885,40 +3738,12 @@ api:
     streamlit.popover:
       signature: st.popover(label, *, type="secondary", help=None, icon=None, disabled=False, use_container_width=None, width="content",
         key=None, on_change="ignore", args=None, kwargs=None)
-      description: >-
-        Insert a popover container.
-        Inserts a multi-element container as a popover. It consists of a button-like
-        element and a container that opens when the button is clicked.
-        To add elements to the returned container, you can use the "with"
-        notation (preferred) or just call methods directly on the returned object.
-        See examples below.
-        Interacting with widgets inside of an open popover will rerun the app
-        while keeping the popover open. Clicking outside of the popover will
-        close it.
-        By default, all content within the popover is computed and sent to the
-        frontend, and the app doesn't rerun when the popover is opened or
-        closed. To enable lazy execution where content only runs when the
-        popover is open, use on_change="rerun" or pass a callable to
-        on_change. The .open property indicates whether the popover is
-        currently open, letting you conditionally render expensive content.
-        Note
-        To follow best design practices, don't nest popovers.
+      description: 'Insert a popover container. Inserts a multi-element container as a popover. It consists of a button-like element and a container that opens when the button is clicked. To add elements to the returned container, you can use the "with" notation (preferred) or just call methods directly on the returned object. See examples below. Interacting with widgets inside of an open popover will rerun the app while keeping the popover open. Clicking outside of the popover will close it. By default, all content within the popover is computed and sent to the frontend, and the app doesn''t rerun when the popover is opened or closed. To enable lazy execution where content only runs when the popover is open, use on_change="rerun" or pass a callable to on_change. The .open property indicates whether the popover is currently open, letting you conditionally render expensive content. Note: To follow best design practices, don''t nest popovers.'
       source: lib/streamlit/elements/layouts.py#L1261
       parameters:
         label:
           type: str
-          description: >-
-            The label of the button that opens the popover container.
-            The label can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'The label of the button that opens the popover container. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
         help:
           type: str or None
           description: A tooltip on popover button hover. None (default) means no tooltip. Supports GitHub-flavored Markdown.
@@ -3979,58 +3804,16 @@ api:
       parameters:
         size:
           type: '"xxsmall", "xsmall", "small", "medium", "large", "xlarge", "xxlarge", "stretch", or int'
-          description: >-
-            The size of the space. This can be one of the following values:
-            "xxsmall": 0.25rem, matching the "xxsmall" gap in
-            st.container and st.columns.
-            "xsmall": 0.5rem, matching the "xsmall" gap in
-            st.container and st.columns.
-            "small" (default): 0.75rem, which is the height of a widget
-            label. This is useful for aligning buttons with labeled widgets.
-            "medium": 2.5rem, which is the height of a button or
-            (unlabeled) input field.
-            "large": 4.25rem, which is the height of a labeled input
-            field or unlabeled media widget, like st.file_uploader.
-            "xlarge": 6rem, matching the "xlarge" gap in
-            st.container and st.columns.
-            "xxlarge": 8rem, matching the "xxlarge" gap in
-            st.container and st.columns.
-            "stretch": Expands to fill remaining space in the container.
-            An integer: Fixed size in pixels.
+          description: 'The size of the space. This can be one of the following values: "xxsmall": 0.25rem, matching the "xxsmall" gap in st.container and st.columns. "xsmall": 0.5rem, matching the "xsmall" gap in st.container and st.columns. "small" (default): 0.75rem, which is the height of a widget label. This is useful for aligning buttons with labeled widgets. "medium": 2.5rem, which is the height of a button or (unlabeled) input field. "large": 4.25rem, which is the height of a labeled input field or unlabeled media widget, like st.file_uploader. "xlarge": 6rem, matching the "xlarge" gap in st.container and st.columns. "xxlarge": 8rem, matching the "xxlarge" gap in st.container and st.columns. "stretch": Expands to fill remaining space in the container. An integer: Fixed size in pixels.'
           default: '"small"'
     streamlit.tabs:
       signature: st.tabs(tabs, *, width="stretch", default=None, key=None, on_change="ignore", args=None, kwargs=None)
-      description: >-
-        Insert containers separated into tabs.
-        Inserts a number of multi-element containers as tabs.
-        Tabs are a navigational element that allows users to easily
-        move between groups of related content.
-        To add elements to the returned containers, you can use the with notation
-        (preferred) or just call methods directly on the returned object. See
-        the examples below.
-        By default, all tab content is computed and sent to the frontend
-        regardless of which tab is selected. To enable lazy execution where
-        only the selected tab's content runs, use on_change="rerun" or
-        pass a callable to on_change. Each tab's .open property
-        indicates whether it is the currently selected tab, letting you
-        conditionally render expensive content.
+      description: 'Insert containers separated into tabs. Inserts a number of multi-element containers as tabs. Tabs are a navigational element that allows users to easily move between groups of related content. To add elements to the returned containers, you can use the with notation (preferred) or just call methods directly on the returned object. See the examples below. By default, all tab content is computed and sent to the frontend regardless of which tab is selected. To enable lazy execution where only the selected tab''s content runs, use on_change="rerun" or pass a callable to on_change. Each tab''s .open property indicates whether it is the currently selected tab, letting you conditionally render expensive content.'
       source: lib/streamlit/elements/layouts.py#L613
       parameters:
         tabs:
           type: list of str
-          description: >-
-            Creates a tab for each string in the list. The first tab is selected
-            by default. The string is used as the name of the tab and can
-            optionally contain GitHub-flavored Markdown of the following types:
-            Bold, Italics, Strikethroughs, Inline Code, Links, and Images.
-            Images display like icons, with a max height equal to the font
-            height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'Creates a tab for each string in the list. The first tab is selected by default. The string is used as the name of the tab and can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
         width:
           type: '"stretch" or int'
           description: '"stretch" (default): matches parent width. Integer: fixed width in pixels, capped at parent.'
@@ -4073,19 +3856,7 @@ api:
       parameters:
         data:
           type: str, Path, bytes, BytesIO, numpy.ndarray, or file
-          description: >-
-            The audio to play. This can be one of the following:
-            A URL (string) for a hosted audio file.
-            A path to a local audio file. The path can be a str
-            or Path object. Paths can be absolute or relative to the
-            working directory (where you execute streamlit run).
-            Raw audio data. Raw data formats must include all necessary file
-            headers to match the file format specified via format.
-            If data is a NumPy array, it must either be a 1D array of the
-            waveform or a 2D array of shape (C, S) where C is the number of
-            channels and S is the number of samples. See the default channel
-            order at
-            http://msdn.microsoft.com/en-us/library/windows/hardware/dn653308(v=vs.85).aspx
+          description: 'The audio to play. This can be one of the following: A URL (string) for a hosted audio file. A path to a local audio file. The path can be a str or Path object. Paths can be absolute or relative to the working directory (where you execute streamlit run). Raw audio data. Raw data formats must include all necessary file headers to match the file format specified via format. If data is a NumPy array, it must either be a 1D array of the waveform or a 2D array of shape (C, S) where C is the number of channels and S is the number of samples. See the default channel order at http://msdn.microsoft.com/en-us/library/windows/hardware/dn653308(v=vs.85).aspx'
         format:
           type: str
           description: 'The MIME type for the audio file. Defaults to "audio/wav".'
@@ -4116,15 +3887,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch" or int'
-          description: >-
-            The width of the audio player element. This can be one of the
-            following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
     streamlit.image:
@@ -4135,30 +3898,10 @@ api:
       parameters:
         image:
           type: numpy.ndarray, BytesIO, str, Path, or list of these
-          description: >-
-            The image to display. This can be one of the following:
-            A URL (string) for a hosted image.
-            A path to a local image file. The path can be a str
-            or Path object. Paths can be absolute or relative to the
-            working directory (where you execute streamlit run).
-            An SVG string like <svg xmlns=...</svg>.
-            A byte array defining an image. This includes monochrome images of
-            shape (w,h) or (w,h,1), color images of shape (w,h,3), or RGBA
-            images of shape (w,h,4), where w and h are the image width and
-            height, respectively.
-            A list of any of the above. Streamlit displays the list as a
-            row of images that overflow to additional rows as needed.
+          description: 'The image to display. This can be one of the following: A URL (string) for a hosted image. A path to a local image file. The path can be a str or Path object. Paths can be absolute or relative to the working directory (where you execute streamlit run). An SVG string like <svg xmlns=...</svg>. A byte array defining an image. This includes monochrome images of shape (w,h) or (w,h,1), color images of shape (w,h,3), or RGBA images of shape (w,h,4), where w and h are the image width and height, respectively. A list of any of the above. Streamlit displays the list as a row of images that overflow to additional rows as needed.'
         caption:
           type: str or list of str
-          description: >-
-            Image caption(s). If this is None (default), no caption is
-            displayed. If image is a list of multiple images, caption
-            must be a list of captions (one caption for each image) or
-            None.
-            Captions can optionally contain GitHub-flavored Markdown. Syntax
-            information can be found at: https://github.github.com/gfm.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'Image caption(s). If this is None (default), no caption is displayed. If image is a list of multiple images, caption must be a list of captions (one caption for each image) or None. Captions can optionally contain GitHub-flavored Markdown. Syntax information can be found at: https://github.github.com/gfm. See the body parameter of st.markdown for additional supported Markdown directives.'
           default: None
         width:
           type: '"content", "stretch", or int'
@@ -4192,34 +3935,15 @@ api:
           kwarg_only: true
     streamlit.logo:
       signature: st.logo(image, *, size="medium", link=None, icon_image=None)
-      description: >-
-        Renders a logo in the upper-left corner of your app and its sidebar.
-        If st.logo is called multiple times within a page, Streamlit will
-        render the image passed in the last call. For the most consistent results,
-        call st.logo early in your page script and choose an image that works
-        well in both light and dark mode. Avoid empty margins around your image.
-        If your logo does not work well for both light and dark mode, consider
-        setting the theme and hiding the settings menu from users with the
-        configuration option
-        client.toolbarMode="minimal".
-        If a user clicks the logo, they are redirected to your app's home page.
+      description: 'Renders a logo in the upper-left corner of your app and its sidebar. If st.logo is called multiple times within a page, Streamlit will render the image passed in the last call. For the most consistent results, call st.logo early in your page script and choose an image that works well in both light and dark mode. Avoid empty margins around your image. If your logo does not work well for both light and dark mode, consider setting the theme and hiding the settings menu from users with the configuration option client.toolbarMode="minimal". If a user clicks the logo, they are redirected to your app''s home page.'
       source: lib/streamlit/commands/logo.py#L86
       parameters:
         image:
           type: Anything supported by st.image (except list) or str
-          description: >-
-            The image to display in the upper-left corner of your app and its sidebar. If icon_image is also provided, Streamlit only displays image in the sidebar. Supports any type from st.image (except list), plus:
-            - A single-character emoji (e.g. "🏠" or "🚀"). Emoji short codes are not supported.
-            - A Material Symbols icon: ":material/icon_name:" (rounded style, snake case).
-            Streamlit scales the image to a max height set by size and a max width to fit within the sidebar.
+          description: 'The image to display in the upper-left corner of your app and its sidebar. If icon_image is also provided, Streamlit only displays image in the sidebar. Supports any type from st.image (except list), plus: A single-character emoji (e.g. "🏠" or "🚀"). Emoji short codes are not supported. A Material Symbols icon: ":material/icon_name:" (rounded style, snake case). Streamlit scales the image to a max height set by size and a max width to fit within the sidebar.'
         size:
           type: '"small", "medium", or "large"'
-          description: >-
-            The size of the image displayed in the upper-left corner of the app and its
-            sidebar. The possible values are as follows:
-            "small": 20px max height
-            "medium" (default): 24px max height
-            "large": 32px max height
+          description: 'The size of the image displayed in the upper-left corner of the app and its sidebar. The possible values are as follows: "small": 20px max height. "medium" (default): 24px max height. "large": 32px max height.'
           default: '"medium"'
           kwarg_only: true
         link:
@@ -4229,20 +3953,7 @@ api:
           kwarg_only: true
         icon_image:
           type: Anything supported by st.image (except list), str, or None
-          description: >-
-            An optional, typically smaller image to replace image in the
-            upper-left corner when the sidebar is closed. This can be any of the
-            types allowed for the image parameter. If icon_image is
-            None (default), Streamlit will always display image in the
-            upper-left corner, regardless of whether the sidebar is open or closed.
-            Otherwise, Streamlit will render icon_image in the upper-left
-            corner of the app when the sidebar is closed.
-            Streamlit scales the image to a max height set by size and a max
-            width to fit within the sidebar. If the sidebar is closed, the max
-            width is retained from when it was last open.
-            For best results, pass a wide or horizontal image to image and a
-            square image to icon_image. Or, pass a square image to image
-            and leave icon_image=None.
+          description: 'An optional, typically smaller image to replace image in the upper-left corner when the sidebar is closed. This can be any of the types allowed for the image parameter. If icon_image is None (default), Streamlit will always display image in the upper-left corner, regardless of whether the sidebar is open or closed. Otherwise, Streamlit will render icon_image in the upper-left corner of the app when the sidebar is closed. Streamlit scales the image to a max height set by size and a max width to fit within the sidebar. If the sidebar is closed, the max width is retained from when it was last open. For best results, pass a wide or horizontal image to image and a square image to icon_image. Or, pass a square image to image and leave icon_image=None.'
           default: None
           kwarg_only: true
     streamlit.pdf:
@@ -4252,15 +3963,7 @@ api:
       parameters:
         data:
           type: str, Path, BytesIO, or bytes
-          description: >-
-            The PDF file to show. This can be one of the following:
-            A URL (string) for a hosted PDF file.
-            A path to a local PDF file. If you use a relative path, it must
-            be relative to the current working directory.
-            A file-like object. For example, this can be an UploadedFile
-            from st.file_uploader, or this can be a local file opened
-            with open().
-            Raw bytes data.
+          description: 'The PDF file to show. This can be one of the following: A URL (string) for a hosted PDF file. A path to a local PDF file. If you use a relative path, it must be relative to the current working directory. A file-like object. For example, this can be an UploadedFile from st.file_uploader, or this can be a local file opened with open(). Raw bytes data.'
         height:
           type: int or "stretch"
           description: 'An integer specifying the height in pixels: The viewer has a fixed height. If the content is larger than the specified height, scrolling is enabled. This is 500 by default. "stretch": The height of the viewer matches the height of its content or the height of the parent container, whichever is larger. If the viewer is not in a parent container, the height of the viewer matches the height of its content.'
@@ -4274,14 +3977,7 @@ api:
       parameters:
         data:
           type: str, Path, bytes, io.BytesIO, numpy.ndarray, or file
-          description: >-
-            The video to play. This can be one of the following:
-            A URL (string) for a hosted video file, including YouTube URLs.
-            A path to a local video file. The path can be a str
-            or Path object. Paths can be absolute or relative to the
-            working directory (where you execute streamlit run).
-            Raw video data. Raw data formats must include all necessary file
-            headers to match the file format specified via format.
+          description: 'The video to play. This can be one of the following: A URL (string) for a hosted video file, including YouTube URLs. A path to a local video file. The path can be a str or Path object. Paths can be absolute or relative to the working directory (where you execute streamlit run). Raw video data. Raw data formats must include all necessary file headers to match the file format specified via format.'
         format:
           type: str
           description: 'The MIME type for the video file. Defaults to "video/mp4".'
@@ -4292,26 +3988,7 @@ api:
           default: '0'
         subtitles:
           type: str, bytes, Path, io.BytesIO, or dict
-          description: >-
-            Optional subtitle data for the video, supporting several input types:
-            None (default): No subtitles.
-            A string, bytes, or Path: File path to a subtitle file in
-            .vtt or .srt formats, or the raw content of subtitles
-            conforming to these formats. Paths can be absolute or relative to
-            the working directory (where you execute streamlit run).
-            If providing raw content, the string must adhere to the WebVTT or
-            SRT format specifications.
-            io.BytesIO: A BytesIO stream that contains valid .vtt or .srt
-            formatted subtitle data.
-            A dictionary: Pairs of labels and file paths or raw subtitle content in
-            .vtt or .srt formats to enable multiple subtitle tracks.
-            The label will be shown in the video player. Example:
-            {"English": "path/to/english.vtt", "French": "path/to/french.srt"}
-            When provided, subtitles are displayed by default. For multiple
-            tracks, the first one is displayed by default. If you don't want any
-            subtitles displayed by default, use an empty string for the value
-            in a dictrionary's first pair: {"None": "", "English": "path/to/english.vtt"}
-            Not supported for YouTube videos.
+          description: 'Optional subtitle data for the video, supporting several input types: None (default): No subtitles. A string, bytes, or Path: File path to a subtitle file in .vtt or .srt formats, or the raw content of subtitles conforming to these formats. Paths can be absolute or relative to the working directory (where you execute streamlit run). If providing raw content, the string must adhere to the WebVTT or SRT format specifications. io.BytesIO: A BytesIO stream that contains valid .vtt or .srt formatted subtitle data. A dictionary: Pairs of labels and file paths or raw subtitle content in .vtt or .srt formats to enable multiple subtitle tracks. The label will be shown in the video player. Example: {"English": "path/to/english.vtt", "French": "path/to/french.srt"}. When provided, subtitles are displayed by default. For multiple tracks, the first one is displayed by default. If you don''t want any subtitles displayed by default, use an empty string for the value in a dictionary''s first pair: {"None": "", "English": "path/to/english.vtt"}. Not supported for YouTube videos.'
           default: None
           kwarg_only: true
         end_time:
@@ -4336,15 +4013,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch" or int'
-          description: >-
-            The width of the video player element. This can be one of the
-            following:
-            "stretch" (default): The width of the element matches the
-            width of the parent container.
-            An integer specifying the width in pixels: The element has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the element matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the element matches the width of the parent container. An integer specifying the width in pixels: The element has a fixed width. If the specified width is greater than the width of the parent container, the width of the element matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
   status:
@@ -4410,17 +4079,7 @@ api:
           description: 'Progress value: 0-100 for int, 0.0-1.0 for float.'
         text:
           type: str or None
-          description: >-
-            A message to display above the progress bar. The text can optionally
-            contain GitHub-flavored Markdown of the following types: Bold, Italics,
-            Strikethroughs, Inline Code, Links, and Images. Images display like
-            icons, with a max height equal to the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'A message to display above the progress bar. The text can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
           default: None
         width:
           type: '"stretch" or int'
@@ -4451,39 +4110,12 @@ api:
           kwarg_only: true
     streamlit.status:
       signature: st.status(label, *, expanded=False, state="running", width="stretch")
-      description: >-
-        Insert a status container to display output from long-running tasks.
-        Inserts a container into your app that is typically used to show the status and
-        details of a process or task. The container can hold multiple elements and can
-        be expanded or collapsed by the user similar to st.expander.
-        When collapsed, all that is visible is the status icon and label.
-        The label, state, and expanded state can all be updated by calling .update()
-        on the returned object. To add elements to the returned container, you can
-        use with notation (preferred) or just call methods directly on the returned
-        object.
-        By default, st.status() initializes in the "running" state. When called using
-        with notation, it automatically updates to the "complete" state at the end
-        of the "with" block. See examples below for more details.
-        Note
-        All content within the status container is computed and sent to the
-        frontend, even if the status container is closed.
-        To follow best design practices and maintain a good appearance on
-        all screen sizes, don't nest status containers.
+      description: 'Insert a status container to display output from long-running tasks. Inserts a container into your app that is typically used to show the status and details of a process or task. The container can hold multiple elements and can be expanded or collapsed by the user similar to st.expander. When collapsed, all that is visible is the status icon and label. The label, state, and expanded state can all be updated by calling .update() on the returned object. To add elements to the returned container, you can use with notation (preferred) or just call methods directly on the returned object. By default, st.status() initializes in the "running" state. When called using with notation, it automatically updates to the "complete" state at the end of the "with" block. See examples below for more details. Note: All content within the status container is computed and sent to the frontend, even if the status container is closed. To follow best design practices and maintain a good appearance on all screen sizes, don''t nest status containers.'
       source: lib/streamlit/elements/layouts.py#L1625
       parameters:
         label:
           type: str
-          description: >-
-            The initial label of the status container. The label can optionally
-            contain GitHub-flavored Markdown of the following types: Bold, Italics,
-            Strikethroughs, Inline Code, Links, and Images. Images display like
-            icons, with a max height equal to the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'The initial label of the status container. The label can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
         expanded:
           type: bool
           description: If True, initializes the status container in "expanded" state. Defaults to False (collapsed).
@@ -4559,14 +4191,7 @@ api:
   chat:
     streamlit.chat_message:
       signature: st.chat_message(name, *, avatar=None, width="stretch")
-      description: >-
-        Insert a chat message container.
-        To add elements to the returned container, you can use with notation
-        (preferred) or just call methods directly on the returned object. See the
-        examples below.
-        Note
-        To follow best design practices and maintain a good appearance on
-        all screen sizes, don't nest chat message containers.
+      description: 'Insert a chat message container. To add elements to the returned container, you can use with notation (preferred) or just call methods directly on the returned object. See the examples below. Note: To follow best design practices and maintain a good appearance on all screen sizes, don''t nest chat message containers.'
       source: lib/streamlit/elements/widgets/chat.py#L397
       parameters:
         name:
@@ -4574,41 +4199,12 @@ api:
           description: 'Message author name. "human"/"user" or "ai"/"assistant" for preset styling/avatars. Not shown in UI (accessibility label only). Don''t use empty string.'
         avatar:
           type: Anything supported by st.image (except list), str, or None
-          description: >-
-            The avatar shown next to the message.
-            If avatar is None (default), the icon will be determined
-            from name as follows:
-            If name is "user" or "human", the message will have a
-            default user icon.
-            If name is "ai" or "assistant", the message will have
-            a default bot icon.
-            For all other values of name, the message will show the first
-            letter of the name.
-            In addition to the types supported by st.image (except list),
-            the following strings are valid:
-            A single-character emoji. For example, you can set avatar="🧑‍💻"
-            or avatar="🦖". Emoji short codes are not supported.
-            An icon from the Material Symbols library (rounded style) in the
-            format ":material/icon_name:" where "icon_name" is the name
-            of the icon in snake case.
-            For example, icon=":material/thumb_up:" will display the
-            Thumb Up icon. Find additional icons in the Material Symbols
-            font library.
-            "spinner": Displays a spinner as an icon.
+          description: 'The avatar shown next to the message. If avatar is None (default), the icon will be determined from name as follows: If name is "user" or "human", the message will have a default user icon. If name is "ai" or "assistant", the message will have a default bot icon. For all other values of name, the message will show the first letter of the name. In addition to the types supported by st.image (except list), the following strings are valid: A single-character emoji. For example, you can set avatar="🧑‍💻" or avatar="🦖". Emoji short codes are not supported. An icon from the Material Symbols library (rounded style) in the format ":material/icon_name:" where "icon_name" is the name of the icon in snake case. For example, icon=":material/thumb_up:" will display the Thumb Up icon. Find additional icons in the Material Symbols font library. "spinner": Displays a spinner as an icon.'
           default: None
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the chat message container. This can be one of the following:
-            "stretch" (default): The width of the container matches the
-            width of the parent container.
-            "content": The width of the container matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The container has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the container matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the container matches the width of the parent container. "content": The width of the container matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The container has a fixed width. If the specified width is greater than the width of the parent container, the width of the container matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
       returns:
@@ -4617,50 +4213,12 @@ api:
   control_flow:
     streamlit.dialog:
       signature: st.dialog(title, *, width="small", dismissible=True, icon=None, on_dismiss="ignore")
-      description: >-
-        Function decorator to create a modal dialog.
-        A function decorated with @st.dialog becomes a dialog
-        function. When you call a dialog function, Streamlit inserts a modal dialog
-        into your app. Streamlit element commands called within the dialog function
-        render inside the modal dialog.
-        The dialog function can accept arguments that can be passed when it is
-        called. Any values from the dialog that need to be accessed from the wider
-        app should generally be stored in Session State.
-        If a dialog is dismissible, a user can dismiss it by clicking outside of
-        it, clicking the "X" in its upper-right corner, or pressing ESC on
-        their keyboard. You can configure whether this triggers a rerun of the app
-        by setting the on_dismiss parameter.
-        If a dialog is not dismissible, it must be closed programmatically by
-        calling st.rerun() inside the dialog function. This is useful when you
-        want to ensure that the dialog is always closed programmatically, such as
-        when the dialog contains a form that must be submitted before closing.
-        st.dialog inherits behavior from st.fragment.
-        When a user interacts with an input widget created inside a dialog function,
-        Streamlit only reruns the dialog function instead of the full script.
-        Calling st.sidebar in a dialog function is not supported.
-        Dialog code can interact with Session State, imported modules, and other
-        Streamlit elements created outside the dialog. Note that these interactions
-        are additive across multiple dialog reruns. You are responsible for
-        handling any side effects of that behavior.
-        Warning
-        Only one dialog function may be called in a script run, which means
-        that only one dialog can be open at any given time.
+      description: 'Function decorator to create a modal dialog. A function decorated with @st.dialog becomes a dialog function. When you call a dialog function, Streamlit inserts a modal dialog into your app. Streamlit element commands called within the dialog function render inside the modal dialog. The dialog function can accept arguments that can be passed when it is called. Any values from the dialog that need to be accessed from the wider app should generally be stored in Session State. If a dialog is dismissible, a user can dismiss it by clicking outside of it, clicking the "X" in its upper-right corner, or pressing ESC on their keyboard. You can configure whether this triggers a rerun of the app by setting the on_dismiss parameter. If a dialog is not dismissible, it must be closed programmatically by calling st.rerun() inside the dialog function. This is useful when you want to ensure that the dialog is always closed programmatically, such as when the dialog contains a form that must be submitted before closing. st.dialog inherits behavior from st.fragment. When a user interacts with an input widget created inside a dialog function, Streamlit only reruns the dialog function instead of the full script. Calling st.sidebar in a dialog function is not supported. Dialog code can interact with Session State, imported modules, and other Streamlit elements created outside the dialog. Note that these interactions are additive across multiple dialog reruns. You are responsible for handling any side effects of that behavior. Warning: Only one dialog function may be called in a script run, which means that only one dialog can be open at any given time.'
       source: lib/streamlit/elements/dialog_decorator.py#L141
       parameters:
         title:
           type: str
-          description: >-
-            The title to display at the top of the modal dialog. It cannot be empty.
-            The title can optionally contain GitHub-flavored Markdown of the
-            following types: Bold, Italics, Strikethroughs, Inline Code, Links,
-            and Images. Images display like icons, with a max height equal to
-            the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'The title to display at the top of the modal dialog. It cannot be empty. The title can optionally contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
         width:
           type: '"small", "medium", "large"'
           description: '"small" (default): max 500px. "medium": max 750px. "large": max 1280px.'
@@ -4692,22 +4250,7 @@ api:
           default: '"above"'
     streamlit.form:
       signature: st.form(key, clear_on_submit=False, *, enter_to_submit=True, border=True, width="stretch", height="content")
-      description: >-
-        Create a form that batches elements together with a "Submit" button.
-        A form is a container that visually groups other elements and
-        widgets together, and contains a Submit button. When the form's
-        Submit button is pressed, all widget values inside the form will be
-        sent to Streamlit in a batch.
-        To add elements to a form object, you can use with notation
-        (preferred) or just call methods directly on the form. See
-        examples below.
-        Forms have a few constraints:
-        Every form must contain a st.form_submit_button.
-        st.button and st.download_button cannot be added to a form.
-        Forms can appear anywhere in your app (sidebar, columns, etc),
-        but they cannot be embedded inside other forms.
-        Within a form, the only widget that can have a callback function is
-        st.form_submit_button.
+      description: 'Create a form that batches elements together with a "Submit" button. A form is a container that visually groups other elements and widgets together, and contains a Submit button. When the form''s Submit button is pressed, all widget values inside the form will be sent to Streamlit in a batch. To add elements to a form object, you can use with notation (preferred) or just call methods directly on the form. See examples below. Forms have a few constraints: Every form must contain a st.form_submit_button. st.button and st.download_button cannot be added to a form. Forms can appear anywhere in your app (sidebar, columns, etc), but they cannot be embedded inside other forms. Within a form, the only widget that can have a callback function is st.form_submit_button.'
       source: lib/streamlit/elements/form.py#L75
       parameters:
         key:
@@ -4729,16 +4272,7 @@ api:
           kwarg_only: true
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            The width of the form container. This can be one of the following:
-            "stretch" (default): The width of the container matches the
-            width of the parent container.
-            "content": The width of the container matches the width of its
-            content, but doesn't exceed the width of the parent container.
-            An integer specifying the width in pixels: The container has a
-            fixed width. If the specified width is greater than the width of
-            the parent container, the width of the container matches the width
-            of the parent container.
+          description: '"stretch" (default): The width of the container matches the width of the parent container. "content": The width of the container matches the width of its content, but doesn''t exceed the width of the parent container. An integer specifying the width in pixels: The container has a fixed width. If the specified width is greater than the width of the parent container, the width of the container matches the width of the parent container.'
           default: '"stretch"'
           kwarg_only: true
         height:
@@ -4748,34 +4282,7 @@ api:
           kwarg_only: true
     streamlit.fragment:
       signature: st.fragment(func=None, *, run_every=None)
-      description: >-
-        Decorator to turn a function into a fragment which can rerun independently    of the full app.
-        When a user interacts with an input widget created inside a fragment,
-        Streamlit only reruns the fragment instead of the full app. If
-        run_every is set, Streamlit will also rerun the fragment at the
-        specified interval while the session is active, even if the user is not
-        interacting with your app.
-        To trigger an app rerun from inside a fragment, call st.rerun()
-        directly. To trigger a fragment rerun from within itself, call
-        st.rerun(scope="fragment"). Any values from the fragment that need to
-        be accessed from the wider app should generally be stored in Session State.
-        When Streamlit element commands are called directly in a fragment, the
-        elements are cleared and redrawn on each fragment rerun, just like all
-        elements are redrawn on each app rerun. The rest of the app is persisted
-        during a fragment rerun. When a fragment renders elements into externally
-        created containers, the elements will not be cleared with each fragment
-        rerun. Instead, elements will accumulate in those containers with each
-        fragment rerun, until the next app rerun.
-        Calling st.sidebar in a fragment is not supported. To write elements to
-        the sidebar with a fragment, call your fragment function inside a
-        with st.sidebar context manager.
-        Fragment code can interact with Session State, imported modules, and
-        other Streamlit elements created outside the fragment. Note that these
-        interactions are additive across multiple fragment reruns. You are
-        responsible for handling any side effects of that behavior.
-        Warning
-        Fragments can only contain widgets in their main body. Fragments
-        can't render widgets to externally created containers.
+      description: 'Decorator to turn a function into a fragment which can rerun independently of the full app. When a user interacts with an input widget created inside a fragment, Streamlit only reruns the fragment instead of the full app. If run_every is set, Streamlit will also rerun the fragment at the specified interval while the session is active, even if the user is not interacting with your app. To trigger an app rerun from inside a fragment, call st.rerun() directly. To trigger a fragment rerun from within itself, call st.rerun(scope="fragment"). Any values from the fragment that need to be accessed from the wider app should generally be stored in Session State. When Streamlit element commands are called directly in a fragment, the elements are cleared and redrawn on each fragment rerun, just like all elements are redrawn on each app rerun. The rest of the app is persisted during a fragment rerun. When a fragment renders elements into externally created containers, the elements will not be cleared with each fragment rerun. Instead, elements will accumulate in those containers with each fragment rerun, until the next app rerun. Calling st.sidebar in a fragment is not supported. To write elements to the sidebar with a fragment, call your fragment function inside a with st.sidebar context manager. Fragment code can interact with Session State, imported modules, and other Streamlit elements created outside the fragment. Note that these interactions are additive across multiple fragment reruns. You are responsible for handling any side effects of that behavior. Warning: Fragments can only contain widgets in their main body. Fragments can''t render widgets to externally created containers.'
       source: lib/streamlit/runtime/fragment.py#L297
       parameters:
         func:
@@ -4784,18 +4291,7 @@ api:
           default: None
         run_every:
           type: int, float, timedelta, str, or None
-          description: >-
-            The time interval between automatic fragment reruns. This can be one of
-            the following:
-            None (default).
-            An int or float specifying the interval in seconds.
-            A string specifying the time in a format supported by Pandas'
-            Timedelta constructor,
-            e.g. "1d", "1.5 days", or "1h23s".
-            A timedelta object from Python's built-in datetime library,
-            e.g. timedelta(days=1).
-            If run_every is None, the fragment will only rerun from
-            user-triggered events.
+          description: 'The time interval between automatic fragment reruns. This can be one of the following: None (default). An int or float specifying the interval in seconds. A string specifying the time in a format supported by Pandas'' Timedelta constructor, e.g. "1d", "1.5 days", or "1h23s". A timedelta object from Python''s built-in datetime library, e.g. timedelta(days=1). If run_every is None, the fragment will only rerun from user-triggered events.'
           default: None
           kwarg_only: true
     streamlit.rerun:
@@ -4853,32 +4349,7 @@ api:
           default: None
     streamlit.cache_data:
       signature: st.cache_data(func=None, *, ttl, max_entries, show_spinner, show_time=False, persist, hash_funcs=None, scope="global")
-      description: >-
-        Decorator to cache functions that return data (e.g. dataframe transforms, database queries, ML inference).
-        Cached objects can be global or session-scoped. Global cached data is
-        available across all users, sessions, and reruns. Session-scoped cached
-        data is only available in the current session and removed when the
-        session disconnects.
-        Cached objects are stored in "pickled" form, which means that the return
-        value of a cached function must be pickleable. Each caller of the cached
-        function gets its own copy of the cached data.
-        You can clear a function's cache with func.clear() or clear the entire
-        cache with st.cache_data.clear().
-        A function's arguments must be hashable to cache it. Streamlit makes a
-        best effort to hash a variety of objects, but the fallback hashing method
-        requires that the argument be pickleable, also. If you have an unhashable
-        argument (like a database connection) or an argument you want to exclude
-        from caching, use an underscore prefix in the argument name. In this case,
-        Streamlit will return a cached value when all other arguments match a
-        previous function call. Alternatively, you can declare custom hashing
-        functions with hash_funcs.
-        Objects cached by st.cache_data are returned as copies. To cache a
-        shared resource or something you want to mutate in place, use
-        st.cache_resource instead. To learn more about caching, see
-        Caching overview.
-        Note
-        Caching async functions is not supported. To upvote this feature,
-        see GitHub issue #8308.
+      description: 'Decorator to cache functions that return data (e.g. dataframe transforms, database queries, ML inference). Cached objects can be global or session-scoped. Global cached data is available across all users, sessions, and reruns. Session-scoped cached data is only available in the current session and removed when the session disconnects. Cached objects are stored in "pickled" form, which means that the return value of a cached function must be pickleable. Each caller of the cached function gets its own copy of the cached data. You can clear a function''s cache with func.clear() or clear the entire cache with st.cache_data.clear(). A function''s arguments must be hashable to cache it. Streamlit makes a best effort to hash a variety of objects, but the fallback hashing method requires that the argument be pickleable, also. If you have an unhashable argument (like a database connection) or an argument you want to exclude from caching, use an underscore prefix in the argument name. In this case, Streamlit will return a cached value when all other arguments match a previous function call. Alternatively, you can declare custom hashing functions with hash_funcs. Objects cached by st.cache_data are returned as copies. To cache a shared resource or something you want to mutate in place, use st.cache_resource instead. To learn more about caching, see Caching overview. Note: Caching async functions is not supported. To upvote this feature, see GitHub issue #8308.'
       source: lib/streamlit/runtime/caching/cache_data_api.py#L454
       parameters:
         func:
@@ -4887,16 +4358,7 @@ api:
           default: None
         ttl:
           type: float, timedelta, str, or None
-          description: >-
-            The maximum time to keep an entry in the cache. Can be one of:
-            None if cache entries should never expire (default).
-            A number specifying the time in seconds.
-            A string specifying the time in a format supported by Pandas's
-            Timedelta constructor,
-            e.g. "1d", "1.5 days", or "1h23s".
-            A timedelta object from Python's built-in datetime library,
-            e.g. timedelta(days=1).
-            Note that ttl will be ignored if persist="disk" or persist=True.
+          description: 'The maximum time to keep an entry in the cache. Can be one of: None if cache entries should never expire (default). A number specifying the time in seconds. A string specifying the time in a format supported by Pandas''s Timedelta constructor, e.g. "1d", "1.5 days", or "1h23s". A timedelta object from Python''s built-in datetime library, e.g. timedelta(days=1). Note that ttl will be ignored if persist="disk" or persist=True.'
           kwarg_only: true
         max_entries:
           type: int or None
@@ -4925,49 +4387,13 @@ api:
           kwarg_only: true
         scope:
           type: '"global" or "session"'
-          description: >-
-            The scope for the data cache. If this is "global" (default),
-            the data is cached globally. If this is "session", the data is
-            removed from the cache when the session disconnects.
-            Because a session-scoped cache is cleared when a session disconnects,
-            an unstable network connection can cause the cache to populate
-            multiple times in a single session. If this is a problem, you might
-            consider adjusting the server.websocketPingInterval
-            configuration option.
+          description: 'The scope for the data cache. If this is "global" (default), the data is cached globally. If this is "session", the data is removed from the cache when the session disconnects. Because a session-scoped cache is cleared when a session disconnects, an unstable network connection can cause the cache to populate multiple times in a single session. If this is a problem, you might consider adjusting the server.websocketPingInterval configuration option.'
           default: '"global"'
           kwarg_only: true
     streamlit.cache_resource:
       signature: st.cache_resource(func, *, ttl, max_entries, show_spinner, show_time=False, validate, hash_funcs=None, on_release=None,
         scope="global")
-      description: >-
-        Decorator to cache functions that return resource objects (e.g. database connections, ML models).
-        Cached objects can be global or session-scoped. Global resources are
-        shared across all users, sessions, and reruns. Session-scoped resources are
-        scoped to the current session and are removed when the session disconnects.
-        Global resources must be thread-safe. If thread safety is an issue,
-        consider using a session-scoped cache or storing the resource in
-        st.session_state instead.
-        You can clear a function's cache with func.clear() or clear the entire
-        cache with st.cache_resource.clear().
-        A function's arguments must be hashable to cache it. Streamlit makes a
-        best effort to hash a variety of objects, but the fallback hashing method
-        requires that the argument be pickleable, also. If you have an unhashable
-        argument (like a database connection) or an argument you want to exclude
-        from caching, use an underscore prefix in the argument name. In this case,
-        Streamlit will return a cached value when all other arguments match a
-        previous function call. Alternatively, you can declare custom hashing
-        functions with hash_funcs.
-        Objects cached by st.cache_resource act like singletons and can
-        mutate. To cache data and return copies, use st.cache_data instead.
-        To learn more about caching, see Caching overview.
-        Warning
-        Async objects are not officially supported in Streamlit. Caching
-        async objects or objects that reference async objects may have
-        unintended consequences. For example, Streamlit may close event
-        loops in its normal operation and make the cached object raise an
-        Event loop closed error.
-        To upvote official asyncio support, see GitHub issue #8488. To upvote
-        support for caching async functions, see GitHub issue #8308.
+      description: 'Decorator to cache functions that return resource objects (e.g. database connections, ML models). Cached objects can be global or session-scoped. Global resources are shared across all users, sessions, and reruns. Session-scoped resources are scoped to the current session and are removed when the session disconnects. Global resources must be thread-safe. If thread safety is an issue, consider using a session-scoped cache or storing the resource in st.session_state instead. You can clear a function''s cache with func.clear() or clear the entire cache with st.cache_resource.clear(). A function''s arguments must be hashable to cache it. Streamlit makes a best effort to hash a variety of objects, but the fallback hashing method requires that the argument be pickleable, also. If you have an unhashable argument (like a database connection) or an argument you want to exclude from caching, use an underscore prefix in the argument name. In this case, Streamlit will return a cached value when all other arguments match a previous function call. Alternatively, you can declare custom hashing functions with hash_funcs. Objects cached by st.cache_resource act like singletons and can mutate. To cache data and return copies, use st.cache_data instead. To learn more about caching, see Caching overview. Warning: Async objects are not officially supported in Streamlit. Caching async objects or objects that reference async objects may have unintended consequences. For example, Streamlit may close event loops in its normal operation and make the cached object raise an Event loop closed error. To upvote official asyncio support, see GitHub issue #8488. To upvote support for caching async functions, see GitHub issue #8308.'
       source: lib/streamlit/runtime/caching/cache_resource_api.py#L352
       parameters:
         func:
@@ -4975,18 +4401,7 @@ api:
           description: The function that creates the cached resource. Streamlit hashes the function's source code.
         ttl:
           type: float, timedelta, str, or None
-          description: >-
-            The maximum age of a returned entry from the cache. This can be one
-            of the following values:
-            None if cache entries should never expire (default).
-            A number specifying the time in seconds.
-            A string specifying the time in a format supported by Pandas's
-            Timedelta constructor,
-            e.g. "1d", "1.5 days", or "1h23s". Note that number strings
-            without units are treated by Pandas as nanoseconds.
-            A timedelta object from Python's built-in datetime library,
-            e.g. timedelta(days=1).
-            Changes to this value will trigger a new cache to be created.
+          description: 'The maximum age of a returned entry from the cache. This can be one of the following values: None if cache entries should never expire (default). A number specifying the time in seconds. A string specifying the time in a format supported by Pandas''s Timedelta constructor, e.g. "1d", "1.5 days", or "1h23s". Note that number strings without units are treated by Pandas as nanoseconds. A timedelta object from Python''s built-in datetime library, e.g. timedelta(days=1). Changes to this value will trigger a new cache to be created.'
           kwarg_only: true
         max_entries:
           type: int or None
@@ -5014,33 +4429,12 @@ api:
           kwarg_only: true
         on_release:
           type: callable or None
-          description: >-
-            A function to call when an entry is removed from the cache.
-            The removed item will be provided to the function as an argument.
-            This is only useful for caches that remove entries normally.
-            Most commonly, this is used session-scoped caches to release
-            per-session resources. This can also be used with max_entries
-            or ttl settings.
-            TTL expiration only happens when expired resources are accessed.
-            Therefore, don't rely on TTL expiration to guarantee timely cleanup.
-            Also, expiration can happen on any script run. Ensure that
-            on_release functions are thread-safe and don't rely on session
-            state.
-            The on_release function isn't guaranteed to be called when an
-            app is shut down.
+          description: 'A function to call when an entry is removed from the cache. The removed item will be provided to the function as an argument. This is only useful for caches that remove entries normally. Most commonly, this is used for session-scoped caches to release per-session resources. This can also be used with max_entries or ttl settings. TTL expiration only happens when expired resources are accessed. Therefore, don''t rely on TTL expiration to guarantee timely cleanup. Also, expiration can happen on any script run. Ensure that on_release functions are thread-safe and don''t rely on session state. The on_release function isn''t guaranteed to be called when an app is shut down.'
           default: None
           kwarg_only: true
         scope:
           type: '"global" or "session"'
-          description: >-
-            The scope for the resource cache. If this is "global" (default),
-            the resource is cached globally. If this is "session", the
-            resource is removed from the cache when the session disconnects.
-            Because a session-scoped cache is cleared when a session disconnects,
-            an unstable network connection can cause the cache to populate
-            multiple times in a single session. If this is a problem, you might
-            consider adjusting the server.websocketPingInterval
-            configuration option.
+          description: 'The scope for the resource cache. If this is "global" (default), the resource is cached globally. If this is "session", the resource is removed from the cache when the session disconnects. Because a session-scoped cache is cleared when a session disconnects, an unstable network connection can cause the cache to populate multiple times in a single session. If this is a problem, you might consider adjusting the server.websocketPingInterval configuration option.'
           default: '"global"'
           kwarg_only: true
     streamlit.cache_data.clear:
@@ -5058,89 +4452,30 @@ api:
   navigation:
     streamlit.Page:
       signature: st.Page(page, *, title=None, icon=None, url_path=None, default=False, visibility="visible")
-      description: >-
-        Configure a page for st.navigation in a multipage app.
-        Call st.Page to initialize a StreamlitPage object, and pass it to
-        st.navigation to declare a page in your app.
-        When a user navigates to a page, st.navigation returns the selected
-        StreamlitPage object. Call .run() on the returned StreamlitPage
-        object to execute the page. You can only run the page returned by
-        st.navigation, and you can only run it once per app rerun.
-        A page can be defined by a Python file or Callable.
+      description: 'Configure a page for st.navigation in a multipage app. Call st.Page to initialize a StreamlitPage object, and pass it to st.navigation to declare a page in your app. When a user navigates to a page, st.navigation returns the selected StreamlitPage object. Call .run() on the returned StreamlitPage object to execute the page. You can only run the page returned by st.navigation, and you can only run it once per app rerun. A page can be defined by a Python file or Callable.'
       source: lib/streamlit/navigation/page.py#L32
       parameters:
         page:
           type: str, Path, or callable
-          description: >-
-            The page source as a Callable or path to a Python file. If the page
-            source is defined by a Python file, the path can be a string or
-            pathlib.Path object. Paths can be absolute or relative to the
-            entrypoint file. If the page source is defined by a Callable, the
-            Callable can't accept arguments.
+          description: 'The page source as a Callable or path to a Python file. If the page source is defined by a Python file, the path can be a string or pathlib.Path object. Paths can be absolute or relative to the entrypoint file. If the page source is defined by a Callable, the Callable can''t accept arguments.'
         title:
           type: str or None
-          description: >-
-            The title of the page. If this is None (default), the page title
-            (in the browser tab) and label (in the navigation menu) will be
-            inferred from the filename or callable name in page. For more
-            information, see Overview of multipage apps.
-            The title supports GitHub-flavored Markdown of the following types:
-            Bold, Italics, Strikethrough, Inline Code, and Images. Images display
-            like icons, with a max height equal to the font height.
-            Unsupported Markdown elements are unwrapped so only their children
-            (text contents) render. Common block-level Markdown (headings,
-            lists, blockquotes) is automatically escaped and displays as
-            literal text in labels.
-            See the body parameter of st.markdown for additional, supported
-            Markdown directives.
+          description: 'The title of the page. If this is None (default), the page title (in the browser tab) and label (in the navigation menu) will be inferred from the filename or callable name in page. For more information, see Overview of multipage apps. The title supports GitHub-flavored Markdown of the following types: Bold, Italics, Strikethrough, Inline Code, and Images. Images display like icons, with a max height equal to the font height. Unsupported Markdown elements are unwrapped so only their children (text contents) render. Common block-level Markdown (headings, lists, blockquotes) is automatically escaped and displays as literal text in labels. See the body parameter of st.markdown for additional supported Markdown directives.'
           default: None
           kwarg_only: true
         icon:
           type: str or None
-          description: >-
-            An optional emoji or icon to display next to the page title and label.
-            If icon is None (default), no icon is displayed next to the
-            page label in the navigation menu, and a Streamlit icon is displayed
-            next to the title (in the browser tab). If icon is a string, the
-            following options are valid:
-            A single-character emoji. For example, you can set icon="🚨"
-            or icon="🔥". Emoji short codes are not supported.
-            An icon from the Material Symbols library (rounded style) in the
-            format ":material/icon_name:" where "icon_name" is the name
-            of the icon in snake case.
-            For example, icon=":material/thumb_up:" will display the
-            Thumb Up icon. Find additional icons in the Material Symbols
-            font library.
-            "spinner": Displays a spinner as an icon. In this case, the
-            spinner only displays next to the page label in the navigation menu.
-            The spinner isn't used as the page favicon next to the title in the
-            browser tab. The favicon is the default Streamlit icon unless
-            otherwise specified with the page_icon parameter of
-            st.set_page_config.
+          description: 'An optional emoji or icon to display next to the page title and label. If icon is None (default), no icon is displayed next to the page label in the navigation menu, and a Streamlit icon is displayed next to the title (in the browser tab). If icon is a string, the following options are valid: A single-character emoji. For example, you can set icon="🚨" or icon="🔥". Emoji short codes are not supported. An icon from the Material Symbols library (rounded style) in the format ":material/icon_name:" where "icon_name" is the name of the icon in snake case. For example, icon=":material/thumb_up:" will display the Thumb Up icon. Find additional icons in the Material Symbols font library. "spinner": Displays a spinner as an icon. In this case, the spinner only displays next to the page label in the navigation menu. The spinner isn''t used as the page favicon next to the title in the browser tab. The favicon is the default Streamlit icon unless otherwise specified with the page_icon parameter of st.set_page_config.'
           default: None
           kwarg_only: true
         url_path:
           type: str or None
-          description: >-
-            The page's URL pathname, which is the path relative to the app's root
-            URL. If this is None (default), the URL pathname will be inferred
-            from the filename or callable name in page. For more information,
-            see Overview of multipage apps.
-            The default page will have a pathname of "", indicating the root
-            URL of the app. If you set default=True, url_path is ignored.
-            url_path can't include forward slashes; paths can't include
-            subdirectories.
+          description: 'The page''s URL pathname, which is the path relative to the app''s root URL. If this is None (default), the URL pathname will be inferred from the filename or callable name in page. For more information, see Overview of multipage apps. The default page will have a pathname of "", indicating the root URL of the app. If you set default=True, url_path is ignored. url_path can''t include forward slashes; paths can''t include subdirectories.'
           default: None
           kwarg_only: true
         default:
           type: bool
-          description: >-
-            Whether this page is the default page to be shown when the app is
-            loaded. If default is False (default), the page will have a
-            nonempty URL pathname. However, if no default page is passed to
-            st.navigation and this is the first page, this page will become the
-            default page. If default is True, then the page will have
-            an empty pathname and url_path will be ignored.
+          description: 'Whether this page is the default page to be shown when the app is loaded. If default is False (default), the page will have a nonempty URL pathname. However, if no default page is passed to st.navigation and this is the first page, this page will become the default page. If default is True, then the page will have an empty pathname and url_path will be ignored.'
           default: 'False'
           kwarg_only: true
         visibility:
@@ -5153,69 +4488,20 @@ api:
         description: The page object associated to the given script.
     streamlit.navigation:
       signature: st.navigation(pages, *, position="sidebar", expanded=False)
-      description: >-
-        Configure the available pages in a multipage app.
-        Call st.navigation in your entrypoint file to define the available
-        pages for your app. st.navigation returns the current page, which can
-        be executed using .run() method.
-        When using st.navigation, your entrypoint file (the file passed to
-        streamlit run) acts like a router or frame of common elements around
-        each of your pages. Streamlit executes the entrypoint file with every app
-        rerun. To execute the current page, you must call the .run() method on
-        the StreamlitPage object returned by st.navigation.
-        The set of available pages can be updated with each rerun for dynamic
-        navigation. By default, st.navigation displays the available pages in
-        the sidebar if there is more than one page. This behavior can be changed
-        using the position keyword argument.
-        As soon as any session of your app executes the st.navigation command,
-        your app will ignore the pages/ directory (across all sessions).
+      description: 'Configure the available pages in a multipage app. Call st.navigation in your entrypoint file to define the available pages for your app. st.navigation returns the current page, which can be executed using .run() method. When using st.navigation, your entrypoint file (the file passed to streamlit run) acts like a router or frame of common elements around each of your pages. Streamlit executes the entrypoint file with every app rerun. To execute the current page, you must call the .run() method on the StreamlitPage object returned by st.navigation. The set of available pages can be updated with each rerun for dynamic navigation. By default, st.navigation displays the available pages in the sidebar if there is more than one page. This behavior can be changed using the position keyword argument. As soon as any session of your app executes the st.navigation command, your app will ignore the pages/ directory (across all sessions).'
       source: lib/streamlit/commands/navigation.py#L80
       parameters:
         pages:
           type: Sequence[page-like], Mapping[str, Sequence[page-like]]
-          description: >-
-            The available pages for the app.
-            To create a navigation menu with no sections or page groupings,
-            pages must be a list of page-like objects. Page-like objects are
-            anything that can be passed to st.Page or a StreamlitPage
-            object returned by st.Page.
-            To create labeled sections or page groupings within the navigation
-            menu, pages must be a dictionary. Each key is the label of a
-            section and each value is the list of page-like objects for
-            that section. If you use position="top", each grouping will be a
-            collapsible item in the navigation menu. For top navigation, if you use
-            an empty string as a section header, the pages in that section will be
-            displayed at the beginning of the menu before the collapsible sections.
-            Section labels support GitHub-flavored Markdown as described in the
-            title parameter of st.Page.
-            When you use a string or path as a page-like object, they are
-            internally passed to st.Page and converted to StreamlitPage
-            objects. In this case, the page will have the default title, icon, and
-            path inferred from its path or filename. To customize these attributes
-            for your page, initialize your page with st.Page.
+          description: 'The available pages for the app. To create a navigation menu with no sections or page groupings, pages must be a list of page-like objects. Page-like objects are anything that can be passed to st.Page or a StreamlitPage object returned by st.Page. To create labeled sections or page groupings within the navigation menu, pages must be a dictionary. Each key is the label of a section and each value is the list of page-like objects for that section. If you use position="top", each grouping will be a collapsible item in the navigation menu. For top navigation, if you use an empty string as a section header, the pages in that section will be displayed at the beginning of the menu before the collapsible sections. Section labels support GitHub-flavored Markdown as described in the title parameter of st.Page. When you use a string or path as a page-like object, they are internally passed to st.Page and converted to StreamlitPage objects. In this case, the page will have the default title, icon, and path inferred from its path or filename. To customize these attributes for your page, initialize your page with st.Page.'
         position:
           type: '"sidebar", "top", or "hidden"'
-          description: >-
-            The position of the navigation menu. If this is "sidebar"
-            (default), the navigation widget appears at the top of the sidebar. If
-            this is "top", the navigation appears in the top header of the app.
-            If this is "hidden", the navigation widget is not displayed.
-            If there is only one page in pages, the navigation will be hidden
-            for any value of position.
+          description: 'The position of the navigation menu. If this is "sidebar" (default), the navigation widget appears at the top of the sidebar. If this is "top", the navigation appears in the top header of the app. If this is "hidden", the navigation widget is not displayed. If there is only one page in pages, the navigation will be hidden for any value of position.'
           default: '"sidebar"'
           kwarg_only: true
         expanded:
           type: bool
-          description: >-
-            Whether the navigation menu should be expanded. If this is False
-            (default), the navigation menu will be collapsed and will include a
-            button to view more options when there are too many pages to display.
-            If this is True, the navigation menu will always be expanded; no
-            button to collapse the menu will be displayed.
-            If st.navigation changes from expanded=True to
-            expanded=False on a rerun, the menu will stay expanded and a
-            collapse button will be displayed.
-            The parameter is only used when position="sidebar".
+          description: 'Whether the navigation menu should be expanded. If this is False (default), the navigation menu will be collapsed and will include a button to view more options when there are too many pages to display. If this is True, the navigation menu will always be expanded; no button to collapse the menu will be displayed. If st.navigation changes from expanded=True to expanded=False on a rerun, the menu will stay expanded and a collapse button will be displayed. The parameter is only used when position="sidebar".'
           default: 'False'
           kwarg_only: true
       returns:
@@ -5237,16 +4523,7 @@ api:
   connections:
     streamlit.connection:
       signature: st.connection(name, type=None, max_entries=None, ttl=None, **kwargs)
-      description: >-
-        Create a new connection to a data store or API, or return an existing one.
-        Configuration options, credentials, and secrets for connections are
-        combined from the following sources:
-        The keyword arguments passed to this command.
-        The app's secrets.toml files.
-        Any connection-specific configuration files.
-        The connection returned from st.connection is internally cached with
-        st.cache_resource. Connection types with a scope of "global" will be shared
-        between sessions.
+      description: 'Create a new connection to a data store or API, or return an existing one. Configuration options, credentials, and secrets for connections are combined from the following sources: The keyword arguments passed to this command. The app''s secrets.toml files. Any connection-specific configuration files. The connection returned from st.connection is internally cached with st.cache_resource. Connection types with a scope of "global" will be shared between sessions.'
       source: lib/streamlit/runtime/connection_factory.py#L244
       parameters:
         name:
@@ -5254,36 +4531,7 @@ api:
           description: 'Connection name for secrets lookup in [connections.<name>] of secrets.toml. Type auto-inferred for "snowflake", "snowpark", or "sql".'
         type:
           type: str, connection class, or None
-          description: >-
-            The type of connection to create. This can be one of the following:
-            None (default): Streamlit will infer the connection type from
-            name. If the type is not inferable from name, the type must
-            be specified in secrets.toml instead.
-            "snowflake": Streamlit will initialize a connection with
-            SnowflakeConnection.
-            "snowflake-callers-rights": Streamlit will initialize a
-            "snowflake"-type connection, except the connection uses the
-            current viewer's identity tokens instead of the app's connection
-            configuration.
-            "snowpark": Streamlit will initialize a connection with
-            SnowparkConnection. This is deprecated.
-            "sql": Streamlit will initialize a connection with
-            SQLConnection.
-            A string path to an importable class: This must be a dot-separated
-            module path ending in the importable class. Streamlit will import the
-            class and initialize a connection with it. The class must extend
-            st.connections.BaseConnection.
-            An imported class reference: Streamlit will initialize a connection
-            with the referenced class, which must extend
-            st.connections.BaseConnection.
-            Important
-            Connections of type "snowflake-callers-rights" only work when
-            they run in a Snowflake Snowpark Container Services environment. If
-            they are used in a local environment, they will raise exceptions.
-            For local development, use an environment variable or secret to
-            logically switch between a "snowflake" and
-            "snowflake-callers-rights" connection depending on the runtime
-            environment.
+          description: 'The type of connection to create. This can be one of the following: None (default): Streamlit will infer the connection type from name. If the type is not inferable from name, the type must be specified in secrets.toml instead. "snowflake": Streamlit will initialize a connection with SnowflakeConnection. "snowflake-callers-rights": Streamlit will initialize a "snowflake"-type connection, except the connection uses the current viewer''s identity tokens instead of the app''s connection configuration. "snowpark": Streamlit will initialize a connection with SnowparkConnection. This is deprecated. "sql": Streamlit will initialize a connection with SQLConnection. A string path to an importable class: This must be a dot-separated module path ending in the importable class. Streamlit will import the class and initialize a connection with it. The class must extend st.connections.BaseConnection. An imported class reference: Streamlit will initialize a connection with the referenced class, which must extend st.connections.BaseConnection. Important: Connections of type "snowflake-callers-rights" only work when they run in a Snowflake Snowpark Container Services environment. If they are used in a local environment, they will raise exceptions. For local development, use an environment variable or secret to logically switch between a "snowflake" and "snowflake-callers-rights" connection depending on the runtime environment.'
           default: None
         max_entries:
           type: int or None
@@ -5295,12 +4543,7 @@ api:
           default: None
         '**kwargs':
           type: any
-          description: >-
-            Connection-specific keyword arguments that are passed to the
-            connection's ._connect() method. **kwargs are typically
-            combined with (and take precedence over) key-value pairs in
-            secrets.toml. To learn more, see the specific connection's
-            documentation.
+          description: 'Connection-specific keyword arguments that are passed to the connection''s ._connect() method. **kwargs are typically combined with (and take precedence over) key-value pairs in secrets.toml. To learn more, see the specific connection''s documentation.'
           kwarg_only: true
       returns:
       - type: Subclass of BaseConnection
@@ -5315,38 +4558,7 @@ api:
       source: lib/streamlit/connections/base_connection.py#L28
     streamlit.connections.SQLConnection:
       signature: st.connections.SQLConnection(connection_name, **kwargs)
-      description: >-
-        A connection to a SQL database using a SQLAlchemy Engine.
-        Initialize this connection object using st.connection("sql") or
-        st.connection("<name>", type="sql"). Connection parameters for a
-        SQLConnection can be specified using secrets.toml and/or **kwargs.
-        Possible connection parameters include:
-        url or keyword arguments for sqlalchemy.engine.URL.create(), except
-        drivername. Use dialect and driver instead of drivername.
-        Keyword arguments for sqlalchemy.create_engine(), including custom
-        connect() arguments used by your specific dialect or driver.
-        autocommit. If this is False (default), the connection operates
-        in manual commit (transactional) mode. If this is True, the
-        connection operates in autocommit (non-transactional) mode.
-        If url exists as a connection parameter, Streamlit will pass it to
-        sqlalchemy.engine.make_url(). Otherwise, Streamlit requires (at a
-        minimum) dialect, username, and host. Streamlit will use
-        dialect and driver (if defined) to derive drivername, then pass
-        the relevant connection parameters to sqlalchemy.engine.URL.create().
-        In addition to the default keyword arguments for sqlalchemy.create_engine(),
-        your dialect may accept additional keyword arguments. For example, if you
-        use dialect="snowflake" with Snowflake SQLAlchemy,
-        you can pass a value for private_key to use key-pair authentication. If
-        you use dialect="bigquery" with Google BigQuery,
-        you can pass a value for location.
-        SQLConnection provides the .query() convenience method, which can be
-        used to run simple, read-only queries with both caching and simple error
-        handling/retries. More complex database interactions can be performed by
-        using the .session property to receive a regular SQLAlchemy Session.
-        Important
-        SQLAlchemy must be installed
-        in your environment to use this connection. You must also install your
-        driver, such as pyodbc or psycopg2.
+      description: 'A connection to a SQL database using a SQLAlchemy Engine. Initialize this connection object using st.connection("sql") or st.connection("<name>", type="sql"). Connection parameters for a SQLConnection can be specified using secrets.toml and/or **kwargs. Possible connection parameters include: url or keyword arguments for sqlalchemy.engine.URL.create(), except drivername. Use dialect and driver instead of drivername. Keyword arguments for sqlalchemy.create_engine(), including custom connect() arguments used by your specific dialect or driver. autocommit. If this is False (default), the connection operates in manual commit (transactional) mode. If this is True, the connection operates in autocommit (non-transactional) mode. If url exists as a connection parameter, Streamlit will pass it to sqlalchemy.engine.make_url(). Otherwise, Streamlit requires (at a minimum) dialect, username, and host. Streamlit will use dialect and driver (if defined) to derive drivername, then pass the relevant connection parameters to sqlalchemy.engine.URL.create(). In addition to the default keyword arguments for sqlalchemy.create_engine(), your dialect may accept additional keyword arguments. For example, if you use dialect="snowflake" with Snowflake SQLAlchemy, you can pass a value for private_key to use key-pair authentication. If you use dialect="bigquery" with Google BigQuery, you can pass a value for location. SQLConnection provides the .query() convenience method, which can be used to run simple, read-only queries with both caching and simple error handling/retries. More complex database interactions can be performed by using the .session property to receive a regular SQLAlchemy Session. Important: SQLAlchemy must be installed in your environment to use this connection. You must also install your driver, such as pyodbc or psycopg2.'
       source: lib/streamlit/connections/sql_connection.py#L55
     streamlit.connections.SnowflakeCallersRightsConnection:
       signature: st.connections.SnowflakeCallersRightsConnection(connection_name, **kwargs)
@@ -5354,61 +4566,11 @@ api:
       source: lib/streamlit/connections/snowflake_connection.py#L677
     streamlit.connections.SnowflakeConnection:
       signature: st.connections.SnowflakeConnection(connection_name, **kwargs)
-      description: >-
-        A connection to Snowflake using the Snowflake Connector for Python.
-        For standard connections, create an instance of this using
-        st.connection("snowflake") or
-        st.connection("<name>", type="snowflake"). Connection parameters for a
-        SnowflakeConnection can be specified using secrets.toml and/or
-        **kwargs. Connection parameters are passed to
-        snowflake.connector.connect().
-        When an app is running in Streamlit in Snowflake,
-        st.connection("snowflake") connects automatically using the app owner's
-        role without further configuration. **kwargs are ignored in this
-        case. Use secrets.toml and **kwargs to configure your connection
-        for local development.
-        When an app is running in Snowpark Container Services and has caller's rights
-        enabled, st.connection("snowflake-callers-rights") connects automatically
-        using the current user's identity tokens. This is a session-scoped connection
-        to ensure that the identity stays tied to the active user. Unlike with
-        "snowflake" connections, it will use the Snowpark Container Services
-        connection settings even when other **kwargs are provided.
-        The Snowflake connection includes several convenience methods. For example, you
-        can directly execute a SQL query with .query() or access the underlying
-        Snowflake Connector object with .raw_connection.
-        Important
-        snowflake-snowpark-python
-        must be installed in your environment to use this connection. You can
-        install it as an extra with Streamlit:
-        pip install streamlit[snowflake]
-        Account identifiers must be of the form <orgname>-<account_name>
-        where <orgname> is the name of your Snowflake organization and
-        <account_name> is the unique name of your account within your
-        organization. This is dash-separated, not dot-separated like when used
-        in SQL queries. For more information, see Account identifiers.
-        Caller's rights connections rely on credentials provided when a user first
-        connects to a Streamlit app. These credentials are only valid for about
-        two minutes. Therefore, caller's rights connections must be created at
-        the top of an app or else the connection may fail.
-        To develop locally with a caller's rights connection, use an
-        environment variable to logically switch between a "snowflake"
-        connection locally and a "snowflake-callers-rights" connection in
-        Snowpark Container Services.
+      description: 'A connection to Snowflake using the Snowflake Connector for Python. For standard connections, create an instance of this using st.connection("snowflake") or st.connection("<name>", type="snowflake"). Connection parameters for a SnowflakeConnection can be specified using secrets.toml and/or **kwargs. Connection parameters are passed to snowflake.connector.connect(). When an app is running in Streamlit in Snowflake, st.connection("snowflake") connects automatically using the app owner''s role without further configuration. **kwargs are ignored in this case. Use secrets.toml and **kwargs to configure your connection for local development. When an app is running in Snowpark Container Services and has caller''s rights enabled, st.connection("snowflake-callers-rights") connects automatically using the current user''s identity tokens. This is a session-scoped connection to ensure that the identity stays tied to the active user. Unlike with "snowflake" connections, it will use the Snowpark Container Services connection settings even when other **kwargs are provided. The Snowflake connection includes several convenience methods. For example, you can directly execute a SQL query with .query() or access the underlying Snowflake Connector object with .raw_connection. Important: snowflake-snowpark-python must be installed in your environment to use this connection. You can install it as an extra with Streamlit: pip install streamlit[snowflake]. Account identifiers must be of the form <orgname>-<account_name> where <orgname> is the name of your Snowflake organization and <account_name> is the unique name of your account within your organization. This is dash-separated, not dot-separated like when used in SQL queries. For more information, see Account identifiers. Caller''s rights connections rely on credentials provided when a user first connects to a Streamlit app. These credentials are only valid for about two minutes. Therefore, caller''s rights connections must be created at the top of an app or else the connection may fail. To develop locally with a caller''s rights connection, use an environment variable to logically switch between a "snowflake" connection locally and a "snowflake-callers-rights" connection in Snowpark Container Services.'
       source: lib/streamlit/connections/snowflake_connection.py#L365
     streamlit.connections.SnowparkConnection:
       signature: st.connections.SnowparkConnection(connection_name, **kwargs)
-      description: >-
-        A connection to Snowpark using snowflake.snowpark.session.Session. Initialize using
-        st.connection("<name>", type="snowpark").
-        In addition to providing access to the Snowpark Session, SnowparkConnection supports
-        direct SQL querying using query("...") and thread safe access using
-        with conn.safe_session():. See methods below for more information.
-        SnowparkConnections should always be created using st.connection(), not
-        initialized directly.
-        Note
-        We don't expect this iteration of SnowparkConnection to be able to scale
-        well in apps with many concurrent users due to the lock contention that will occur
-        over the single underlying Session object under high load.
+      description: 'A connection to Snowpark using snowflake.snowpark.session.Session. Initialize using st.connection("<name>", type="snowpark"). In addition to providing access to the Snowpark Session, SnowparkConnection supports direct SQL querying using query("...") and thread safe access using with conn.safe_session(). See methods below for more information. SnowparkConnections should always be created using st.connection(), not initialized directly. Note: We don''t expect this iteration of SnowparkConnection to be able to scale well in apps with many concurrent users due to the lock contention that will occur over the single underlying Session object under high load.'
       source: lib/streamlit/connections/snowpark_connection.py#L49
     streamlit.connections.SQLConnection.close:
       signature: SQLConnection.close()
@@ -5440,15 +4602,7 @@ api:
     streamlit.connections.SQLConnection.query:
       signature: SQLConnection.query(sql, *, show_spinner="Running `sql.query(...)`.", ttl=None, index_col=None, chunksize=None,
         params=None, **kwargs)
-      description: >-
-        Run a read-only query.
-        This method implements query result caching and simple error
-        handling/retries. The caching behavior is identical to that of using
-        @st.cache_data.
-        Note
-        Queries that are run without a specified ttl are cached indefinitely.
-        All keyword arguments passed to this function are passed down to
-        pandas.read_sql, except ttl.
+      description: 'Run a read-only query. This method implements query result caching and simple error handling/retries. The caching behavior is identical to that of using @st.cache_data. Note: Queries that are run without a specified ttl are cached indefinitely. All keyword arguments passed to this function are passed down to pandas.read_sql, except ttl.'
       source: lib/streamlit/connections/sql_connection.py#L224
       parameters:
         sql:
@@ -5612,13 +4766,7 @@ api:
         description: A new Snowpark session for this connection.
     streamlit.connections.SnowflakeConnection.write_pandas:
       signature: SnowflakeConnection.write_pandas(df, table_name, database=None, schema=None, chunk_size=None, **kwargs)
-      description: >-
-        Write a pandas.DataFrame to a table in a Snowflake database.
-        This convenience method is a thin wrapper around
-        snowflake.connector.pandas_tools.write_pandas() using the
-        underlying connection. The conn parameter is passed automatically.
-        For more information and additional keyword arguments, see the
-        Snowflake Connector for Python documentation.
+      description: 'Write a pandas.DataFrame to a table in a Snowflake database. This convenience method is a thin wrapper around snowflake.connector.pandas_tools.write_pandas() using the underlying connection. The conn parameter is passed automatically. For more information and additional keyword arguments, see the Snowflake Connector for Python documentation.'
       source: lib/streamlit/connections/snowflake_connection.py#L168
       parameters:
         df:
@@ -5691,83 +4839,23 @@ api:
       parameters:
         page_title:
           type: str or None
-          description: >-
-            The page title, shown in the browser tab. If this is None
-            (default), the page title is inherited from the previous call of
-            st.set_page_config. If this is None and no previous call
-            exists, the page title is inferred from the page source.
-            If a page source is a Python file, its inferred title is derived from
-            the filename. If a page source is a callable object, its inferred title
-            is derived from the callable's name.
+          description: 'The page title, shown in the browser tab. If this is None (default), the page title is inherited from the previous call of st.set_page_config. If this is None and no previous call exists, the page title is inferred from the page source. If a page source is a Python file, its inferred title is derived from the filename. If a page source is a callable object, its inferred title is derived from the callable''s name.'
           default: None
         page_icon:
           type: Anything supported by st.image (except list), str, or None
-          description: >-
-            The page favicon. If page_icon is None (default), the page icon
-            is inherited from the previous call of st.set_page_config. If this
-            is None and no previous call exists, the favicon is a monochrome
-            Streamlit logo.
-            In addition to the types supported by st.image (except list), the
-            following strings are valid:
-            A single-character emoji. For example, you can set page_icon="🦈".
-            An emoji short code. For example, you can set page_icon=":shark:".
-            For a list of all supported codes, see
-            https://share.streamlit.io/streamlit/emoji-shortcodes.
-            The string literal, "random". You can set page_icon="random"
-            to set a random emoji from the supported list above.
-            An icon from the Material Symbols library (rounded style) in the
-            format ":material/icon_name:" where "icon_name" is the name
-            of the icon in snake case.
-            For example, page_icon=":material/thumb_up:" will display the
-            Thumb Up icon. Find additional icons in the Material Symbols
-            font library.
-            Note
-            Colors are not supported for Material icons. When you use a
-            Material icon for favicon, it will be black, regardless of browser
-            theme.
+          description: 'The page favicon. If page_icon is None (default), the page icon is inherited from the previous call of st.set_page_config. If this is None and no previous call exists, the favicon is a monochrome Streamlit logo. In addition to the types supported by st.image (except list), the following strings are valid: A single-character emoji. For example, you can set page_icon="🦈". An emoji short code. For example, you can set page_icon=":shark:". For a list of all supported codes, see https://share.streamlit.io/streamlit/emoji-shortcodes. The string literal, "random". You can set page_icon="random" to set a random emoji from the supported list above. An icon from the Material Symbols library (rounded style) in the format ":material/icon_name:" where "icon_name" is the name of the icon in snake case. For example, page_icon=":material/thumb_up:" will display the Thumb Up icon. Find additional icons in the Material Symbols font library. Note: Colors are not supported for Material icons. When you use a Material icon for favicon, it will be black, regardless of browser theme.'
           default: None
         layout:
           type: '"centered", "wide", or None'
-          description: >-
-            Layout of the page content. The following layouts are supported:
-            None (default): The page layout is inherited from the previous
-            call of st.set_page_config. If no previous call exists, the page
-            layout is "centered".
-            "centered": Page elements are constrained to a centered column of
-            fixed width.
-            "wide": Page elements use the entire screen width.
+          description: 'Layout of the page content. The following layouts are supported: None (default): The page layout is inherited from the previous call of st.set_page_config. If no previous call exists, the page layout is "centered". "centered": Page elements are constrained to a centered column of fixed width. "wide": Page elements use the entire screen width.'
           default: None
         initial_sidebar_state:
           type: '"auto", "expanded", "collapsed", int, or None'
-          description: >-
-            Initial state of the sidebar. The following states are supported:
-            None (default): The sidebar state is inherited from the previous
-            call of st.set_page_config. If no previous call exists, the
-            sidebar state is "auto".
-            "auto": The sidebar is hidden on small devices and shown
-            otherwise.
-            "expanded": The sidebar is shown initially.
-            "collapsed": The sidebar is hidden initially.
-            int: The sidebar will use "auto" behavior but start with the
-            specified width in pixels. The width must be between 200 and 600
-            pixels, inclusive.
-            In most cases, "auto" provides the best user experience across
-            devices of different sizes.
+          description: 'Initial state of the sidebar. The following states are supported: None (default): The sidebar state is inherited from the previous call of st.set_page_config. If no previous call exists, the sidebar state is "auto". "auto": The sidebar is hidden on small devices and shown otherwise. "expanded": The sidebar is shown initially. "collapsed": The sidebar is hidden initially. int: The sidebar will use "auto" behavior but start with the specified width in pixels. The width must be between 200 and 600 pixels, inclusive. In most cases, "auto" provides the best user experience across devices of different sizes.'
           default: None
         menu_items:
           type: dict
-          description: >-
-            Configure the menu that appears on the top-right side of this app.
-            The keys in this dict denote the menu item to configure. The following
-            keys can have string or None values:
-            "Get help": The URL this menu item should point to.
-            "Report a Bug": The URL this menu item should point to.
-            "About": A markdown string to show in the About dialog.
-            A URL may also refer to an email address e.g. mailto:john@example.com.
-            If you do not include a key, its menu item will be hidden (unless it
-            was set by a previous call to st.set_page_config). To remove an
-            item that was specified in a previous call to st.set_page_config,
-            set its value to None in the dictionary.
+          description: 'Configure the menu that appears on the top-right side of this app. The keys in this dict denote the menu item to configure. The following keys can have string or None values: "Get help": The URL this menu item should point to. "Report a Bug": The URL this menu item should point to. "About": A markdown string to show in the About dialog. A URL may also refer to an email address e.g. mailto:john@example.com. If you do not include a key, its menu item will be hidden (unless it was set by a previous call to st.set_page_config). To remove an item that was specified in a previous call to st.set_page_config, set its value to None in the dictionary.'
           default: None
   write_magic:
     streamlit.write:
@@ -5777,58 +4865,10 @@ api:
       parameters:
         '*args':
           type: any
-          description: >-
-            One or many objects to display in the app.
-            Each type of argument is handled as follows:
-            Type
-            Handling
-            str
-            Uses st.markdown().
-            dataframe-like, dict, or list
-            Uses st.dataframe().
-            Exception
-            Uses st.exception().
-            function, module, or class
-            Uses st.help().
-            DeltaGenerator
-            Uses st.help().
-            Altair chart
-            Uses st.altair_chart().
-            Bokeh figure
-            Uses st.bokeh_chart().
-            Graphviz graph
-            Uses st.graphviz_chart().
-            Keras model
-            Converts model and uses st.graphviz_chart().
-            Matplotlib figure
-            Uses st.pyplot().
-            Plotly figure
-            Uses st.plotly_chart().
-            PIL.Image
-            Uses st.image().
-            generator or stream (like openai.Stream)
-            Uses st.write_stream().
-            SymPy expression
-            Uses st.latex().
-            An object with ._repr_html()
-            Uses st.html().
-            Database cursor
-            Displays DB API 2.0 cursor results in a table.
-            Any
-            Displays str(arg) as inline code.
+          description: 'One or many objects to display in the app. Each type of argument is handled as follows: str → Uses st.markdown(). dataframe-like, dict, or list → Uses st.dataframe(). Exception → Uses st.exception(). function, module, or class → Uses st.help(). DeltaGenerator → Uses st.help(). Altair chart → Uses st.altair_chart(). Bokeh figure → Uses st.bokeh_chart(). Graphviz graph → Uses st.graphviz_chart(). Keras model → Converts model and uses st.graphviz_chart(). Matplotlib figure → Uses st.pyplot(). Plotly figure → Uses st.plotly_chart(). PIL.Image → Uses st.image(). generator or stream (like openai.Stream) → Uses st.write_stream(). SymPy expression → Uses st.latex(). An object with ._repr_html() → Uses st.html(). Database cursor → Displays DB API 2.0 cursor results in a table. Any → Displays str(arg) as inline code.'
         unsafe_allow_html:
           type: bool
-          description: >-
-            Whether to render HTML within *args. This only applies to
-            strings or objects falling back on _repr_html_(). If this is
-            False (default), any HTML tags found in body will be
-            escaped and therefore treated as raw text. If this is True, any
-            HTML expressions within body will be rendered.
-            Adding custom HTML to your app impacts safety, styling, and
-            maintainability.
-            Note
-            If you only want to insert HTML or CSS without Markdown text,
-            we recommend using st.html instead.
+          description: 'Whether to render HTML within *args. This only applies to strings or objects falling back on _repr_html_(). If this is False (default), any HTML tags found in body will be escaped and therefore treated as raw text. If this is True, any HTML expressions within body will be rendered. Adding custom HTML to your app impacts safety, styling, and maintainability. Note: If you only want to insert HTML or CSS without Markdown text, we recommend using st.html instead.'
           default: 'False'
           kwarg_only: true
       returns:
@@ -5840,31 +4880,10 @@ api:
       parameters:
         stream:
           type: Callable, Generator, Iterable, OpenAI Stream, or LangChain Stream
-          description: >-
-            The generator or iterable to stream.
-            If you pass an async generator, Streamlit will internally convert
-            it to a sync generator. If the generator depends on a cached object
-            with async references, this can raise an error.
-            Note
-            To use additional LLM libraries, you can create a wrapper to
-            manually define a generator function and include custom output
-            parsing.
+          description: 'The generator or iterable to stream. If you pass an async generator, Streamlit will internally convert it to a sync generator. If the generator depends on a cached object with async references, this can raise an error. Note: To use additional LLM libraries, you can create a wrapper to manually define a generator function and include custom output parsing.'
         cursor:
           type: str or None
-          description: >-
-            A string to append to text as it's being written. If this is
-            None (default), no cursor is shown. Otherwise, the string is
-            rendered as Markdown and appears as a cursor at the end of the
-            streamed text. For example, you can use an emoji, emoji shortcode,
-            or Material icon.
-            The first line of the cursor string can contain GitHub-flavored
-            Markdown of the following types: Bold, Italics, Strikethroughs,
-            Inline Code, Links, and Images. Images display like icons, with a
-            max height equal to the font height. If you pass a multiline
-            string, additional lines display after the text with the full
-            Markdown rendering capabilities of st.markdown.
-            See the body parameter of st.markdown for additional,
-            supported Markdown directives.
+          description: 'A string to append to text as it''s being written. If this is None (default), no cursor is shown. Otherwise, the string is rendered as Markdown and appears as a cursor at the end of the streamed text. For example, you can use an emoji, emoji shortcode, or Material icon. The first line of the cursor string can contain GitHub-flavored Markdown of the following types: Bold, Italics, Strikethroughs, Inline Code, Links, and Images. Images display like icons, with a max height equal to the font height. If you pass a multiline string, additional lines display after the text with the full Markdown rendering capabilities of st.markdown. See the body parameter of st.markdown for additional supported Markdown directives.'
           default: None
           kwarg_only: true
       returns:
@@ -5878,35 +4897,11 @@ api:
       parameters:
         provider:
           type: str or None
-          description: >-
-            The name of your provider configuration to use for login.
-            If provider is None (default), Streamlit will use all settings
-            in the [auth] dictionary within your app's secrets.toml file.
-            Otherwise, use an [auth.{provider}] dictionary for the named
-            provider, as shown in the examples that follow. When you pass a string
-            to provider, Streamlit will use redirect_uri and
-            cookie_secret, while ignoring any other values in the [auth]
-            dictionary.
-            Due to internal implementation details, Streamlit does not support
-            using an underscore within provider at this time.
+          description: 'The name of your provider configuration to use for login. If provider is None (default), Streamlit will use all settings in the [auth] dictionary within your app''s secrets.toml file. Otherwise, use an [auth.{provider}] dictionary for the named provider, as shown in the examples that follow. When you pass a string to provider, Streamlit will use redirect_uri and cookie_secret, while ignoring any other values in the [auth] dictionary. Due to internal implementation details, Streamlit does not support using an underscore within provider at this time.'
           default: None
     streamlit.logout:
       signature: st.logout()
-      description: >-
-        Logout the current user.
-        This command removes the user's information from st.user,
-        deletes their identity cookie, and redirects them to perform a proper
-        logout from the OAuth provider (if available) before returning to your
-        app's home page. This creates a new session.
-        If the user has multiple sessions open in the same browser,
-        st.user will not be cleared in any other session.
-        st.user only reads from the identity cookie at the start
-        of a session. After a session is running, you must call st.login() or
-        st.logout() within that session to update st.user.
-        Note
-        If the OAuth provider supports OIDC end_session_endpoint in their
-        server metadata, the user will be logged out from the identity provider
-        as well. If not available, only local logout is performed.
+      description: 'Logout the current user. This command removes the user''s information from st.user, deletes their identity cookie, and redirects them to perform a proper logout from the OAuth provider (if available) before returning to your app''s home page. This creates a new session. If the user has multiple sessions open in the same browser, st.user will not be cleared in any other session. st.user only reads from the identity cookie at the start of a session. After a session is running, you must call st.login() or st.logout() within that session to update st.user. Note: If the OAuth provider supports OIDC end_session_endpoint in their server metadata, the user will be logged out from the identity provider as well. If not available, only local logout is performed.'
       source: lib/streamlit/user_info.py#L309
     streamlit.user.to_dict:
       signature: st.user.to_dict()
@@ -5921,25 +4916,7 @@ api:
       source: lib/streamlit/runtime/metrics_util.py#L693
     streamlit.user:
       signature: st.user()
-      description: >-
-        A read-only, dict-like object for accessing information about the current user.
-        st.user is dependent on the host platform running your
-        Streamlit app. If your host platform has not configured the object,
-        st.user will behave as it does in a locally running app.
-        When authentication is configured in secrets.toml, Streamlit will parse
-        the OpenID Connect (OIDC) identity token and copy the attributes to
-        st.user. Check your provider's documentation for their
-        available attributes (known as claims).
-        When authentication is not configured, st.user has no
-        attributes.
-        You can access values via key or attribute notation. For example, use
-        st.user["email"] or st.user.email to
-        access the email attribute.
-        Important
-        Identity tokens include an issuance and expiration time. Streamlit does
-        not implicitly check these. If you want to automatically expire a
-        user's authentication, check these values manually and programmatically
-        log out your user (st.logout()) when needed.
+      description: 'A read-only, dict-like object for accessing information about the current user. st.user is dependent on the host platform running your Streamlit app. If your host platform has not configured the object, st.user will behave as it does in a locally running app. When authentication is configured in secrets.toml, Streamlit will parse the OpenID Connect (OIDC) identity token and copy the attributes to st.user. Check your provider''s documentation for their available attributes (known as claims). When authentication is not configured, st.user has no attributes. You can access values via key or attribute notation. For example, use st.user["email"] or st.user.email to access the email attribute. Important: Identity tokens include an issuance and expiration time. Streamlit does not implicitly check these. If you want to automatically expire a user''s authentication, check these values manually and programmatically log out your user (st.logout()) when needed.'
       source: lib/streamlit/user_info.py#L527
       parameters:
         is_logged_in:
@@ -5951,17 +4928,7 @@ api:
   custom_components:
     streamlit.components.v1.declare_component:
       signature: st.components.v1.declare_component(name, path=None, url=None)
-      description: >-
-        Create a custom component and register it if there is a ScriptRunContext.
-        The component is not registered when there is no ScriptRunContext.
-        This can happen when a CustomComponent is executed as standalone
-        command (e.g. for testing).
-        To use this function, import it from the streamlit.components.v1
-        module.
-        Warning
-        Using st.components.v1.declare_component directly (instead of
-        importing its module) is deprecated and will be disallowed in a later
-        version.
+      description: 'Create a custom component and register it if there is a ScriptRunContext. The component is not registered when there is no ScriptRunContext. This can happen when a CustomComponent is executed as standalone command (e.g. for testing). To use this function, import it from the streamlit.components.v1 module. Warning: Using st.components.v1.declare_component directly (instead of importing its module) is deprecated and will be disallowed in a later version.'
       source: lib/streamlit/components/v1/component_registry.py#L53
       parameters:
         name:
@@ -5980,15 +4947,7 @@ api:
         description: A CustomComponent callable. Each call creates a new instance in the Streamlit app.
     streamlit.components.v1.html:
       signature: st.components.v1.html(html, width=None, height=None, scrolling=False, *, tab_index=None)
-      description: >-
-        Display an HTML string in an iframe.
-        To use this function, import it from the streamlit.components.v1
-        module.
-        If you want to insert HTML text into your app without an iframe, try
-        st.html instead.
-        Warning
-        Using st.components.v1.html directly (instead of importing
-        its module) is deprecated and will be disallowed in a later version.
+      description: 'Display an HTML string in an iframe. To use this function, import it from the streamlit.components.v1 module. If you want to insert HTML text into your app without an iframe, try st.html instead. Warning: Using st.components.v1.html directly (instead of importing its module) is deprecated and will be disallowed in a later version.'
       source: lib/streamlit/elements/iframe.py#L108
       parameters:
         html:
@@ -6013,13 +4972,7 @@ api:
           kwarg_only: true
     streamlit.components.v1.iframe:
       signature: st.components.v1.iframe(src, width=None, height=None, scrolling=False, *, tab_index=None)
-      description: >-
-        Load a remote URL in an iframe.
-        To use this function, import it from the streamlit.components.v1
-        module.
-        Warning
-        Using st.components.v1.iframe directly (instead of importing
-        its module) is deprecated and will be disallowed in a later version.
+      description: 'Load a remote URL in an iframe. To use this function, import it from the streamlit.components.v1 module. Warning: Using st.components.v1.iframe directly (instead of importing its module) is deprecated and will be disallowed in a later version.'
       source: lib/streamlit/elements/iframe.py#L29
       parameters:
         src:
@@ -6072,51 +5025,15 @@ api:
         description: A component definition with inline content preserved and file-backed entries resolved to absolute paths plus asset_dir-relative URLs.
     streamlit.components.v2.component:
       signature: st.components.v2.component(name, *, html=None, css=None, js=None, isolate_styles=True)
-      description: >-
-        Register an st.components.v2 component and return a callable to mount it.
-        Components can have any combination of HTML, CSS, and JavaScript. If none
-        are provided, the component renders as an empty element without raising
-        an error.
-        If your component is defined in an installed package, you can declare an
-        asset directory (asset_dir) through pyproject.toml files in the
-        package. This allows you to serve component assets and reference them by
-        path or glob in the html, css, and js parameters. Otherwise,
-        you must provide raw HTML, CSS, and/or JavaScript strings directly to these
-        parameters.
-        Important
-        When using paths or globs to define one or more component assets, the
-        paths must be relative to the component's asset_dir as declared in
-        the component manifest. This is only possible for installed components.
-        For security reasons, absolute paths and path traversals are rejected.
-        Because of runtime constraints, paths and globs must be provided as
-        strings and not Path objects.
+      description: 'Register an st.components.v2 component and return a callable to mount it. Components can have any combination of HTML, CSS, and JavaScript. If none are provided, the component renders as an empty element without raising an error. If your component is defined in an installed package, you can declare an asset directory (asset_dir) through pyproject.toml files in the package. This allows you to serve component assets and reference them by path or glob in the html, css, and js parameters. Otherwise, you must provide raw HTML, CSS, and/or JavaScript strings directly to these parameters. Important: When using paths or globs to define one or more component assets, the paths must be relative to the component''s asset_dir as declared in the component manifest. This is only possible for installed components. For security reasons, absolute paths and path traversals are rejected. Because of runtime constraints, paths and globs must be provided as strings and not Path objects.'
       source: lib/streamlit/components/v2/__init__.py#L207
       parameters:
         name:
           type: str
-          description: >-
-            A short, descriptive identifier for the component. This is used
-            internally by Streamlit to manage instances of the component.
-            Component names must be unique across an app. The names of imported
-            components are prefixed by their module name to avoid collisions.
-            If you register multiple components with the same name, a warning is
-            logged and the last-registered component is used. Because this can lead
-            to unexpected behavior, ensure that component names are unique. If you
-            intend to have multiple instances of a component in one app, avoid
-            wrapping a component definition together with its mounting command so
-            you don't re-register your component with each instance.
+          description: 'A short, descriptive identifier for the component. This is used internally by Streamlit to manage instances of the component. Component names must be unique across an app. The names of imported components are prefixed by their module name to avoid collisions. If you register multiple components with the same name, a warning is logged and the last-registered component is used. Because this can lead to unexpected behavior, ensure that component names are unique. If you intend to have multiple instances of a component in one app, avoid wrapping a component definition together with its mounting command so you don''t re-register your component with each instance.'
         html:
           type: str or None
-          description: >-
-            Inline HTML markup for the component root. This can be one of the
-            following strings:
-            Raw HTML. This doesn't require any <html>, <head>, or
-            <body> tags; just provide the inner HTML.
-            A path or glob to an HTML file, relative to the component's
-            asset directory.
-            If any HTML depends on data passed at mount time, use a placeholder
-            element and populate it via JavaScript. Alternatively, you can append
-            a new element to the parent. For more information, see Example 2.
+          description: 'Inline HTML markup for the component root. This can be one of the following strings: Raw HTML. This doesn''t require any <html>, <head>, or <body> tags; just provide the inner HTML. A path or glob to an HTML file, relative to the component''s asset directory. If any HTML depends on data passed at mount time, use a placeholder element and populate it via JavaScript. Alternatively, you can append a new element to the parent. For more information, see Example 2.'
           default: None
           kwarg_only: true
         css:
@@ -6136,14 +5053,7 @@ api:
           kwarg_only: true
       returns:
       - type: ComponentRenderer
-        description: >-
-          The component's mounting command.
-          This callable accepts the component parameters like key and
-          data and returns a BidiComponentResult object with the
-          component's state. The mounting command can be included in a
-          user-friendly wrapper function to provide a simpler API. A mounting
-          command can be called multiple times in an app to create multiple
-          instances of the component.
+        description: 'The component''s mounting command. This callable accepts the component parameters like key and data and returns a BidiComponentResult object with the component''s state. The mounting command can be included in a user-friendly wrapper function to provide a simpler API. A mounting command can be called multiple times in an app to create multiple instances of the component.'
     streamlit.components.v2.get_bidi_component_manager:
       signature: st.components.v2.get_bidi_component_manager()
       description: Return the singleton BidiComponentManager instance.
@@ -6160,18 +5070,7 @@ api:
       - type: None
     streamlit.query_params.from_dict:
       signature: st.query_params.from_dict(params)
-      description: >-
-        Set all of the query parameters from a dictionary or dictionary-like object.
-        This method primarily exists for advanced users who want to control
-        multiple query parameters in a single update. To set individual query
-        parameters, use key or attribute notation instead.
-        This method inherits limitations from st.query_params and can't be
-        used to set embedding options as described in Embed your app.
-        To handle repeated keys, the value in a key-value pair should be a list.
-        Note
-        .from_dict() is not a direct inverse of .to_dict() if
-        you are working with repeated keys. A true inverse operation is
-        {key: st.query_params.get_all(key) for key in st.query_params}.
+      description: 'Set all of the query parameters from a dictionary or dictionary-like object. This method primarily exists for advanced users who want to control multiple query parameters in a single update. To set individual query parameters, use key or attribute notation instead. This method inherits limitations from st.query_params and can''t be used to set embedding options as described in Embed your app. To handle repeated keys, the value in a key-value pair should be a list. Note: .from_dict() is not a direct inverse of .to_dict() if you are working with repeated keys. A true inverse operation is {key: st.query_params.get_all(key) for key in st.query_params}.'
       source: lib/streamlit/runtime/state/query_params_proxy.py#L175
       parameters:
         params:
@@ -6238,18 +5137,7 @@ api:
       source: lib/streamlit/runtime/context.py#L331
     context.theme:
       signature: context.theme
-      description: >-
-        A read-only, dictionary-like object containing theme information.
-        Theme information is restricted to the type of the theme (dark or
-        light) and is inferred from the background color of the app.
-        Note
-        Changes made to the background color through CSS are not included.
-        Additionally, the theme type may be incorrect during a change in
-        theme, like in the following situations:
-        When the app is first loaded within a session
-        When the user changes the theme in the settings menu
-        For more information and to upvote an improvement, see GitHub issue
-        #11920.
+      description: 'A read-only, dictionary-like object containing theme information. Theme information is restricted to the type of the theme (dark or light) and is inferred from the background color of the app. Note: Changes made to the background color through CSS are not included. Additionally, the theme type may be incorrect during a change in theme, like in the following situations: When the app is first loaded within a session. When the user changes the theme in the settings menu. For more information and to upvote an improvement, see GitHub issue #11920.'
       source: lib/streamlit/runtime/context.py#L235
       parameters:
         type:
@@ -6316,105 +5204,27 @@ api:
           kwarg_only: true
     ComponentRenderer:
       signature: ComponentRenderer(*args, **kwargs)
-      description: >-
-        Signature of the mounting command returned by st.components.v2.component.
-        This callable mounts a bidirectional component in a Streamlit app and
-        returns a BidiComponentResult object that exposes the component's
-        state and trigger values.
-        For published components, this callable is often wrapped in a user-friendly
-        command with typed parameters and declared defaults.
+      description: 'Signature of the mounting command returned by st.components.v2.component. This callable mounts a bidirectional component in a Streamlit app and returns a BidiComponentResult object that exposes the component''s state and trigger values. For published components, this callable is often wrapped in a user-friendly command with typed parameters and declared defaults.'
       source: lib/streamlit/components/v2/types.py#L48
       parameters:
         key:
           type: str or None
-          description: >-
-            An optional string to use as the unique key for the
-            component instance. If this is omitted, an internal key is generated
-            for the component instance based on its mounting parameters. No two
-            Streamlit elements may have the same key.
-            When a key is defined, the component's state is available in Session
-            State via the key.
-            Note
-            If you want to access this key in your component's frontend, you
-            must pass it explicitly within the data parameter. The key
-            parameter in ComponentRenderer is not the same as the
-            key property in FrontendRendererArgs in the component's frontend
-            code.
-            The frontend key is automatically generated to be unique among all
-            instances of all components and to avoid collisions with classes
-            and IDs in the app's DOM.
+          description: 'An optional string to use as the unique key for the component instance. If this is omitted, an internal key is generated for the component instance based on its mounting parameters. No two Streamlit elements may have the same key. When a key is defined, the component''s state is available in Session State via the key. Note: If you want to access this key in your component''s frontend, you must pass it explicitly within the data parameter. The key parameter in ComponentRenderer is not the same as the key property in FrontendRendererArgs in the component''s frontend code. The frontend key is automatically generated to be unique among all instances of all components and to avoid collisions with classes and IDs in the app''s DOM.'
         data:
           type: Any or None
-          description: >-
-            Data to pass to the component. This can be one of the following:
-            A JSON-serializable object, like Dict[str, str | int] or
-            List[str].
-            An Arrow-serializable object, like pandas.DataFrame.
-            Raw bytes.
-            A dictionary of JSON-serializable and Arrow-serializable objects.
-            The dictionary's keys must be Python primitives.
-            Because this data is sent to the frontend, it must be serializable by
-            one of the supported serialization methods (JSON, Arrow, or raw bytes).
-            You can't pass arbitrary Python objects. Arrow-serialization is only
-            supported at the top level of the data parameter or one level deep
-            in a dictionary. Raw bytes are only supported at the top level.
+          description: 'Data to pass to the component. This can be one of the following: A JSON-serializable object, like Dict[str, str | int] or List[str]. An Arrow-serializable object, like pandas.DataFrame. Raw bytes. A dictionary of JSON-serializable and Arrow-serializable objects. The dictionary''s keys must be Python primitives. Because this data is sent to the frontend, it must be serializable by one of the supported serialization methods (JSON, Arrow, or raw bytes). You can''t pass arbitrary Python objects. Arrow-serialization is only supported at the top level of the data parameter or one level deep in a dictionary. Raw bytes are only supported at the top level.'
         default:
           type: dict[str, Any] or None
-          description: >-
-            Default state values for the component. Each key in the dictionary must
-            correspond to a valid state attribute with an on_<key>_change
-            callback. This callback can be empty, but must be included as a
-            parameter when the component is mounted.
-            Trigger values do not support manual defaults. All trigger and state
-            values defined by an associated callback are initialized to None by
-            default.
+          description: 'Default state values for the component. Each key in the dictionary must correspond to a valid state attribute with an on_<key>_change callback. This callback can be empty, but must be included as a parameter when the component is mounted. Trigger values do not support manual defaults. All trigger and state values defined by an associated callback are initialized to None by default.'
         width:
           type: '"stretch", "content", or int'
-          description: >-
-            Width of the component. This can be one of the following:
-            "stretch" (default): The component is wrapped in a <div> with
-            CSS style width: 100%;.
-            "content": The component is wrapped in a <div> with CSS
-            style width: fit-content;.
-            An integer specifying the width in pixels: The component is wrapped
-            in a <div> with the specified pixel width.
-            You are responsible for ensuring the component's inner HTML content is
-            responsive to the <div> wrapper.
+          description: 'Width of the component. This can be one of the following: "stretch" (default): The component is wrapped in a <div> with CSS style width: 100%;. "content": The component is wrapped in a <div> with CSS style width: fit-content;. An integer specifying the width in pixels: The component is wrapped in a <div> with the specified pixel width. You are responsible for ensuring the component''s inner HTML content is responsive to the <div> wrapper.'
         height:
           type: '"content", "stretch", or int'
-          description: >-
-            Height of the component. This can be one of the following:
-            "content" (default): The component is wrapped in a <div> with
-            CSS style height: auto;.
-            "stretch": The component is wrapped in a <div> with CSS
-            style height: 100%;.
-            An integer specifying the height in pixels: The component is wrapped
-            in a <div> with the specified pixel height. If the component
-            content is larger than the specified height, scrolling is enabled.
-            Note
-            Use scrolling containers sparingly. If you use scrolling
-            containers, avoid heights that exceed 500 pixels. Otherwise,
-            the scroll surface of the container might cover the majority of
-            the screen on mobile devices, which makes it hard to scroll the
-            rest of the app.
-            If you want to disable scrolling for a fixed-height component,
-            include an inner <div> wrapper in your component's HTML to
-            control the overflow behavior.
-            You are responsible for ensuring the component's inner HTML content is
-            responsive to the <div> wrapper.
+          description: 'Height of the component. This can be one of the following: "content" (default): The component is wrapped in a <div> with CSS style height: auto;. "stretch": The component is wrapped in a <div> with CSS style height: 100%;. An integer specifying the height in pixels: The component is wrapped in a <div> with the specified pixel height. If the component content is larger than the specified height, scrolling is enabled. Note: Use scrolling containers sparingly. If you use scrolling containers, avoid heights that exceed 500 pixels. Otherwise, the scroll surface of the container might cover the majority of the screen on mobile devices, which makes it hard to scroll the rest of the app. If you want to disable scrolling for a fixed-height component, include an inner <div> wrapper in your component''s HTML to control the overflow behavior. You are responsible for ensuring the component''s inner HTML content is responsive to the <div> wrapper.'
         '**callbacks':
           type: Callable or None
-          description: >-
-            Callbacks with the naming pattern on_<key>_change for each state and
-            trigger key. For example, if your component has a state key of
-            "value" and a trigger key of "click", its callbacks can include
-            on_value_change and on_click_change.
-            Only names that follow this pattern are recognized. Custom components
-            don't currently support callbacks with arguments.
-            Callbacks are required for any state values defined in the default
-            parameter. Otherwise, a callback is optional. To ensure your
-            component's result always returns the expected attributes, you can pass
-            empty callbacks like lambda: None.
+          description: 'Callbacks with the naming pattern on_<key>_change for each state and trigger key. For example, if your component has a state key of "value" and a trigger key of "click", its callbacks can include on_value_change and on_click_change. Only names that follow this pattern are recognized. Custom components don''t currently support callbacks with arguments. Callbacks are required for any state values defined in the default parameter. Otherwise, a callback is optional. To ensure your component''s result always returns the expected attributes, you can pass empty callbacks like lambda: None.'
       returns:
       - type: BidiComponentResult
         description: Component state object that exposes state and trigger values.
@@ -6431,27 +5241,7 @@ api:
           description: All trigger values from the component. Transient, reset to None after one script run. Multiple trigger keys as attributes.
     TokensProxy:
       signature: TokensProxy
-      description: >-
-        A read-only, dict-like object for accessing exposed tokens from the identity provider.
-        This class provides access to tokens that have been explicitly exposed via
-        the expose_tokens setting in your authentication configuration. Tokens
-        contain sensitive credentials that your app can use to authenticate with
-        external services on behalf of the logged-in user.
-        To expose tokens in st.user.tokens, add the expose_tokens parameter to your authentication
-        configuration in .streamlit/secrets.toml. expose_tokens must be in
-        the [auth] section and can't be a nested dictionary. You can specify a
-        single token type as a string or multiple token types as a list. Streamlit
-        supports exposing "id" tokens and "access" tokens. If
-        expose_tokens isn't configured, st.user.tokens is an empty dict.
-        Warning
-        Tokens are sensitive credentials that should be handled securely. Never
-        expose tokens in your app's UI, logs, or error messages. Only use tokens
-        for server-side API calls, and be mindful of token expiration times.
-        Only expose tokens if your app needs them for specific API integrations.
-        You can access token values using either key or attribute notation. For
-        example, use st.user.tokens["id"] or st.user.tokens.id to access
-        the id token. The object is read-only to prevent accidental modification of sensitive
-        credentials.
+      description: 'A read-only, dict-like object for accessing exposed tokens from the identity provider. This class provides access to tokens that have been explicitly exposed via the expose_tokens setting in your authentication configuration. Tokens contain sensitive credentials that your app can use to authenticate with external services on behalf of the logged-in user. To expose tokens in st.user.tokens, add the expose_tokens parameter to your authentication configuration in .streamlit/secrets.toml. expose_tokens must be in the [auth] section and can''t be a nested dictionary. You can specify a single token type as a string or multiple token types as a list. Streamlit supports exposing "id" tokens and "access" tokens. If expose_tokens isn''t configured, st.user.tokens is an empty dict. Warning: Tokens are sensitive credentials that should be handled securely. Never expose tokens in your app''s UI, logs, or error messages. Only use tokens for server-side API calls, and be mindful of token expiration times. Only expose tokens if your app needs them for specific API integrations. You can access token values using either key or attribute notation. For example, use st.user.tokens["id"] or st.user.tokens.id to access the id token. The object is read-only to prevent accidental modification of sensitive credentials.'
       source: lib/streamlit/user_info.py#L393
       parameters:
         id:
@@ -6571,12 +5361,7 @@ api:
           default: None
         title:
           type: str
-          description: >-
-            The title of the page.
-            Unless declared otherwise in st.Page, the page title is inferred
-            from the filename or callable name. For more information, see
-            Overview of multipage apps.
-            The title supports GitHub-flavored Markdown as described in st.Page.
+          description: 'The title of the page. Unless declared otherwise in st.Page, the page title is inferred from the filename or callable name. For more information, see Overview of multipage apps. The title supports GitHub-flavored Markdown as described in st.Page.'
           default: None
         url_path:
           type: str
@@ -7011,32 +5796,7 @@ api:
   testing:
     streamlit.testing.v1.AppTest:
       signature: st.testing.v1.AppTest(script_path, *, default_timeout, args=None, kwargs=None)
-      description: >-
-        A simulated Streamlit app to check the correctness of displayed    elements and outputs.
-        An instance of AppTest simulates a running Streamlit app. This class
-        provides methods to set up, manipulate, and inspect the app contents via
-        API instead of a browser UI. It can be used to write automated tests of an
-        app in various scenarios. These can then be run using a tool like pytest.
-        AppTest can be initialized by one of three class methods:
-        st.testing.v1.AppTest.from_file (recommended)
-        st.testing.v1.AppTest.from_string
-        st.testing.v1.AppTest.from_function
-        Once initialized, Session State and widget values can be updated and the
-        script can be run. Unlike an actual live-running Streamlit app, you need to
-        call AppTest.run() explicitly to re-run the app after changing a widget
-        value. Switching pages also requires an explicit, follow-up call to
-        AppTest.run().
-        AppTest enables developers to build tests on their app as-is, in the
-        familiar python test format, without major refactoring or abstracting out
-        logic to be tested separately from the UI. Tests can run quickly with very
-        low overhead. A typical pattern is to build a suite of tests for an app
-        that ensure consistent functionality as the app evolves, and run the tests
-        locally and/or in a CI environment like Github Actions.
-        Note
-        AppTest only supports testing a single page of an app per
-        instance. For multipage apps, each page will need to be tested
-        separately. AppTest is not yet compatible with multipage apps
-        using st.navigation and st.Page.
+      description: 'A simulated Streamlit app to check the correctness of displayed elements and outputs. An instance of AppTest simulates a running Streamlit app. This class provides methods to set up, manipulate, and inspect the app contents via API instead of a browser UI. It can be used to write automated tests of an app in various scenarios. These can then be run using a tool like pytest. AppTest can be initialized by one of three class methods: st.testing.v1.AppTest.from_file (recommended), st.testing.v1.AppTest.from_string, st.testing.v1.AppTest.from_function. Once initialized, Session State and widget values can be updated and the script can be run. Unlike an actual live-running Streamlit app, you need to call AppTest.run() explicitly to re-run the app after changing a widget value. Switching pages also requires an explicit, follow-up call to AppTest.run(). AppTest enables developers to build tests on their app as-is, in the familiar python test format, without major refactoring or abstracting out logic to be tested separately from the UI. Tests can run quickly with very low overhead. A typical pattern is to build a suite of tests for an app that ensure consistent functionality as the app evolves, and run the tests locally and/or in a CI environment like Github Actions. Note: AppTest only supports testing a single page of an app per instance. For multipage apps, each page will need to be tested separately. AppTest is not yet compatible with multipage apps using st.navigation and st.Page.'
       source: lib/streamlit/testing/v1/app_test.py#L100
       parameters:
         secrets:
@@ -7156,10 +5916,7 @@ api:
             for your component, typed by the component author via the TData generic.
         key:
           type: string
-          description: >-
-            A stable identifier for this component instance generated by Streamlit. This key is independent from the key parameter passed to the component's mounting command in Python. This frontend key is automatically generated to be unique among all instances of all components and to avoid collisions with classes and IDs in the app's DOM.
-            Important
-            If a component is mounted without a key parameter in Python, and one of the parameters in the mounting command changes, then this frontend key may change between app runs.
+          description: 'A stable identifier for this component instance generated by Streamlit. This key is independent from the key parameter passed to the component''s mounting command in Python. This frontend key is automatically generated to be unique among all instances of all components and to avoid collisions with classes and IDs in the app''s DOM. Important: If a component is mounted without a key parameter in Python, and one of the parameters in the mounting command changes, then this frontend key may change between app runs.'
         name:
           type: string
           description: The component's name, as registered by Streamlit on the Python side. This is the same as the name parameter
