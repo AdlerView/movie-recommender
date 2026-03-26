@@ -146,7 +146,6 @@ movie-recommender/
 │       ├── group-project.pdf               # Course assignment brief
 │       ├── 02-exercises.pdf                # Course exercises
 │       ├── writing-with-ai.md              # HSG GenAI citation rules
-│       └── checkpoint.md                   # Pre-restructuring session checkpoint
 │
 ├── .streamlit/                             # PARTIAL — Config tracked, secrets gitignored
 │   ├── config.toml                         # Cinema Gold theme + fontFaces + server config
