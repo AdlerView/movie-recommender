@@ -30,7 +30,7 @@ Uses three data sources:
 1. **TMDB API** -- live calls for search, discovery, movie details,
    configuration (genres, languages, certifications, providers) `DONE`
 2. **Precomputed model files** (~3 GB `.npy` arrays) -- feature vectors
-   and mood scores for all 1.17M movies, indexed by movie ID `PENDING`
+   and mood scores for all 1.17M movies, indexed by movie ID `DONE`
 3. **Local user database** (~1 KB) -- ratings, mood tags, streaming
    subscriptions, cached user profile vectors `DONE`
 
@@ -386,7 +386,7 @@ dominates.
 
 ---
 
-#### Stage 1: Feature Extraction `PENDING`
+#### Stage 1: Feature Extraction `DONE`
 
 Input: `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies)
 
@@ -407,7 +407,7 @@ Script: `ml/extraction/01_extract_features.py`
 
 ---
 
-#### Stage 2: Mood Score Prediction `PENDING`
+#### Stage 2: Mood Score Prediction `DONE`
 
 For each movie: 7 mood probabilities (happy, interested, surprised,
 sad, disgusted, afraid, angry).
@@ -467,7 +467,7 @@ Script: `ml/classification/02_predict_moods.py`
 
 ---
 
-#### Stage 3: Quality Scores `PENDING`
+#### Stage 3: Quality Scores `DONE`
 
 Bayesian average for each movie:
 
@@ -485,7 +485,7 @@ Script: `ml/extraction/03_quality_scores.py`
 
 ---
 
-#### Stage 4: Save Mappings `PENDING`
+#### Stage 4: Save Mappings `DONE`
 
 Output:
 
@@ -578,7 +578,7 @@ data/input/tmdb.sqlite                    8.2 GB    Full TMDB database, 30 table
 
 ---
 
-### Runtime: Model Files (read-only) `PENDING`
+### Runtime: Model Files (read-only) `DONE`
 
 ```
 data/output/
@@ -639,7 +639,7 @@ The canonical directory structure is defined in [CLAUDE.md](../CLAUDE.md)
 
 ---
 
-## ML Evaluation (Course Requirement 5) `PENDING`
+## ML Evaluation (Course Requirement 5) `PARTIAL`
 
 The ML evaluation follows the exact workflow taught in lectures 10-11
 and assignments 10-11. See [ml/extraction/ML-PIPELINE.md](../ml/extraction/ML-PIPELINE.md)
