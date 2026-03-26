@@ -143,125 +143,14 @@ def _show_detail(movie_id: int) -> None:
             # Switch to rating mode inside the dialog
             st.session_state["_watchlist_show_rating"] = True
 
-    # --- Rating slider (shown after "Mark as watched" click) ---
+    # --- Rating widget (shown after "Mark as watched" click) ---
     if st.session_state.get("_watchlist_show_rating"):
         st.subheader("Rate this movie")
-        # Track whether slider was moved — prevents accidental 0-ratings
-        _touch_key = f"_wl_touched_{movie_id}"
-        st.session_state.setdefault(_touch_key, False)
-
-        def _mark_touched() -> None:
-            st.session_state[_touch_key] = True
-
-        new_rating = st.slider(
-            "Your rating",
-            min_value=0,
-            max_value=100,
-            value=0,
-            step=10,
-            format="%d/100",
-            key=f"watchlist_rate_{movie_id}",
-            on_change=_mark_touched,
+        from app.utils import render_rating_widget
+        new_rating, selected_moods, _slider_ready = render_rating_widget(
+            movie_id, key_prefix="wl",
         )
 
-        # Dynamic sentiment label — changes with slider value
-        if new_rating == 0:
-            _label = ""
-        elif new_rating <= 20:
-            _label = "Awful"
-        elif new_rating <= 40:
-            _label = "Poor"
-        elif new_rating <= 60:
-            _label = "Decent"
-        elif new_rating <= 80:
-            _label = "Great"
-        else:
-            _label = "Masterpiece"
-        if _label:
-            st.caption(_label, text_alignment="center")
-
-        # Dynamic slider color: gray (0), red (<=33), orange (<=66), green (>66)
-        if new_rating == 0:
-            _color = "#d3d3d3"
-        elif new_rating <= 33:
-            _color = "#ff4b4b"
-        elif new_rating <= 66:
-            _color = "#ffa421"
-        else:
-            _color = "#21c354"
-        # Generate CSS dot positions at every 10% (0%, 10%, ... 100%)
-        _dots = ", ".join(
-            f"radial-gradient(circle, rgba(255,255,255,0.6) 3px, transparent 3px) {i*10}% 50%"
-            for i in range(11)
-        )
-        st.markdown(
-            f"""<style>
-            .stSlider > div > div > div > div {{
-                background: {_color} !important;
-            }}
-            /* Hide tick dot decorations below slider, keep min/max value labels */
-            .stSlider [data-testid="stSliderTickBar"] {{
-                background: none !important;
-                background-image: none !important;
-            }}
-            .stSlider [data-testid="stSliderTickBar"]::before,
-            .stSlider [data-testid="stSliderTickBar"]::after {{
-                display: none !important;
-            }}
-            /* Dot tick marks at whole numbers on the slider track */
-            .stSlider [data-baseweb="slider"] > div {{
-                position: relative !important;
-            }}
-            .stSlider [data-baseweb="slider"] > div::after {{
-                content: '' !important;
-                position: absolute !important;
-                left: 0 !important;
-                right: 0 !important;
-                top: 50% !important;
-                height: 7px !important;
-                transform: translateY(-50%) !important;
-                background: {_dots} !important;
-                background-repeat: no-repeat !important;
-                background-size: 7px 7px !important;
-                pointer-events: none !important;
-                z-index: 1 !important;
-            }}
-            .stSlider [role="slider"] {{
-                background-color: #000 !important;
-                border-color: #000 !important;
-                z-index: 2 !important;
-            }}
-            .stSlider [role="slider"]:focus,
-            .stSlider [role="slider"]:active {{
-                box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.2) !important;
-                outline: none !important;
-            }}
-            .stSlider [data-testid="stThumbValue"],
-            .stSlider [role="slider"] div {{
-                color: #000 !important;
-            }}
-            </style>""",
-            unsafe_allow_html=True,
-        )
-
-        # --- Mood reaction buttons (optional, multi-select) ---
-        st.caption("**How did this movie make you feel?** (optional)")
-        _mood_options = [
-            "Happy", "Interested", "Surprised", "Sad",
-            "Disgusted", "Afraid", "Angry",
-        ]
-        selected_moods = st.pills(
-            "Mood",
-            options=_mood_options,
-            selection_mode="multi",
-            key=f"wl_moods_{movie_id}",
-            label_visibility="collapsed",
-        )
-
-        # Save button — disabled until the slider is moved at least once
-        _slider_ready = st.session_state.get(_touch_key, False)
-        if not _slider_ready:
-            st.caption("Move the slider to set your rating", text_alignment="center")
         if st.button("Save rating", type="primary", icon=":material/save:", disabled=not _slider_ready):
             # Save rating to session state and database
             st.session_state.ratings[movie_id] = new_rating
@@ -285,7 +174,7 @@ def _show_detail(movie_id: int) -> None:
             # Clean up dialog state
             st.session_state._watchlist_selected = None
             st.session_state.pop("_watchlist_show_rating", None)
-            st.session_state.pop(_touch_key, None)
+            st.session_state.pop(f"_wl_touched_{movie_id}", None)
             st.session_state["_watchlist_toast"] = (
                 f"Rated **{details.get('title', '')}**: {new_rating}/100"
             )

@@ -134,8 +134,8 @@ baseRadius = "0.3rem"
 buttonRadius = "full"
 font = "Poppins"
 headingFontWeights = [600, 500, 500, 500, 500, 500]
-headingFontSizes = ["3rem", "2.5rem", "2.25rem", "2rem", "1.5rem"]
-chartCategoricalColors = ["#D4A574", "#8B6F4E", "#E8C49A"]
+headingFontSizes = ["3rem", "2.5rem", "2.25rem", "2rem", "1.5rem", "1rem"]
+chartCategoricalColors = ["#D4A574", "#8B6F4E", "#E8C49A", "#C4956A", "#A67B50", "#F0D4B0", "#6B5540", "#BFA080", "#D9B890", "#907060"]
 
 [theme.sidebar]
 backgroundColor = "#121212"
