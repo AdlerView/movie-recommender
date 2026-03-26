@@ -98,6 +98,9 @@
 - [x] DB schema v5 — migrate `ratings` (REAL 0-10) → `user_ratings` (INTEGER 0-100), add `user_rating_moods`, `user_subscriptions`, `user_profile_cache` tables (2026-03-26)
 - [x] Rate: 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry) on rating dialog (2026-03-26)
 - [x] Keyword seed dataset — 5,000 keywords labeled + reviewed (1,049 single-label, 1,634 multi, 2,317 none — see docs/MOOD.md) (2026-03-26)
+- [x] Genre-to-mood mapping — 19 TMDB genres with hand-crafted mood weights in `store/genre_mood_map.json` (2026-03-26)
+- [x] Keyword-to-mood classifier — `pipeline/keyword_mood_classifier.py`: 80/10/10 split, scaled+unscaled, 5+ classifiers (MLPClassifier best, val F1=0.76, test acc=78%), inferred 65,779 keywords → `store/keyword_mood_map.json` (68,462 entries, 3.0 MB) (2026-03-26)
+- [x] Directory restructuring — `data/` + `model/` → `data/` (tracked: labeled/, evaluation/) + `store/` (gitignored: DBs, .npy, .pkl, generated JSON). Gitignore simplified to single `store/` rule (2026-03-26)
 
 ## Superseded
 
