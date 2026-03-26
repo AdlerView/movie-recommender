@@ -105,6 +105,7 @@
 - [x] Quality scores pipeline — `pipeline/03_quality_scores.py`: Bayesian average on vote_average + vote_count (m=3.0, C=5.90), normalized to [0,1]. Spot checks: Fight Club 0.83, Pulp Fiction 0.84, Dark Knight 0.84. 4.5 MB (2026-03-26)
 - [x] Discover page redesign — sidebar with 12 filters (genre, year, runtime, rating, min votes, keywords, language, certification, streaming providers), main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. New TMDB API functions in tmdb.py. Visual polish pending. (2026-03-26)
 - [x] ML Evaluation utility + Statistics section — `app/utils/ml_eval.py` (4 generic functions: evaluate_classifiers, best_model_report, run_cross_validation, knn_hyperparameter_plot). Statistics page: classifier comparison table, best model KPIs (MLPClassifier 89% val acc, 0.76 F1), confusion matrix, 10-fold CV (81.6% ± 3.8%), KNN k=1..20 plot. All course requirements (Req 5) visible. (2026-03-26)
+- [x] Mood prediction pipeline — `pipeline/02_predict_moods.py`: 4 signals (genre, keyword, overview emotion, review emotion) with dynamic weighting. 996K overviews + 23K reviews classified (distilroberta, 4h18min). Coverage: 94.6% (1.11M/1.17M). mood_scores.npy 31.4 MB. (2026-03-26)
 
 ## Superseded
 

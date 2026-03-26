@@ -717,7 +717,7 @@ idempotent and can be re-run independently.
 | 1a.1 | Create `genre_mood_map.json` (19 genre-to-mood rules) | `store/genre_mood_map.json` | -- | `DONE` |
 | 1a.2 | Feature extraction: keyword TF-IDF/SVD, director/actor SVD, genre/decade/language onehot, runtime | `pipeline/01_extract_features.py` -> 7 `.npy` + `movie_id_index.json` + `.pkl` | `store/tmdb.db` | `DONE` |
 | 1a.3 | Quality scores: Bayesian average, normalize to [0,1] | `pipeline/03_quality_scores.py` -> `quality_scores.npy` | `store/tmdb.db` | `DONE` |
-| 1a.4 | Mood prediction: 4 signals (genre + keyword + overview emotion + review emotion), dynamic weighting | `pipeline/02_predict_moods.py` -> `mood_scores.npy` | 1a.1, 1b.1, `store/tmdb.db` | `IN PROGRESS` |
+| 1a.4 | Mood prediction: 4 signals (genre + keyword + overview emotion + review emotion), dynamic weighting | `pipeline/02_predict_moods.py` -> `mood_scores.npy` | 1a.1, 1b.1, `store/tmdb.db` | `DONE` |
 | 1a.5 | Build index: verify all model files, save final mappings | `pipeline/04_build_index.py` | 1a.2, 1a.3, 1a.4 | `PENDING` |
 
 **Runtime estimates:**
