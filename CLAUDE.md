@@ -3,9 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-27
-
-
+**Updated:** 2026-03-26
 
 ---
 
@@ -14,10 +12,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 At the start of every new session, read ALL of the following files before doing any work:
 
 **Documentation (all `.md` files):**
-- `CLAUDE.md`, `README.md`, `docs/TODO.md`
-- `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`
-- `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
-- `docs/archive/cs-project.md`
+- `CLAUDE.md`, `README.md`, `docs/TODO.md`, `docs/CONTRIBUTION.md`
+- `app/views/VIEWS.md`, `app/utils/UTILS.md`
+- `ml/extraction/EXTRACTION.md`
+- `ml/classification/CLASSIFICATION.md`
+- `ml/scoring/SCORING.md`
+- `ml/evaluation/EVALUATION.md`
+- `data/input/INPUT.md`, `data/output/OUTPUT.md`
+- `docs/archive/ARCHIVE.md`
 
 **Config:**
 - `.streamlit/config.toml`
@@ -25,7 +27,12 @@ At the start of every new session, read ALL of the following files before doing 
 **Source code (all `.py` files):**
 - `streamlit_app.py`
 - `app/utils/__init__.py`, `app/utils/db.py`, `app/utils/tmdb.py`
-- `app/views/discover.py`, `app/views/rate.py`, `app/views/statistics.py`, `app/views/watchlist.py`
+- `app/views/discover.py`, `app/views/rate.py`, `app/views/statistics.py`, `app/views/watchlist.py`, `app/views/settings.py`
+- `ml/__init__.py`
+- `ml/extraction/__init__.py`, `ml/extraction/01_extract_features.py`, `ml/extraction/03_quality_scores.py`, `ml/extraction/04_build_index.py`
+- `ml/classification/__init__.py`, `ml/classification/keyword_mood_classifier.py`, `ml/classification/02_predict_moods.py`
+- `ml/scoring/__init__.py`, `ml/scoring/user_profile.py`, `ml/scoring/scoring.py`, `ml/scoring/mood_filter.py`
+- `ml/evaluation/__init__.py`, `ml/evaluation/ml_eval.py`
 
 ---
 
@@ -35,14 +42,14 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 
 ---
 
-## Tech Stack
+## Tech Stack (agent-specific)
 
-- **Framework:** Streamlit (>=1.53.0)
-- **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
-- **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
-- **Database:** SQLite (WAL mode) for user data (user_ratings INTEGER 0-100, user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache). `data/output/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) used offline only for feature extraction. Runtime uses precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
-- **ML:** Personalized movie recommendations via scikit-learn. Scoring model uses user ratings + mood reactions as training signal, movie features from `tmdb.sqlite` (keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime). Mood scores per film derived from genre→mood mapping, keyword→mood mapping (supervised pipeline: labeled seed + classifier on sentence embeddings → 70K+ keywords), and emotion classification on overview/review text. 7 mood categories (TMDB Vibes / Ekman model: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Two ML classification tasks: (1) user preference (liked/disliked), (2) keyword-to-mood.
-- **Python:** 3.11 (conda environment in `.conda/`)
+Tech stack overview is in README.md. Agent-relevant details only:
+
+- **API key:** `.streamlit/secrets.toml` (gitignored). Use `append_to_response` for combined TMDB calls.
+- **SQLite tables:** user_ratings (INTEGER 0-100), user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache. `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) — offline only.
+- **ML signals:** 7 mood categories (TMDB Vibes / Ekman: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Two classification tasks: (1) user preference (liked/disliked), (2) keyword-to-mood. Features: keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime. Mood scores: genre→mood + keyword→mood + overview emotion + review emotion.
+- **Runtime data:** Precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
 
 ---
 
@@ -79,36 +86,32 @@ movie-recommender/
 │   │   ├── statistics.py                   # KPIs, charts, ML evaluation, rankings, table
 │   │   └── settings.py                     # Subscriptions, streaming country, language prefs
 │   ├── utils/                              # App utilities (DB, API)
-│   │   ├── UTILS.md                        # Directory documentation (merge TODO: TMDB_API.md)
+│   │   ├── UTILS.md                        # Directory documentation (API endpoints, caching, DB schema)
 │   │   ├── __init__.py
 │   │   ├── db.py                           # SQLite persistence (ratings, watchlist, dismissed, preferences)
-│   │   ├── tmdb.py                         # TMDB API client (cached)
-│   │   └── TMDB_API.md                     # TMDB API endpoint reference (merge into UTILS.md)
+│   │   └── tmdb.py                         # TMDB API client (cached)
 │
 ├── static/                                 # Poppins font files (18 TTFs + OFL license)
 │
 ├── ml/                                     # TRACKED — ML pipeline by phase
 │   ├── __init__.py
 │   ├── extraction/                         # Feature transformation (no ML models)
-│   │   ├── EXTRACTION.md                   # Directory documentation (merge TODO: ML-PIPELINE.md)
+│   │   ├── EXTRACTION.md                   # Directory documentation (pipeline architecture, stages 1/3/4)
 │   │   ├── __init__.py
 │   │   ├── 01_extract_features.py          # Stage 1: DB → SVD, onehot, normalized features
 │   │   ├── 03_quality_scores.py            # Stage 3: Bayesian average quality scores
-│   │   ├── 04_build_index.py              # Stage 4: movie_id_index.json + output verification
-│   │   └── ML-PIPELINE.md                  # Pipeline architecture + stages (merge into EXTRACTION.md)
+│   │   └── 04_build_index.py              # Stage 4: movie_id_index.json + output verification
 │   ├── classification/                     # ML models (training + inference)
-│   │   ├── CLASSIFICATION.md               # Directory documentation (merge TODO: MOOD.md)
+│   │   ├── CLASSIFICATION.md               # Directory documentation (mood categories, labeling, classifier)
 │   │   ├── __init__.py
 │   │   ├── keyword_mood_classifier.py      # Keyword → mood: train classifier, infer 70K+
-│   │   ├── 02_predict_moods.py             # Stage 2: Mood scores per film (4 signals)
-│   │   └── MOOD.md                         # Keyword-to-mood classification (merge into CLASSIFICATION.md)
+│   │   └── 02_predict_moods.py             # Stage 2: Mood scores per film (4 signals)
 │   ├── scoring/                            # Online scoring (runtime, imported by app)
-│   │   ├── SCORING.md                      # Directory documentation (merge TODO: FILTER.md)
+│   │   ├── SCORING.md                      # Directory documentation (scoring + mood filter + sort)
 │   │   ├── __init__.py
 │   │   ├── user_profile.py                 # User profile vectors from ratings + .npy arrays
 │   │   ├── scoring.py                      # 9-signal cosine similarity + dynamic weights
-│   │   ├── mood_filter.py                  # Local mood filter against mood_scores.npy
-│   │   └── FILTER.md                       # 14 discovery filters (merge into SCORING.md)
+│   │   └── mood_filter.py                  # Local mood filter against mood_scores.npy
 │   └── evaluation/                         # Academic ML evaluation
 │       ├── EVALUATION.md                   # Directory documentation
 │       ├── __init__.py
@@ -152,6 +155,7 @@ movie-recommender/
 │       ├── group-project.pdf               # Course assignment brief
 │       ├── 02-exercises.pdf                # Course exercises
 │       ├── writing-with-ai.md              # HSG GenAI citation rules
+│       ├── TMDB_API.md                     # Full TMDB API reference (archived, 800 lines)
 │
 ├── .streamlit/                             # PARTIAL — Config tracked, secrets gitignored
 │   ├── config.toml                         # Cinema Gold theme + fontFaces + server config
@@ -166,25 +170,11 @@ movie-recommender/
 
 ---
 
-## Running the App
-
-```bash
-conda activate ./.conda
-streamlit run streamlit_app.py
-```
-
----
-
 ## Deployment
 
-Public URL: **https://hsg.adlerscope.com** (Cloudflare Tunnel)
+Public URL: **https://hsg.adlerscope.com** (Cloudflare Tunnel `movie-recommender`).
 
-```bash
-# Terminal 2 — start tunnel
-cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender
-```
-
-Tunnel config and credentials follow XDG layout:
+Setup/run commands are in README.md. Tunnel config paths:
 - Config: `~/Developer/.config/cloudflared/config.yml`
 - Credentials: `~/Developer/.local/share/cloudflared/movie-recommender.json`
 - Cert: `~/Developer/.config/cloudflared/cert.pem` (via `$TUNNEL_ORIGIN_CERT`)
@@ -237,11 +227,11 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 - Existing topic-specific .md files (e.g., ML-PIPELINE.md, MOOD.md) MUST be merged into the DIRNAME.md file — one documentation file per directory, not multiple
 - SCORING.md is the reference implementation for this convention
 
-**Merge TODO:** The following topic-specific files need to be merged into their directory's DIRNAME.md:
-- `ml/extraction/ML-PIPELINE.md` → merge into `EXTRACTION.md`
-- `ml/classification/MOOD.md` → merge into `CLASSIFICATION.md`
-- `ml/scoring/FILTER.md` → merge into `SCORING.md`
-- `app/utils/TMDB_API.md` → merge into `UTILS.md`
+**Completed merges (all topic-specific files resolved):**
+- `ml/scoring/FILTER.md` → merged into `SCORING.md` + `VIEWS.md` + `UTILS.md` (deleted)
+- `ml/classification/MOOD.md` → merged into `CLASSIFICATION.md` (deleted)
+- `ml/extraction/ML-PIPELINE.md` → merged into `EXTRACTION.md` + `CLASSIFICATION.md` + `EVALUATION.md` (deleted)
+- `app/utils/TMDB_API.md` → used endpoints merged into `UTILS.md`, full reference archived to `docs/archive/`
 
 ---
 
@@ -269,8 +259,8 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 ### Page Descriptions (current state)
 
 - **Discover:** Sidebar + main layout. Sidebar contains filters (genre, year, runtime, rating, min votes, certification, keywords). Language, streaming country, and providers are managed in Settings (applied automatically via DB preferences). Main page has header, sort dropdown (top-right, default: Personalized), mood pills (toggle-deselect behavior), and poster grid (5 columns, clickable → detail dialog with Watchlist/Dismiss). Live filtering: grid updates on every filter change. "Reset all" in sidebar resets only sidebar filters (not mood/sort). Empty results: info message + "You might also like" fallback grid. Already-rated/dismissed/watchlisted movies excluded. "Load more" button for pagination.
-- **Rate:** Pure action tab. TMDB text search + Netflix-style clickable poster grid (personalized via `discover/movie` + ML scoring, or popularity order on cold start). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Mood reactions are optional and multi-select, saved alongside the numeric rating. Already-rated movies excluded from browse grid but shown in search results (allows re-rating).
-- **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (CH, flatrate only). Actions: "Remove from watchlist" or "Mark as watched" (rating slider + 7 mood reaction buttons).
+- **Rate:** Pure action tab. TMDB text search + Netflix-style clickable poster grid (personalized via `discover/movie` + ML scoring, or popularity order on cold start). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (see Tech Stack for list). Mood reactions are optional and multi-select, saved alongside the numeric rating. Already-rated movies excluded from browse grid but shown in search results (allows re-rating).
+- **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (CH, flatrate only). Actions: "Remove from watchlist" or "Mark as watched" (rating slider + mood reaction buttons).
 - **Statistics:** KPIs (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 7 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution), top 5 directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
 - **Settings:** User preferences persisted in SQLite. Three sections: (1) Streaming country — dropdown with save/reset (default: Switzerland), used for provider availability on Discover. (2) My subscriptions — provider pills with save/clear, used by Discover when filtering. (3) Preferred language — dropdown with save/reset, applied as default language filter on Discover.
 
@@ -292,29 +282,13 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 
 ## Planned Features
 
-**Remaining planned changes** (see `docs/TODO.md` for full task list):
-- ML evaluation notebook (`ml/evaluation/ml_evaluation.ipynb`)
-- Statistics dashboard polish
-- Code documentation final pass (Req 6)
-- Contribution matrix (Req 7)
-- 4-minute video (Req 8)
+Task tracking and completion status: [docs/TODO.md](docs/TODO.md). Grading requirements and status: README.md.
 
 **Architecture docs:**
-- [ml/extraction/ML-PIPELINE.md](ml/extraction/ML-PIPELINE.md) — offline pipeline stages
-- [ml/scoring/SCORING.md](ml/scoring/SCORING.md) — scoring formula, dynamic weights
-- [ml/scoring/FILTER.md](ml/scoring/FILTER.md) — discovery filters, API parameter mapping
-- [ml/classification/MOOD.md](ml/classification/MOOD.md) — keyword-to-mood classification
+- [ml/extraction/EXTRACTION.md](ml/extraction/EXTRACTION.md) — offline pipeline stages, architecture, dependencies
+- [ml/scoring/SCORING.md](ml/scoring/SCORING.md) — scoring formula, dynamic weights, mood filter, sort options
+- [ml/classification/CLASSIFICATION.md](ml/classification/CLASSIFICATION.md) — keyword-to-mood classification
 - [ml/evaluation/EVALUATION.md](ml/evaluation/EVALUATION.md) — ML evaluation spec
-
-**Already completed:**
-- Offline pipeline complete (Phase 1a): 4 scripts, 14 outputs in `data/output/` (~4 GB)
-- Keyword-to-mood classifier (Phase 1b): MLPClassifier, 68K keyword moods
-- Online scoring complete (Phase 2): user profile, 9-signal scoring (~8ms/300 candidates), mood filter
-- Discover page redesign (Phase 4.1): sidebar filters + poster grid
-- ML evaluation on Statistics page (Phase 3.1 + 3.2): classifier table, confusion matrix, CV, KNN k-plot
-- Mood reactions on Rate + Watchlist (Phase 0 + 4.4)
-- Statistics mood distribution chart (Phase 4.5)
-- Settings page: streaming subscriptions, country, language preferences (saved in SQLite)
 
 ---
 
@@ -418,21 +392,6 @@ Key gotchas:
 - Bottom dots are CSS-generated decorations on `stSliderTickBar` (hide with `background: none`)
 - Custom dot ticks use `::after` on `[data-baseweb="slider"] > div` with `radial-gradient` at 10% intervals
 - Slider thumb needs `z-index: 2` to stay above the dot tick `::after` layer (`z-index: 1`)
-
----
-
-## Grading Requirements
-
-| # | Requirement | Status |
-|---|------------|--------|
-| 1 | Problem statement | Defined |
-| 2 | Data via API | TMDB + SQLite integrated |
-| 3 | Data visualization | In progress (PoC: KPIs, 7 charts, rankings, table) |
-| 4 | User interaction | Implemented (genre discover, rate + mood reactions, dismiss, watchlist, search) |
-| 5 | Machine learning | Implemented (offline pipeline + online scoring + ML evaluation) |
-| 6 | Code documentation | In progress |
-| 7 | Contribution matrix | Not started |
-| 8 | 4-min video | Not started |
 
 ---
 

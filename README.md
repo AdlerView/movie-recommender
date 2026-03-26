@@ -23,39 +23,39 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Component   | Technology |
 |-------------|------------|
 | Frontend    | [Streamlit](https://streamlit.io) (mandatory) |
-| Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
-| Language    | Python |
+| Theme       | "Cinema Gold" — dark base, gold/copper accent, [Poppins](https://fonts.google.com/specimen/Poppins) font |
+| Language    | Python 3.11 |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema v5) for user data. `tmdb.sqlite` (1.17M movies, 30 tables, 8.2 GB) offline only. Runtime: precomputed `.npy` arrays (~3 GB) + TMDB API |
-| ML          | Personalized recommendations via scikit-learn (content-based scoring from user ratings + mood reactions, feature vectors from tmdb.sqlite) |
+| Persistence | SQLite (WAL mode) for user data. Precomputed `.npy` feature arrays (~3 GB) for ML scoring |
+| ML          | Personalized recommendations via scikit-learn (content-based scoring from user ratings + mood reactions) |
 
 ---
 
 ## Features
 
-### Discover
+**Discover** — Personalized movie discovery with 14 sidebar filters (genre, year, runtime, rating, keywords, certification, streaming providers) and ML-based ranking. Mood pills filter by 7 emotion categories. Results displayed as a poster grid with detail dialogs. Cold-start falls back to popularity order.
 
-Personalized movie discovery with 14 filter controls and ML-based ranking. Filters: Genre (19 TMDB genres, required), Mood (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry), Certification (country-dependent, e.g. DE: 0/6/12/16/18), Release Year range, Language, Runtime range, User Score range, Minimum Votes, Keywords (autocomplete via TMDB API `search/keyword`), Streaming Country, Streaming Provider, Only My Subscriptions, and Sort order. Filters are passed to the TMDB API `/discover/movie` endpoint for candidate retrieval. Mood filtering and personalized scoring run locally against precomputed `.npy` feature arrays (~3 GB, derived offline from `tmdb.sqlite`). When sort is set to "Personalized Score" (default), results are ranked by an ML scoring model that combines keyword similarity, mood match, director/actor/decade/language/runtime similarity, quality score (Bayesian average), and contra-penalty — all derived from the user's rating history. Results displayed as card-based flow or poster grid with Genre/Keyword badges, predicted mood, runtime, streaming providers, and personalized score. Already-rated, dismissed, and watchlisted movies are filtered out. Cold-start: with 0 ratings, ranking falls back to quality + mood match; personalization strengthens with more ratings.
+**Rate** — Search or browse movies ("Based on your interests" when a profile exists). Click a poster to open a detail dialog with a 0-100 rating slider and 7 optional mood reaction buttons. Mood reactions serve as training data for personalization.
 
-### Rate
+**Watchlist** — Poster grid of saved movies. Detail dialog shows streaming providers for the user's country. "Mark as watched" opens a rating dialog to move the movie from watchlist to rated.
 
-Pure action tab for rating movies you've already seen. TMDB text search + Netflix-style clickable poster grid ("Based on your interests" when profile exists, popular movies on cold start — both via `discover/movie` endpoint). Clicking a poster opens a detail dialog with poster, keyword badges, TMDB rating, runtime, overview, a 0-100 color-coded rating slider (steps of 10), and 7 optional mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — based on TMDB's Vibes model / Ekman's basic emotions). Mood reactions are multi-select, saved alongside the numeric rating, and serve as training data for the personalized recommendation model. Save button is disabled until the slider is moved (prevents accidental 0-ratings). Linear flow: search/browse → click → rate (+ optional mood) → done.
+**Statistics** — Dashboard with KPIs, 7 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution), top 5 directors/actors rankings, and a sortable rated movies table. All data from local SQLite, zero API calls.
 
-### Watchlist
+**Settings** — Streaming country, subscription management, and preferred language. Preferences are persisted in SQLite and applied automatically on Discover.
 
-Netflix-style poster grid of saved movies. Clicking a poster opens a detail dialog with keyword badges, TMDB rating, runtime, overview, and flatrate streaming providers for the user's selected country (brand-colored: Netflix red, Amazon blue, Disney+ green, etc.). Actions: "Remove from watchlist" or "Mark as watched" which opens a rating slider with 7 mood reaction buttons — saving the rating moves the movie from watchlist to rated.
+---
 
-### Statistics
+## Directory Structure
 
-Dashboard powered by local user SQLite data (zero API calls). KPI metrics: total watch hours, average runtime, rated/watchlisted/dismissed counts, average rating. Altair charts: genre distribution, language distribution, decade distribution, rating distribution histogram, rating history line chart, user vs TMDB scatter plot, mood distribution (from user mood reactions). Top 5 favorite directors and actors rankings. Sortable table of all rated movies with poster thumbnails, title, duration, TMDB rating, and user rating. Currently a proof of concept — layout and polish pending.
-
-### Persistence
-
-All ratings, watchlist entries, and dismissals are persisted in a local SQLite database. Data loads on startup and saves on every action.
-
-### TMDB Integration
-
-Live data from TMDB API v3 with cached responses. Configuration calls (genres, languages, certifications, countries, providers) cached 24h. Per-request calls: discover 10m, search 5m. Per-movie calls: details 1h, keywords 24h, watch providers 1h. Candidate retrieval via `/discover/movie` (both Discover and Rate pages), text search via `/search/movie`. Movie details use `append_to_response=credits,videos,watch/providers` to fetch runtime, directors, cast, trailers, and streaming providers in a single API call (`release_dates` planned for certification badges). Keywords fetched separately on rating save for local caching (keyword badges + ML pipeline). Error handling for API failures with user-facing messages.
+```
+movie-recommender/
+├── app/          Streamlit views + utilities (DB, API client)
+├── ml/           ML pipeline (extraction, classification, scoring, evaluation)
+├── data/         Pipeline inputs (tmdb.sqlite) + outputs (.npy, .json, .pkl)
+├── docs/         Project documentation + planning
+├── static/       Poppins font files (18 TTFs)
+└── .streamlit/   Theme config + secrets
+```
 
 ---
 
@@ -75,7 +75,7 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 
 ## Grading Criteria
 
-8 requirements, each scored 0–3 points. Project = 20% of final grade. Source: [group-project.pdf](docs/archive/group-project.pdf).
+8 requirements, each scored 0-3 points. Project = 20% of final grade. Source: [group-project.pdf](docs/archive/group-project.pdf).
 
 | Points | Description |
 |--------|-------------|
@@ -107,6 +107,8 @@ Live data from TMDB API v3 with cached responses. Configuration calls (genres, l
 | 7 | 43.75% | >=16 | 100% |
 | 8 | 50% | | |
 
+For task tracking see [docs/TODO.md](docs/TODO.md).
+
 ---
 
 ## Project Docs
@@ -127,29 +129,9 @@ Using AI (ChatGPT, Claude, etc.) to **learn concepts** does not require citation
 
 ---
 
-## Resources
-
-- [Streamlit documentation](https://docs.streamlit.io/)
-- [Streamlit cheat sheet](https://docs.streamlit.io/library/cheatsheet)
-- [Streamlit tutorials (30 days)](https://30days-tmp.streamlit.app/)
-- [Streamlit gallery](https://streamlit.io/gallery)
-- [TMDB API reference](https://developer.themoviedb.org/reference/)
-
-Optional extension (not graded, but improves the result): deploy publicly via [Streamlit Community Cloud](https://streamlit.io/cloud).
-
----
-
 ## Deployment
 
-The app is publicly accessible at **https://hsg.adlerscope.com** via Cloudflare Tunnel.
-
-| Component | Detail |
-|-----------|--------|
-| Tunnel name | `movie-recommender` |
-| Protocol | QUIC |
-| Service | `http://localhost:8501` (Streamlit) |
-| Config | `~/Developer/.config/cloudflared/config.yml` |
-| Credentials | `~/Developer/.local/share/cloudflared/movie-recommender.json` |
+Public URL: **https://hsg.adlerscope.com** (Cloudflare Tunnel)
 
 ```bash
 # Start Streamlit (Terminal 1)
@@ -159,8 +141,6 @@ streamlit run streamlit_app.py
 # Start tunnel (Terminal 2)
 cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender
 ```
-
-The tunnel requires both Streamlit and `cloudflared` to be running. TMDB API keys remain server-side (never sent to clients). Each browser tab gets an isolated Streamlit session.
 
 ---
 
@@ -181,3 +161,13 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 # Run the app
 streamlit run streamlit_app.py
 ```
+
+---
+
+## Resources
+
+- [Streamlit documentation](https://docs.streamlit.io/)
+- [Streamlit cheat sheet](https://docs.streamlit.io/library/cheatsheet)
+- [Streamlit tutorials (30 days)](https://30days-tmp.streamlit.app/)
+- [Streamlit gallery](https://streamlit.io/gallery)
+- [TMDB API reference](https://developer.themoviedb.org/reference/)

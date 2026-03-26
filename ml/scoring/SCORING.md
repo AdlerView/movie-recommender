@@ -29,21 +29,36 @@ User clicks "Discover"
     v
 2. Mood filter (local, only if user selected a mood)
    For each candidate: mood_scores.npy[movie_id_index[id]]
-   Keep only movies where selected mood > 0.3
+   Keep only movies where selected mood > threshold
    -> ~50-300 candidates
-   Fallback: if fewer than 20 candidates remain, lower threshold
-   stepwise (0.2, 0.1, 0.0) until at least 20 candidates or
-   threshold reaches 0. This prevents empty results for rare moods
-   like "Disgusted".
+
+   Threshold fallback (mood_filter.py):
+     threshold = 0.3
+     keep = [m for m in candidates
+             if mood_scores[m][selected_mood] > threshold]
+     for t in [0.2, 0.1, 0.0]:
+         if len(keep) >= 20: break
+         threshold = t
+         keep = [m for m in candidates
+                 if mood_scores[m][selected_mood] > threshold]
+
+   If no mood selected, no mood filtering occurs. The user's
+   implicit mood from rating history still influences the
+   personalized scoring (see Mood Match component below).
     |
     v
 3. Scoring depends on selected sort order:
-   - "Personalized Score": full ML scoring (see formula below)
-   - "Popularity": use TMDB popularity from discover response
-   - "Rating": use TMDB vote_average from discover response
-   - "Release date": use TMDB release_date from discover response
+
+   | Sort Option             | TMDB sort_by              | ML Scoring |
+   |-------------------------|---------------------------|------------|
+   | Personalized (default)  | popularity.desc           | Yes (full) |
+   | Popularity              | popularity.desc           | No         |
+   | Rating                  | vote_average.desc         | No         |
+   | Release Date            | primary_release_date.desc | No         |
+
+   For "Personalized", API sorts by popularity (reasonable candidate
+   pool), then local scoring re-ranks. Other options use API order.
    Mood filter from step 2 applies to ALL sort orders.
-   Non-personalized sorts skip the ML scoring entirely.
     |
     v
 4. Sort + return top-20
