@@ -101,6 +101,7 @@
 - [x] Keyword-to-mood classifier — `pipeline/keyword_mood_classifier.py`: 80/10/10 split, scaled+unscaled, 5+ classifiers (MLPClassifier best, val F1=0.76, test acc=78%), inferred 65,779 keywords → `store/keyword_mood_map.json` (68,462 entries, 3.0 MB) (2026-03-26)
 - [x] Directory restructuring — `data/` + `model/` → `data/` (tracked: labeled/, evaluation/) + `store/` (gitignored: DBs, .npy, .pkl, generated JSON). Gitignore simplified to single `store/` rule (2026-03-26)
 - [x] Feature extraction pipeline — `pipeline/01_extract_features.py`: 7 features from tmdb.db (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim), 3 SVD .pkl models. Total: ~2.9 GB in store/. Runtime: 2m39s (2026-03-26)
+- [x] Quality scores pipeline — `pipeline/03_quality_scores.py`: Bayesian average on vote_average + vote_count (m=3.0, C=5.90), normalized to [0,1]. Spot checks: Fight Club 0.83, Pulp Fiction 0.84, Dark Knight 0.84. 4.5 MB (2026-03-26)
 
 ## Superseded
 

@@ -165,8 +165,13 @@ high-dimensional sparse features via SVD.
 
 **SVD details:**
 
-- TruncatedSVD with 200 components
-- Keywords use TF-IDF weighting before SVD
+- TruncatedSVD with 200 components (pragmatic default from LSA
+  literature, configurable via `--svd-components`). Observed explained
+  variance: keywords 33.7%, directors 2.8%, actors 1.7%. Low
+  director/actor values reflect extreme sparsity (most people appear
+  in 1-2 films), not a poor component count.
+- Keywords use TF-IDF weighting before SVD (same math as
+  TfidfVectorizer in course Notebook 10-2)
 - Directors and actors use binary onehot (present/absent) before SVD
 - SVD models are saved as `.pkl` for transforming new movies later
 

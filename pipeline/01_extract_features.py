@@ -17,6 +17,16 @@ Beyond-course extensions:
     - Binary sparse matrices for director/actor co-occurrence
     - One-hot encoding for categorical features (genres, decades, languages)
 
+SVD component count (default: 200):
+    Pragmatic default from LSA literature (100-300 typical for similarity
+    search). Not rigorously optimized — ideally tuned via elbow plot on
+    explained variance. Observed explained variance at 200 components:
+    keywords 33.7%, directors 2.8%, actors 1.7%. The low director/actor
+    values reflect extreme sparsity (most people appear in 1-2 films),
+    not a poor component count. A differentiated setting (e.g., keywords
+    200, directors 50, actors 50) could be explored but adds complexity
+    without clear scoring benefit. Configurable via --svd-components.
+
 Data flow:
     store/tmdb.db (1.17M movies, 30 tables)
         → 7 .npy feature arrays in store/
