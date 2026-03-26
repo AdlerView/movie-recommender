@@ -16,7 +16,7 @@ At the start of every new session, read ALL of the following files before doing 
 **Documentation (all `.md` files):**
 - `CLAUDE.md`, `README.md`, `docs/TODO.md`, `docs/MIGRATION.md`
 - `app/utils/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
-- `docs/tmdb-schema.mmd`, `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
+- `ml/extraction/ML-PIPELINE.md`, `ml/scoring/FILTER.md`, `ml/classification/MOOD.md`, `ml/scoring/SCORING.md`
 - `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
 
 **Config:**
@@ -138,7 +138,6 @@ movie-recommender/
 │   ├── TODO.md                             # Task tracking with deadlines
 │   ├── CONTRIBUTION.md                     # Team contribution matrix
 │   ├── REQUIREMENTS.md                     # Grading requirements checklist
-│   ├── tmdb-schema.mmd                     # ER diagram of TMDB database (Mermaid)
 │   ├── STREAMLIT_API.yaml                  # Streamlit API reference
 │   ├── concept/                            # Original project concept
 │   │   ├── cs-project.md

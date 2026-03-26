@@ -635,7 +635,6 @@ CREATE TABLE user_profile_cache (
 
 The canonical directory structure is defined in [CLAUDE.md](../CLAUDE.md)
 § Directory Structure. See that section for the full tree.
-    tmdb-schema.mmd                  ER diagram of TMDB database
 ```
 
 ---
