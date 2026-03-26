@@ -602,43 +602,42 @@ def _show_detail_dialog(movie_id: int) -> None:
 
     st.divider()
 
-    # Action buttons
-    def _add_to_watchlist_from_dialog() -> None:
-        """Add movie to watchlist from detail dialog."""
-        _movie_dict = {
-            "id": movie_id,
-            "title": details.get("title", ""),
-            "poster_path": details.get("poster_path"),
-            "vote_average": details.get("vote_average"),
-            "overview": details.get("overview"),
-            "genre_ids": [g["id"] for g in details.get("genres", [])],
-        }
-        st.session_state.watchlist.append(_movie_dict)
-        save_to_watchlist(_movie_dict)
-        st.session_state._discover_selected_id = None
-        st.session_state["_discover_toast"] = (
-            f"Added **{details.get('title', '')}** to watchlist",
-            ":material/bookmark:",
-        )
-
-    def _dismiss_from_dialog() -> None:
-        """Dismiss movie from detail dialog."""
-        st.session_state.dismissed.add(movie_id)
-        save_dismissed(movie_id)
-        st.session_state._discover_selected_id = None
-        st.session_state["_discover_toast"] = (
-            f"Skipped **{details.get('title', '')}**",
-            ":material/thumb_down:",
-        )
-
+    # Action buttons — use if-st.button + st.rerun() instead of on_click
+    # callbacks, because @st.dialog inherits from @st.fragment and on_click
+    # only triggers a fragment rerun (dialog stays open, main page unchanged).
     col_dismiss, col_watchlist = st.columns(2)
     with col_dismiss:
-        st.button("Not interested", icon=":material/thumb_down:",
-                  on_click=_dismiss_from_dialog, use_container_width=True)
+        if st.button("Not interested", icon=":material/thumb_down:",
+                     use_container_width=True):
+            st.session_state.dismissed.add(movie_id)
+            save_dismissed(movie_id)
+            st.session_state._discover_selected_id = None
+            st.session_state["_discover_toast"] = (
+                f"Skipped **{details.get('title', '')}**",
+                ":material/thumb_down:",
+            )
+            st.rerun()
     with col_watchlist:
-        st.button("Add to watchlist", icon=":material/bookmark:",
-                  on_click=_add_to_watchlist_from_dialog,
-                  type="primary", use_container_width=True)
+        if st.button("Add to watchlist", icon=":material/bookmark:",
+                     type="primary", use_container_width=True):
+            _movie_dict = {
+                "id": movie_id,
+                "title": details.get("title", ""),
+                "poster_path": details.get("poster_path"),
+                "vote_average": details.get("vote_average"),
+                "overview": details.get("overview"),
+                "genre_ids": [g["id"] for g in details.get("genres", [])],
+            }
+            # Guard: prevent duplicate entries in watchlist
+            if movie_id not in {m["id"] for m in st.session_state.watchlist}:
+                st.session_state.watchlist.append(_movie_dict)
+                save_to_watchlist(_movie_dict)
+            st.session_state._discover_selected_id = None
+            st.session_state["_discover_toast"] = (
+                f"Added **{details.get('title', '')}** to watchlist",
+                ":material/bookmark:",
+            )
+            st.rerun()
 
 
 # Trigger dialog after page renders (must be in main flow)

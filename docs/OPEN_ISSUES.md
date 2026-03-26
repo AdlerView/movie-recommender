@@ -1,7 +1,7 @@
 # Open Issues
 
 > Conceptual gaps, ambiguities, and pending decisions.
-> Last updated: 2026-03-25
+> Last updated: 2026-03-26
 
 ## Legend
 
@@ -58,3 +58,11 @@
 - [x] `#008` **[gap]** — Flatrate streaming providers (CH) shown on Watchlist with brand-colored badges (2026-03-24)
 - [x] `#005` **[gap]** — Statistics data pipeline: normalized SQLite tables (movie_details, movie_genres, movie_cast, movie_crew, movie_countries, movie_keywords), eager fetch on rating save + backfill on startup. Dashboard PoC with KPIs, 7 Altair charts, rankings, rated movies table (2026-03-24)
 - [x] `#012` **[gap]** — "No movies found — try selecting fewer tags" message + back button to genre selection (2026-03-24)
+- [x] `#018` **[issue]** — Watchlist duplicate key crash (`DuplicateElementKey: wl_sel_*`)
+  - Context: Clicking "Add to watchlist" in Discover dialog could append the same movie twice (no dedup guard). The watchlist poster grid then generated duplicate `st.button` keys, crashing the page.
+  - Fix: (1) Guard in `discover.py` before `watchlist.append()`, (2) defensive dedup with seen-set in `watchlist.py` grid loop.
+  - Found: 2026-03-26 | Resolved: 2026-03-26
+- [x] `#019` **[issue]** — Discover detail dialog buttons unresponsive
+  - Context: "Not interested" and "Add to watchlist" buttons in the Discover `@st.dialog` used `on_click` callbacks. Since `@st.dialog` inherits from `@st.fragment`, widget interactions only trigger a fragment rerun (dialog-scoped), not a full app rerun. The dialog stayed open and the main page never updated.
+  - Fix: Replaced `on_click` callbacks with `if st.button(): ... st.rerun()` pattern (matching the working watchlist dialog).
+  - Found: 2026-03-26 | Resolved: 2026-03-26

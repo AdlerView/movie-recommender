@@ -324,7 +324,13 @@ st.markdown("""<style>
 
 # --- Poster grid ---
 # Filter out movies without posters for visual consistency
-grid_movies = [m for m in watchlist if m.get("poster_path")]
+# Deduplicate by movie ID to prevent DuplicateElementKey errors
+_seen: set[int] = set()
+grid_movies: list[dict] = []
+for m in watchlist:
+    if m.get("poster_path") and m["id"] not in _seen:
+        grid_movies.append(m)
+        _seen.add(m["id"])
 
 with st.container(key="watchlist_grid"):
     for row_start in range(0, len(grid_movies), _GRID_COLS):

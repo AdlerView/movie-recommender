@@ -1,7 +1,7 @@
 # To-Do
 
 > Actionable tasks with owners and deadlines.
-> Last updated: 2026-03-27
+> Last updated: 2026-03-26
 >
 > **Rule:** When a task is checked off (`[x]`), it MUST be moved to the **Done** section (with completion date) or **Superseded** section (with replacement note). Completed tasks MUST NOT remain in In Progress, Upcoming, or Backlog.
 
@@ -78,6 +78,8 @@
 - [x] Watchlist: mood reactions in "Mark as watched" dialog — rating slider + 7 mood buttons, saves to user_rating_moods (2026-03-26)
 - [x] Statistics: mood distribution chart from user reactions — Altair horizontal bar chart from load_mood_distribution() (2026-03-26)
 - [x] Online scoring Phase 2 — `ml/scoring/user_profile.py` (weighted-avg profile vectors, SQLite cache), `ml/scoring/scoring.py` (9-signal cosine similarity, dynamic weights, ~8ms/300 candidates), `ml/scoring/mood_filter.py` (threshold fallback 0.3→0.0) (2026-03-26)
+- [x] Bugfix: Watchlist duplicate key crash — dedup guard on watchlist append + defensive seen-set in grid loop (#018, 2026-03-26)
+- [x] Bugfix: Discover dialog buttons unresponsive — replaced `on_click` callbacks with `if st.button(): st.rerun()` pattern (#019, 2026-03-26)
 
 ## Superseded
 
