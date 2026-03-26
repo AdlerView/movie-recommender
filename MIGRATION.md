@@ -17,7 +17,7 @@ The system has two phases with strict separation:
 
 ### Offline Phase (Training) `DONE`
 
-Uses the 8.2 GB TMDB SQLite database (`store/tmdb.db`, 1.17M movies,
+Uses the 8.2 GB TMDB SQLite database (`store/tmdb.sqlite`, 1.17M movies,
 30 tables) to precompute feature vectors and mood scores. This database
 is never queried at runtime.
 
@@ -388,7 +388,7 @@ dominates.
 
 #### Stage 1: Feature Extraction `PENDING`
 
-Input: `store/tmdb.db` (8.2 GB, 1.17M movies)
+Input: `store/tmdb.sqlite` (8.2 GB, 1.17M movies)
 
 | Feature | Dimensions | DB Source |
 |---|---|---|
@@ -574,7 +574,7 @@ Script: `pipeline/keyword_mood_classifier.py`
 ### Offline Only (not shipped to production)
 
 ```
-store/tmdb.db                    8.2 GB    Full TMDB database, 30 tables, 1.17M movies
+store/tmdb.sqlite                    8.2 GB    Full TMDB database, 30 tables, 1.17M movies
 ```
 
 ---

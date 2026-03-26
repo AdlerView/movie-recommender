@@ -25,7 +25,7 @@ classification is not taught in the course (mentioned on lecture 10
 slide 40 but never used practically).
 
 Data flow:
-    store/tmdb.db (movies.overview, movies.tagline, movie_reviews)
+    store/tmdb.sqlite (movies.overview, movies.tagline, movie_reviews)
     store/genre_mood_map.json (19 rules)
     store/keyword_mood_map.json (~70K entries)
         → 4 signal arrays combined with dynamic weights
@@ -80,7 +80,7 @@ def load_movie_ids(conn: sqlite3.Connection) -> tuple[np.ndarray, dict[int, int]
     """Load canonical movie ID ordering (same as Stage 1).
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
 
     Returns:
         Tuple of (movie_ids array, id_to_row mapping).
@@ -101,7 +101,7 @@ def compute_genre_signal(
     """Signal 1: genre→mood scores averaged across each movie's genres.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         id_to_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         genre_map: Dict from genre name to mood weight dict.
@@ -155,7 +155,7 @@ def compute_keyword_signal(
     """Signal 2: keyword→mood scores averaged across each movie's keywords.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         id_to_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         keyword_map: Dict from keyword name to mood weight dict.
@@ -212,7 +212,7 @@ def compute_emotion_signal(
     7-to-7 mapping to our moods (neutral → interested).
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         id_to_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         batch_size: Batch size for classifier inference.
@@ -375,8 +375,8 @@ def main() -> int:
         description="Predict mood scores for all movies from 4 signals.",
     )
     parser.add_argument(
-        "--db", type=Path, default=Path("store/tmdb.db"),
-        help="Path to TMDB SQLite database (default: store/tmdb.db)",
+        "--db", type=Path, default=Path("store/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output", type=Path, default=Path("store"),

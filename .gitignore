@@ -71,10 +71,10 @@ Thumbs.db
 .streamlit/secrets.toml
 
 # Store — large files (fast to regenerate from pipeline scripts)
-store/tmdb.db
-store/movies.db
-store/movies.db-shm
-store/movies.db-wal
+store/tmdb.sqlite
+store/user.sqlite
+store/user.sqlite-shm
+store/user.sqlite-wal
 store/exports/
 store/*_svd_vectors.npy
 store/svd_models/

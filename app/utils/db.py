@@ -11,7 +11,7 @@ enables efficient SQL aggregations for the Statistics dashboard without
 re-fetching from TMDB.
 
 Database file (gitignored):
-- store/movies.db: App runtime database (ratings, watchlist, dismissed, details).
+- store/user.sqlite: App runtime database (ratings, watchlist, dismissed, details).
   Schema version: 5 (managed via PRAGMA user_version).
 
 Schema v5 changes (from v4):
@@ -29,7 +29,7 @@ from pathlib import Path
 
 # Database path: project_root/store/ (two levels up from utils/)
 _STORE_DIR = Path(__file__).resolve().parent.parent.parent / "store"
-DB_PATH = _STORE_DIR / "movies.db"
+DB_PATH = _STORE_DIR / "user.sqlite"
 
 
 @contextmanager

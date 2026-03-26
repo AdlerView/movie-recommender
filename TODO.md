@@ -71,7 +71,7 @@
 - [x] Genre-to-mood mapping — 19 TMDB genres with hand-crafted mood weights in `store/genre_mood_map.json` (2026-03-26)
 - [x] Keyword-to-mood classifier — `pipeline/keyword_mood_classifier.py`: 80/10/10 split, scaled+unscaled, 5+ classifiers (MLPClassifier best, val F1=0.76, test acc=78%), inferred 65,779 keywords → `store/keyword_mood_map.json` (68,462 entries, 3.0 MB) (2026-03-26)
 - [x] Directory restructuring — `data/` + `model/` → `data/` (tracked: labeled/, evaluation/) + `store/` (gitignored: DBs, .npy, .pkl, generated JSON). Gitignore simplified to single `store/` rule (2026-03-26)
-- [x] Feature extraction pipeline — `pipeline/01_extract_features.py`: 7 features from tmdb.db (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim), 3 SVD .pkl models. Total: ~2.9 GB in store/. Runtime: 2m39s (2026-03-26)
+- [x] Feature extraction pipeline — `pipeline/01_extract_features.py`: 7 features from tmdb.sqlite (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim), 3 SVD .pkl models. Total: ~2.9 GB in store/. Runtime: 2m39s (2026-03-26)
 - [x] Quality scores pipeline — `pipeline/03_quality_scores.py`: Bayesian average on vote_average + vote_count (m=3.0, C=5.90), normalized to [0,1]. Spot checks: Fight Club 0.83, Pulp Fiction 0.84, Dark Knight 0.84. 4.5 MB (2026-03-26)
 - [x] Discover page redesign — sidebar with 12 filters (genre, year, runtime, rating, min votes, keywords, language, certification, streaming providers), main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. New TMDB API functions in tmdb.py. Visual polish pending. (2026-03-26)
 - [x] ML Evaluation utility + Statistics section — `app/utils/ml_eval.py` (4 generic functions: evaluate_classifiers, best_model_report, run_cross_validation, knn_hyperparameter_plot). Statistics page: classifier comparison table, best model KPIs (MLPClassifier 89% val acc, 0.76 F1), confusion matrix, 10-fold CV (81.6% ± 3.8%), KNN k=1..20 plot. All course requirements (Req 5) visible. (2026-03-26)
@@ -84,7 +84,7 @@
 
 > Tasks from the old 10-category mood classification system (replaced by TMDB Vibes model on 2026-03-25).
 
-- [x] ~~TMDB keyword extraction — keywords.db (~63k movies)~~ → replaced by tmdb.db (1.17M movies)
+- [x] ~~TMDB keyword extraction — keywords.db (~63k movies)~~ → replaced by tmdb.sqlite (1.17M movies)
 - [x] ~~Mood classification ML pipeline (EmbeddingGemma-300M + KNN)~~ → replaced by user-rated mood reactions + sklearn classifiers
 - [x] ~~Curated mood keywords — 170 seeds in 10 categories~~ → replaced by 7 TMDB Vibes categories
 - [x] ~~Mood pills on Discover~~ → mood moved to Rate page; Discover uses keyword/tone search instead

@@ -28,7 +28,7 @@ SVD component count (default: 200):
     without clear scoring benefit. Configurable via --svd-components.
 
 Data flow:
-    store/tmdb.db (1.17M movies, 30 tables)
+    store/tmdb.sqlite (1.17M movies, 30 tables)
         → 7 .npy feature arrays in store/
         → 3 .pkl SVD models in store/svd_models/
 
@@ -65,7 +65,7 @@ def load_movie_ids(conn: sqlite3.Connection) -> np.ndarray:
     Deterministic via ORDER BY id.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
 
     Returns:
         1D numpy array of movie IDs, sorted ascending.
@@ -103,7 +103,7 @@ def extract_keyword_svd(
     IDs instead of raw text tokens.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         movie_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         n_components: Number of SVD dimensions.
@@ -164,7 +164,7 @@ def extract_person_svd(
     than for keywords.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         movie_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         n_components: Number of SVD dimensions.
@@ -222,7 +222,7 @@ def extract_genre_vectors(
     No SVD needed — only 19 dimensions.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         movie_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         output_dir: Directory for .npy output.
@@ -265,7 +265,7 @@ def extract_decade_vectors(
     Each film belongs to exactly one decade.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         movie_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         output_dir: Directory for .npy output.
@@ -325,7 +325,7 @@ def extract_language_vectors(
     Each film belongs to exactly one language.
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         movie_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         top_n: Number of top languages to include (rest → "other").
@@ -378,7 +378,7 @@ def extract_runtime(
     NULL → 0.0 (neutral for cosine similarity).
 
     Args:
-        conn: SQLite connection to tmdb.db.
+        conn: SQLite connection to tmdb.sqlite.
         movie_row: Mapping from movie_id to row index.
         n_movies: Total number of movies.
         output_dir: Directory for .npy output.
@@ -416,8 +416,8 @@ def main() -> int:
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("store/tmdb.db"),
-        help="Path to TMDB SQLite database (default: store/tmdb.db)",
+        default=Path("store/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",

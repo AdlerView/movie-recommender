@@ -425,7 +425,7 @@ GET /3/movie/latest?api_key=KEY
 
 Get the newest movie ID. This is a live response and continuously
 changes. Used in the offline pipeline to determine the upper bound
-of movie IDs when building `tmdb.db`.
+of movie IDs when building `tmdb.sqlite`.
 
 **Response:**
 

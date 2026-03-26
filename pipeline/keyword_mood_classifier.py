@@ -15,7 +15,7 @@ Data flow:
         -> scaled + unscaled classifier comparison (macro-F1)
         -> best model reported on test set (classification_report, confusion matrix)
         -> best model refitted on full single-label set
-        -> inference on 70K+ unlabeled keywords from store/tmdb.db
+        -> inference on 70K+ unlabeled keywords from store/tmdb.sqlite
         -> store/keyword_mood_map.json
 
 Split strategy follows Assignment 11 Task 1: two successive
@@ -352,7 +352,7 @@ def load_all_keywords_from_db(db_path: Path) -> pd.DataFrame:
     """Load all keywords from the TMDB database.
 
     Args:
-        db_path: Path to store/tmdb.db.
+        db_path: Path to store/tmdb.sqlite.
 
     Returns:
         DataFrame with columns: keyword_id, keyword_name.
@@ -367,7 +367,7 @@ def load_all_keywords_from_db(db_path: Path) -> pd.DataFrame:
     df = pd.read_sql_query("SELECT id AS keyword_id, name AS keyword_name FROM keywords", conn)
     conn.close()
 
-    log.info("Loaded %d keywords from tmdb.db", len(df))
+    log.info("Loaded %d keywords from tmdb.sqlite", len(df))
     return df
 
 
@@ -448,8 +448,8 @@ def main() -> int:
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("store/tmdb.db"),
-        help="Path to TMDB SQLite database (default: store/tmdb.db)",
+        default=Path("store/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: store/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",
@@ -540,8 +540,8 @@ def main() -> int:
     x_single_scaled = scaler_full.fit_transform(x_single)
     best_clf.fit(x_single_scaled, y_encoded)
 
-    # --- Step 8: Load all keywords from tmdb.db ---
-    log.info("=== Step 8: Load keywords from tmdb.db ===")
+    # --- Step 8: Load all keywords from tmdb.sqlite ---
+    log.info("=== Step 8: Load keywords from tmdb.sqlite ===")
     all_keywords_df = load_all_keywords_from_db(args.db)
 
     # Identify unlabeled keywords (not in the 5,000 labeled set)

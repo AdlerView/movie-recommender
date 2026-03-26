@@ -26,8 +26,8 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 | Theme       | "Cinema Gold" — dark base, gold/copper accent (`#D4A574`), [Poppins](https://fonts.google.com/specimen/Poppins) font |
 | Language    | Python |
 | Data        | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) |
-| Persistence | SQLite (WAL mode, schema v5) for user data. `tmdb.db` (1.17M movies, 30 tables, 8.2 GB) offline only. Runtime: precomputed `.npy` arrays (~3 GB) + TMDB API |
-| ML          | Personalized recommendations via scikit-learn (content-based scoring from user ratings + mood reactions, feature vectors from tmdb.db) |
+| Persistence | SQLite (WAL mode, schema v5) for user data. `tmdb.sqlite` (1.17M movies, 30 tables, 8.2 GB) offline only. Runtime: precomputed `.npy` arrays (~3 GB) + TMDB API |
+| ML          | Personalized recommendations via scikit-learn (content-based scoring from user ratings + mood reactions, feature vectors from tmdb.sqlite) |
 
 ---
 
@@ -35,7 +35,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ### Discover
 
-Personalized movie discovery with 14 filter controls and ML-based ranking. Filters: Genre (19 TMDB genres, required), Mood (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry), Certification (country-dependent, e.g. DE: 0/6/12/16/18), Release Year range, Language, Runtime range, User Score range, Minimum Votes, Keywords (autocomplete via TMDB API `search/keyword`), Streaming Country, Streaming Provider, Only My Subscriptions, and Sort order. Filters are passed to the TMDB API `/discover/movie` endpoint for candidate retrieval. Mood filtering and personalized scoring run locally against precomputed `.npy` feature arrays (~3 GB, derived offline from `tmdb.db`). When sort is set to "Personalized Score" (default), results are ranked by an ML scoring model that combines keyword similarity, mood match, director/actor/decade/language/runtime similarity, quality score (Bayesian average), and contra-penalty — all derived from the user's rating history. Results displayed as card-based flow or poster grid with Genre/Keyword badges, predicted mood, runtime, streaming providers, and personalized score. Already-rated, dismissed, and watchlisted movies are filtered out. Cold-start: with 0 ratings, ranking falls back to quality + mood match; personalization strengthens with more ratings.
+Personalized movie discovery with 14 filter controls and ML-based ranking. Filters: Genre (19 TMDB genres, required), Mood (7 categories: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry), Certification (country-dependent, e.g. DE: 0/6/12/16/18), Release Year range, Language, Runtime range, User Score range, Minimum Votes, Keywords (autocomplete via TMDB API `search/keyword`), Streaming Country, Streaming Provider, Only My Subscriptions, and Sort order. Filters are passed to the TMDB API `/discover/movie` endpoint for candidate retrieval. Mood filtering and personalized scoring run locally against precomputed `.npy` feature arrays (~3 GB, derived offline from `tmdb.sqlite`). When sort is set to "Personalized Score" (default), results are ranked by an ML scoring model that combines keyword similarity, mood match, director/actor/decade/language/runtime similarity, quality score (Bayesian average), and contra-penalty — all derived from the user's rating history. Results displayed as card-based flow or poster grid with Genre/Keyword badges, predicted mood, runtime, streaming providers, and personalized score. Already-rated, dismissed, and watchlisted movies are filtered out. Cold-start: with 0 ratings, ranking falls back to quality + mood match; personalization strengthens with more ratings.
 
 ### Rate
 

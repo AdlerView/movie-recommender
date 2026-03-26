@@ -112,7 +112,7 @@ classification problem.
 ## Architecture
 
 ```
-store/tmdb.db (8.2 GB, offline only)
+store/tmdb.sqlite (8.2 GB, offline only)
     |
     |  pipeline/01_extract_features.py
     |  pipeline/02_predict_moods.py
@@ -148,7 +148,7 @@ are loaded into memory for scoring.
 
 **Script:** `pipeline/01_extract_features.py`
 
-**Input:** `store/tmdb.db`
+**Input:** `store/tmdb.sqlite`
 
 Extracts feature matrices from the TMDB database and reduces
 high-dimensional sparse features via SVD.
@@ -197,7 +197,7 @@ store/svd_models/actor_svd.pkl
 
 **Script:** `pipeline/02_predict_moods.py`
 
-**Input:** `store/tmdb.db` + `store/genre_mood_map.json` +
+**Input:** `store/tmdb.sqlite` + `store/genre_mood_map.json` +
 `store/keyword_mood_map.json`
 
 For each movie, predicts 7 mood probabilities:
@@ -381,7 +381,7 @@ weight redistributes to the remaining signals.
 
 **Script:** `pipeline/03_quality_scores.py`
 
-**Input:** `store/tmdb.db` (`movies.vote_average`, `movies.vote_count`)
+**Input:** `store/tmdb.sqlite` (`movies.vote_average`, `movies.vote_count`)
 
 Bayesian average to prevent movies with very few votes from ranking
 unfairly high:
@@ -423,9 +423,9 @@ Saves the final mappings:
 
 ```bash
 # Full pipeline (takes several hours for mood prediction on 1.17M movies)
-python3 pipeline/01_extract_features.py --db store/tmdb.db --output store/
-python3 pipeline/02_predict_moods.py --db store/tmdb.db --output store/
-python3 pipeline/03_quality_scores.py --db store/tmdb.db --output store/
+python3 pipeline/01_extract_features.py --db store/tmdb.sqlite --output store/
+python3 pipeline/02_predict_moods.py --db store/tmdb.sqlite --output store/
+python3 pipeline/03_quality_scores.py --db store/tmdb.sqlite --output store/
 python3 pipeline/04_build_index.py --output store/
 ```
 
@@ -511,7 +511,7 @@ User clicks "Discover" with filters
 
 | File | Status | Content |
 |---|---|---|
-| `pipeline/01_extract_features.py` | `DONE` | Stage 1: tmdb.db -> SVD/onehot -> .npy |
+| `pipeline/01_extract_features.py` | `DONE` | Stage 1: tmdb.sqlite -> SVD/onehot -> .npy |
 | `pipeline/02_predict_moods.py` | `DONE` | Stage 2: genre/keyword mapping + emotion classifier -> mood_scores.npy |
 | `pipeline/03_quality_scores.py` | `DONE` | Stage 3: Bayesian average -> quality_scores.npy |
 | `pipeline/04_build_index.py` | `DONE` | Stage 4: movie_id_index.json + output verification |
