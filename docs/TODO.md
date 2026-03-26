@@ -27,7 +27,7 @@
 
 - [x] Project setup — repo, conda env, requirements.txt, gitignore (2026-03-18)
 - [x] Project documentation — REQUIREMENTS.md, CONTRIBUTION.md, OPEN_ISSUES.md (2026-03-18)
-- [x] TMDB API integration — genres, trending, discover, movie details, watch providers (2026-03-23)
+- [x] TMDB API integration — genres, discover, movie details, watch providers (2026-03-23)
 - [x] SQLite persistence — ratings, watchlist, dismissed with WAL mode (2026-03-23)
 - [x] Multi-page app — Discover, Rate, Watchlist, Statistics with top nav (2026-03-23)
 - [x] Page restructuring — separate Discover (browse) and Watched (rate) pages, merge Rated into Watched (2026-03-24)
@@ -58,7 +58,7 @@
 - [x] Discover movie counter — "Movie X of Y" below action buttons (2026-03-24)
 - [x] Discover runtime + streaming — fetch details for current card, show runtime and CH streaming providers (2026-03-24)
 - [x] TMDB rating format — unified to 1 decimal across all pages (2026-03-24)
-- [x] Re-rating via search — rated movies appear in Rate search results, excluded only from trending (2026-03-24)
+- [x] Re-rating via search — rated movies appear in Rate search results, excluded only from browse grid (2026-03-24)
 - [x] Statistics table fix — proper None handling for TMDB ratings, column width for "Your rating" (2026-03-24)
 - [x] Comprehensive TMDB database — tmdb-build-db.py fetches all 1.17M movies with keywords, credits, genres (2026-03-25)
 - [x] Doc consistency fixes — normalized all ML stats, removed outdated status block, fixed .gitignore (2026-03-25)

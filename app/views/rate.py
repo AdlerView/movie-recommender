@@ -1,6 +1,6 @@
 """Rate page — Search and rate movies you've already seen.
 
-Find movies via TMDB text search or browse trending titles, then rate them
+Find movies via TMDB text search or browse personalized recommendations, then rate them
 on a 0-100 scale (steps of 10) with optional mood reactions. Clicking a
 poster opens a detail dialog with rating slider and mood buttons. Pure
 action tab — rated movies are reviewed on the Statistics page instead.
@@ -62,7 +62,7 @@ def _select_movie_id(movie_id: int) -> None:
 
 
 def _load_more() -> None:
-    """Load the next page of trending/search results."""
+    """Load the next page of browse/search results."""
     st.session_state._watched_pages += 1
 
 
@@ -308,7 +308,7 @@ try:
             has_more = False
             break
         # Filter per page: remove poster-less and duplicate movies.
-        # Rated movies are excluded from trending (already rated = not actionable)
+        # Rated movies are excluded from browse (already rated = not actionable)
         # but kept in search results (allows re-rating via search).
         seen_ids = {m["id"] for m in movies}
         page_movies = [

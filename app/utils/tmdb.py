@@ -85,20 +85,6 @@ def get_genre_map() -> dict[int, str]:
     return {g["id"]: g["name"] for g in get_genres()}
 
 
-@st.cache_data(ttl="30m", show_spinner="Loading trending movies...")
-def get_trending(time_window: str = "week", page: int = 1) -> list[dict]:
-    """Fetch trending movies from TMDB.
-
-    Args:
-        time_window: "day" or "week".
-        page: Result page (1-500, 20 movies per page).
-
-    Returns:
-        List of movie dicts from the trending endpoint.
-    """
-    # GET /trending/movie/{time_window} — movies trending this day/week
-    return _get(f"/trending/movie/{time_window}", language="en-US", page=page)["results"]
-
 
 @st.cache_data(ttl="10m", show_spinner=False)
 def discover_movies_filtered(

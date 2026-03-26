@@ -39,7 +39,7 @@ Personalized movie discovery with 14 filter controls and ML-based ranking. Filte
 
 ### Rate
 
-Pure action tab for rating movies you've already seen. TMDB text search + Netflix-style clickable poster grid (trending). Clicking a poster opens a detail dialog with poster, keyword badges, TMDB rating, runtime, overview, a 0-100 color-coded rating slider (steps of 10), and 7 optional mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — based on TMDB's Vibes model / Ekman's basic emotions). Mood reactions are multi-select, saved alongside the numeric rating, and serve as training data for the personalized recommendation model. Save button is disabled until the slider is moved (prevents accidental 0-ratings). Linear flow: search/browse → click → rate (+ optional mood) → done.
+Pure action tab for rating movies you've already seen. TMDB text search + Netflix-style clickable poster grid ("Based on your interests" when profile exists, popular movies on cold start — both via `discover/movie` endpoint). Clicking a poster opens a detail dialog with poster, keyword badges, TMDB rating, runtime, overview, a 0-100 color-coded rating slider (steps of 10), and 7 optional mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — based on TMDB's Vibes model / Ekman's basic emotions). Mood reactions are multi-select, saved alongside the numeric rating, and serve as training data for the personalized recommendation model. Save button is disabled until the slider is moved (prevents accidental 0-ratings). Linear flow: search/browse → click → rate (+ optional mood) → done.
 
 ### Watchlist
 
@@ -55,7 +55,7 @@ All ratings, watchlist entries, and dismissals are persisted in a local SQLite d
 
 ### TMDB Integration
 
-Live data from TMDB API v3 with cached responses. Configuration calls (genres, languages, certifications, countries, providers) cached 24h. Per-request calls: trending 30m, discover 30m, search 5m. Per-movie calls: details 1h, keywords 24h, watch providers 1h. Genre-based filtering via `/discover/movie`, trending via `/trending/movie/week`, text search via `/search/movie`. Movie details use `append_to_response=credits,videos,watch/providers` to fetch runtime, directors, cast, trailers, and streaming providers in a single API call (`release_dates` planned for certification badges). Keywords fetched separately on rating save for local caching (keyword badges + ML pipeline). Error handling for API failures with user-facing messages.
+Live data from TMDB API v3 with cached responses. Configuration calls (genres, languages, certifications, countries, providers) cached 24h. Per-request calls: discover 10m, search 5m. Per-movie calls: details 1h, keywords 24h, watch providers 1h. Candidate retrieval via `/discover/movie` (both Discover and Rate pages), text search via `/search/movie`. Movie details use `append_to_response=credits,videos,watch/providers` to fetch runtime, directors, cast, trailers, and streaming providers in a single API call (`release_dates` planned for certification badges). Keywords fetched separately on rating save for local caching (keyword badges + ML pipeline). Error handling for API failures with user-facing messages.
 
 ---
 

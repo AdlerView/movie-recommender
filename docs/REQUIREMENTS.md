@@ -33,7 +33,7 @@
 
 > The application uses some data that is loaded via an API and/or provided via a database.
 
-**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/discover/movie` (genre-filtered results), `/trending/movie/{time_window}` (trending), `/movie/{id}` (details), `/genre/movie/list` (genre catalog), `/search/movie` (text search by title), `/movie/{id}/watch/providers` (streaming availability). Local SQLite database persists ratings (INTEGER 0-100), mood reactions, watchlist, and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
+**Our approach:** TMDB API v3 — free, widely used, 158 API endpoints. Key endpoints: `/discover/movie` (filtered + personalized results), `/movie/{id}` (details), `/genre/movie/list` (genre catalog), `/search/movie` (text search by title), `/movie/{id}/watch/providers` (streaming availability). Local SQLite database persists ratings (INTEGER 0-100), mood reactions, watchlist, and dismissals across sessions. Schema versioned via `PRAGMA user_version`.
 
 **Status:** implemented
 

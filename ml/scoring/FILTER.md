@@ -51,7 +51,7 @@ same row; longer names like Science Fiction get their own row).
 
 **No requirements:** Genre has no minimum selection. Mood has no
 "optional" label. All filters are truly optional — zero filters shows
-personalized recommendations (or trending as fallback).
+personalized recommendations (or popularity order on cold start).
 
 ---
 
@@ -359,8 +359,7 @@ results (the TMDB API has no parameter for this).
 
 | Call | Cache Key | TTL | Rationale |
 |---|---|---|---|
-| `trending/movie/{window}` | `trending_{window}_{page}` | 30m | Updates daily, bounded key space |
-| `discover/movie?...` | filter params + page | 30m | Bounded key space (genre combos) |
+| `discover/movie?...` | filter params + page | 10m | Bounded key space (genre combos) |
 | `search/movie?query=...` | `search_{query}_{page}` | 5m | Unbounded key space (free text) |
 | `search/keyword?query=...` | `kw_{query}` | 5m | Unbounded key space (free text) |
 

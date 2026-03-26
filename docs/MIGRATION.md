@@ -105,7 +105,7 @@ immediately updates the poster grid. No explicit "Discover" button.
 TMDB rate limit (40 req/s) is sufficient for live updates.
 
 **Default state (no filters):** "Recommended Movies" shows 20
-personalized films (ML pipeline). Fallback: trending.
+personalized films (ML pipeline). Fallback: popularity order.
 
 **Empty results:** Info message ("No movies match your filters. Try
 fewer criteria.") + "You might also like" section with recommended
@@ -773,8 +773,8 @@ reactions to Watchlist.
 | ID | Task | File(s) | Depends on | Status |
 |---|---|---|---|---|
 | 4.1 | Discover: sidebar layout with 12 filter controls + main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. Provider logos via TMDB `logo_path`. Genre `st.pills` width-optimized order. Keyword autocomplete + chips. | `app/views/discover.py` | -- (TMDB API filters work without pipeline) | `DONE` |
-| 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/views/discover.py` | 2.2 (scoring.py), 4.1 | `PENDING` |
-| 4.3 | Rate: "Based on your interests" poster grid (personalized recommendations, falls back to trending) | `app/views/rate.py` | 2.2 (scoring.py) | `PENDING` |
+| 4.2 | Discover: personalized sort option (ML scoring from rating history) + mood filter against `mood_scores.npy` | `app/views/discover.py` | 2.2 (scoring.py), 4.1 | `DONE` |
+| 4.3 | Rate: "Based on your interests" poster grid (discover/movie + ML scoring, falls back to popularity order) | `app/views/rate.py` | 2.2 (scoring.py) | `DONE` |
 | 4.4 | Watchlist: mood reactions in "Mark as watched" dialog | `app/views/watchlist.py` | 0.1 (DB schema) | `DONE` |
 | 4.5 | Statistics: mood distribution chart from user reactions | `app/views/statistics.py` | 0.3 (mood buttons) | `DONE` |
 
