@@ -226,7 +226,7 @@ user rated poorly. If a user gave 10/100 to romantic comedies, other
 romantic comedies get penalized.
 
 Sources for the contra vector:
-- Movies with ratings below 40/100 (ratings 0-30)
+- Movies with ratings at or below 30/100 (ratings 0-30)
 - Dismissed movies ("not interested") — treated as negative signal
 
 Threshold alternatives considered: below 60 (too aggressive, includes

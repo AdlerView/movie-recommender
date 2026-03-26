@@ -361,16 +361,15 @@ try:
 
     movies = movies[:_target_count]
 
+    # --- Mood filter (applies to ALL sort orders) ---
+    if selected_moods and movies:
+        _filtered_ids = set(filter_by_mood(
+            [m["id"] for m in movies], list(selected_moods),
+        ))
+        movies = [m for m in movies if m["id"] in _filtered_ids]
+
     # --- Personalized ranking (only for "Personalized" sort) ---
     if sort_option == "Personalized" and movies:
-        # Mood filter: remove candidates below mood threshold (before scoring)
-        if selected_moods:
-            _filtered_ids = set(filter_by_mood(
-                [m["id"] for m in movies], list(selected_moods),
-            ))
-            movies = [m for m in movies if m["id"] in _filtered_ids]
-
-        # ML scoring: re-rank by 9-signal cosine similarity
         _profile = get_or_compute_profile(ratings=st.session_state.ratings)
         if _profile is not None:
             _scored = score_candidates(
