@@ -280,52 +280,6 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 
 ---
 
-## Planned Features
-
-Task tracking and completion status: [docs/TODO.md](docs/TODO.md). Grading requirements and status: README.md.
-
-**Architecture docs:**
-- [ml/extraction/EXTRACTION.md](ml/extraction/EXTRACTION.md) — offline pipeline stages, architecture, dependencies
-- [ml/scoring/SCORING.md](ml/scoring/SCORING.md) — scoring formula, dynamic weights, mood filter, sort options
-- [ml/classification/CLASSIFICATION.md](ml/classification/CLASSIFICATION.md) — keyword-to-mood classification
-- [ml/evaluation/EVALUATION.md](ml/evaluation/EVALUATION.md) — ML evaluation spec
-
----
-
-## ML Pipeline (completed)
-
-4 offline pipeline scripts produce precomputed feature arrays in `data/output/`.
-All idempotent and re-runnable independently.
-
-| Script | Output | Runtime |
-|--------|--------|---------|
-| `ml/extraction/01_extract_features.py` | 7 `.npy` (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim) + 3 SVD `.pkl` | 2m39s |
-| `ml/classification/02_predict_moods.py` | `mood_scores.npy` (1.17M × 7, 4 signals: genre + keyword + overview emotion + review emotion) | 4h18m |
-| `ml/extraction/03_quality_scores.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
-| `ml/extraction/04_build_index.py` | `movie_id_index.json` (1.17M entries) + output verification | <1s |
-| `ml/classification/keyword_mood_classifier.py` | `keyword_mood_map.json` (68,462 entries, MLPClassifier val F1=0.76) | 3m |
-
-Run order: `01` + `03` (parallel) → `keyword_mood_classifier` → `02` → `04`
-
-### sklearn Imports Reference
-
-```python
-from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.preprocessing import RobustScaler
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
-from sklearn.dummy import DummyClassifier
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    classification_report, ConfusionMatrixDisplay,
-)
-```
-
----
-
 ## Streamlit DOM Structure (CSS Targeting)
 
 Streamlit does NOT use semantic HTML (`ul/li`, `nav`) for its top navigation. The actual structure:

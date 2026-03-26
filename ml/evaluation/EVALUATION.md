@@ -58,6 +58,25 @@ From lectures 10/11, notebooks 10-0 through 11, and assignments 10-11:
 
 ---
 
+## sklearn Imports Reference
+
+```python
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.preprocessing import RobustScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.dummy import DummyClassifier
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    classification_report, ConfusionMatrixDisplay,
+)
+```
+
+---
+
 ## Evaluation Workflow
 
 ---
