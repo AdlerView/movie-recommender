@@ -1,8 +1,9 @@
 """SQLite persistence layer for the movie recommender.
 
-Stores watchlist entries, ratings, dismissals, and cached TMDB movie details
-in a local SQLite database. Session state is the runtime source of truth;
-this module handles load-on-start and save-on-change persistence.
+Stores watchlist entries, ratings, mood reactions, dismissals, and cached
+TMDB movie details in a local SQLite database. Session state is the runtime
+source of truth; this module handles load-on-start and save-on-change
+persistence.
 
 Schema is fully normalized: movie_details holds core metadata, with separate
 junction tables for genres, cast, crew, and production countries. This
@@ -11,7 +12,13 @@ re-fetching from TMDB.
 
 Database file (gitignored):
 - data/movies.db: App runtime database (ratings, watchlist, dismissed, details).
-  Schema version: 4 (managed via PRAGMA user_version).
+  Schema version: 5 (managed via PRAGMA user_version).
+
+Schema v5 changes (from v4):
+- ratings (REAL 0-10) renamed to user_ratings (INTEGER 0-100, steps of 10)
+- New table: user_rating_moods (mood reactions per rating)
+- New table: user_subscriptions (streaming provider preferences)
+- New table: user_profile_cache (cached ML profile vectors)
 """
 from __future__ import annotations
 
@@ -47,20 +54,25 @@ def _connection():
 
 
 def init_db() -> None:
-    """Create database tables if they don't exist.
+    """Create database tables if they don't exist and run migrations.
 
-    Core tables (v2):
+    Core tables:
     - watchlist: saved movies with metadata for display
-    - ratings: decimal ratings (0.00-10.00) per movie, matching TMDB scale
+    - user_ratings: integer ratings (0-100 in steps of 10) per movie
+    - user_rating_moods: mood reactions per rating (7 Ekman moods)
     - dismissed: movies the user skipped
 
-    Normalized detail tables (v3+, for Statistics dashboard):
+    User preference tables (v5):
+    - user_subscriptions: streaming provider preferences
+    - user_profile_cache: cached ML profile vectors (BLOB)
+
+    Normalized detail tables (for Statistics dashboard):
     - movie_details: core TMDB metadata (runtime, release_date, etc.)
     - movie_genres: genre assignments per movie (many-to-many)
     - movie_cast: top 5 cast members per movie by billing order
     - movie_crew: directors per movie (filtered on job='Director')
     - movie_countries: production countries per movie
-    - movie_keywords: thematic tags per movie (v4, for ML + keyword cloud)
+    - movie_keywords: thematic tags per movie
 
     Called once at app startup from streamlit_app.py.
     """
@@ -71,6 +83,10 @@ def init_db() -> None:
         # v0/v1 → v2: ratings changed from INTEGER 1-5 to REAL 0.00-10.00
         if version < 2:
             conn.execute("DROP TABLE IF EXISTS ratings")
+
+        # v4 → v5: ratings (REAL 0-10) → user_ratings (INTEGER 0-100)
+        if version == 4:
+            _migrate_v4_to_v5(conn)
 
         conn.executescript("""
             -- Watchlist: saved movies with TMDB metadata for offline display
@@ -83,18 +99,35 @@ def init_db() -> None:
                 genre_ids    TEXT,    -- JSON array of TMDB genre IDs
                 added_at     TEXT DEFAULT (datetime('now'))
             );
-            -- Ratings: decimal 0.00-10.00 matching the TMDB scale
-            CREATE TABLE IF NOT EXISTS ratings (
+            -- User ratings: 0-100 in steps of 10 (v5, replaces old ratings table)
+            CREATE TABLE IF NOT EXISTS user_ratings (
                 movie_id INTEGER PRIMARY KEY,
-                rating   REAL NOT NULL CHECK (rating >= 0.0 AND rating <= 10.0),
-                rated_at TEXT DEFAULT (datetime('now'))
+                rating   INTEGER NOT NULL CHECK (rating BETWEEN 0 AND 100),
+                rated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            -- Mood reactions per rating (7 Ekman moods, multi-select)
+            CREATE TABLE IF NOT EXISTS user_rating_moods (
+                movie_id INTEGER NOT NULL,
+                mood     TEXT NOT NULL,
+                PRIMARY KEY (movie_id, mood),
+                FOREIGN KEY (movie_id) REFERENCES user_ratings(movie_id)
             );
             -- Dismissed: movies skipped via "Not interested" button
             CREATE TABLE IF NOT EXISTS dismissed (
                 movie_id     INTEGER PRIMARY KEY,
                 dismissed_at TEXT DEFAULT (datetime('now'))
             );
-            -- v3: Normalized TMDB detail tables for Statistics dashboard
+            -- Streaming provider preferences (for "Only my subscriptions" filter)
+            CREATE TABLE IF NOT EXISTS user_subscriptions (
+                provider_id INTEGER PRIMARY KEY,
+                iso_3166_1  TEXT NOT NULL
+            );
+            -- Cached ML profile vectors (key-value BLOB store)
+            CREATE TABLE IF NOT EXISTS user_profile_cache (
+                key   TEXT PRIMARY KEY,
+                value BLOB
+            );
+            -- Normalized TMDB detail tables for Statistics dashboard
             -- Core movie metadata cached from GET /movie/{id}
             CREATE TABLE IF NOT EXISTS movie_details (
                 movie_id          INTEGER PRIMARY KEY,
@@ -143,7 +176,7 @@ def init_db() -> None:
                 PRIMARY KEY (movie_id, country_code),
                 FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
-            -- v4: Thematic keywords per movie (from /movie/{id}/keywords)
+            -- Thematic keywords per movie (from /movie/{id}/keywords)
             CREATE TABLE IF NOT EXISTS movie_keywords (
                 movie_id     INTEGER NOT NULL,
                 keyword_id   INTEGER NOT NULL,
@@ -154,10 +187,58 @@ def init_db() -> None:
         """)
 
         # Bump schema version to current
-        if version < 4:
-            conn.execute("PRAGMA user_version = 4")
+        if version < 5:
+            conn.execute("PRAGMA user_version = 5")
 
         conn.commit()
+
+
+def _migrate_v4_to_v5(conn: sqlite3.Connection) -> None:
+    """Migrate ratings table from v4 (REAL 0-10) to v5 (INTEGER 0-100).
+
+    Reads existing ratings, converts them (multiply by 10, round to nearest
+    10), and inserts into the new user_ratings table. The old ratings table
+    is dropped after migration.
+
+    Args:
+        conn: Active SQLite connection (caller manages commit).
+    """
+    # Check if old ratings table exists (fresh installs skip this)
+    has_old = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='ratings'"
+    ).fetchone()
+    if not has_old:
+        return
+
+    # Read old ratings before dropping
+    old_rows = conn.execute(
+        "SELECT movie_id, rating, rated_at FROM ratings"
+    ).fetchall()
+
+    # Create new table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS user_ratings (
+            movie_id INTEGER PRIMARY KEY,
+            rating   INTEGER NOT NULL CHECK (rating BETWEEN 0 AND 100),
+            rated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+
+    # Migrate: REAL 0-10 → INTEGER 0-100, rounded to nearest step of 10
+    for row in old_rows:
+        old_rating = row["rating"]
+        # Convert: multiply by 10, round to nearest 10
+        new_rating = round(old_rating * 10 / 10) * 10
+        # Clamp to valid range
+        new_rating = max(0, min(100, new_rating))
+        conn.execute(
+            "INSERT OR REPLACE INTO user_ratings (movie_id, rating, rated_at) "
+            "VALUES (?, ?, ?)",
+            (row["movie_id"], new_rating, row["rated_at"]),
+        )
+
+    # Drop old table
+    conn.execute("DROP TABLE ratings")
 
 
 # --- Watchlist ---
@@ -230,31 +311,76 @@ def remove_from_watchlist(movie_id: int) -> None:
 # --- Ratings ---
 
 
-def load_ratings() -> dict[int, float]:
+def load_ratings() -> dict[int, int]:
     """Load all ratings from the database.
 
     Returns:
-        Dict mapping movie_id (int) to rating (float, 0.00-10.00).
+        Dict mapping movie_id (int) to rating (int, 0-100 in steps of 10).
     """
     with _connection() as conn:
-        rows = conn.execute("SELECT movie_id, rating FROM ratings").fetchall()
+        rows = conn.execute(
+            "SELECT movie_id, rating FROM user_ratings"
+        ).fetchall()
     return {row["movie_id"]: row["rating"] for row in rows}
 
 
-def save_rating(movie_id: int, rating: float) -> None:
+def save_rating(movie_id: int, rating: int) -> None:
     """Save or update a movie rating.
 
     Args:
         movie_id: TMDB movie ID.
-        rating: Decimal rating from 0.00 to 10.00.
+        rating: Integer rating from 0 to 100 (steps of 10).
     """
     with _connection() as conn:
         conn.execute(
-            """INSERT OR REPLACE INTO ratings (movie_id, rating)
+            """INSERT OR REPLACE INTO user_ratings (movie_id, rating)
                VALUES (?, ?)""",
             (movie_id, rating),
         )
         conn.commit()
+
+
+# --- Mood Reactions ---
+
+
+def save_mood_reactions(movie_id: int, moods: list[str]) -> None:
+    """Save mood reactions for a rated movie.
+
+    Replaces any existing mood reactions for the movie. Valid moods:
+    Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry.
+
+    Args:
+        movie_id: TMDB movie ID (must exist in user_ratings).
+        moods: List of mood strings (may be empty).
+    """
+    with _connection() as conn:
+        # Clear existing moods for this movie
+        conn.execute(
+            "DELETE FROM user_rating_moods WHERE movie_id = ?", (movie_id,),
+        )
+        # Insert new moods
+        for mood in moods:
+            conn.execute(
+                "INSERT INTO user_rating_moods (movie_id, mood) VALUES (?, ?)",
+                (movie_id, mood),
+            )
+        conn.commit()
+
+
+def load_mood_reactions() -> dict[int, list[str]]:
+    """Load all mood reactions from the database.
+
+    Returns:
+        Dict mapping movie_id to list of mood strings.
+    """
+    with _connection() as conn:
+        rows = conn.execute(
+            "SELECT movie_id, mood FROM user_rating_moods ORDER BY movie_id"
+        ).fetchall()
+    result: dict[int, list[str]] = {}
+    for row in rows:
+        result.setdefault(row["movie_id"], []).append(row["mood"])
+    return result
 
 
 # --- Dismissed ---
@@ -406,7 +532,7 @@ def get_ratings_without_details() -> list[int]:
     """
     with _connection() as conn:
         rows = conn.execute(
-            """SELECT r.movie_id FROM ratings r
+            """SELECT r.movie_id FROM user_ratings r
                LEFT JOIN movie_details d ON r.movie_id = d.movie_id
                WHERE d.movie_id IS NULL"""
         ).fetchall()
@@ -435,7 +561,7 @@ def load_stats_summary() -> dict:
                    COALESCE(SUM(d.runtime), 0) AS total_runtime_min,
                    COALESCE(AVG(d.runtime), 0) AS avg_runtime_min,
                    COALESCE(AVG(r.rating), 0)  AS avg_rating
-               FROM ratings r
+               FROM user_ratings r
                LEFT JOIN movie_details d ON r.movie_id = d.movie_id"""
         ).fetchone()
         # Watchlist and dismissed counts (simple COUNT queries)
@@ -464,7 +590,7 @@ def load_genre_distribution() -> list[tuple[str, int]]:
     with _connection() as conn:
         rows = conn.execute(
             """SELECT g.genre_name, COUNT(*) AS count
-               FROM ratings r
+               FROM user_ratings r
                JOIN movie_genres g ON r.movie_id = g.movie_id
                GROUP BY g.genre_name
                ORDER BY count DESC"""
@@ -484,7 +610,7 @@ def load_top_directors(limit: int = 5) -> list[tuple[str, int]]:
     with _connection() as conn:
         rows = conn.execute(
             """SELECT c.person_name, COUNT(*) AS count
-               FROM ratings r
+               FROM user_ratings r
                JOIN movie_crew c ON r.movie_id = c.movie_id
                WHERE c.job = 'Director'
                GROUP BY c.person_id
@@ -495,11 +621,11 @@ def load_top_directors(limit: int = 5) -> list[tuple[str, int]]:
     return [(row["person_name"], row["count"]) for row in rows]
 
 
-def load_user_vs_tmdb() -> list[tuple[float, float, str]]:
+def load_user_vs_tmdb() -> list[tuple[float, int, str]]:
     """Load user ratings paired with TMDB ratings for comparison.
 
     Only includes movies where both a user rating and a TMDB vote_average
-    exist in the database.
+    exist in the database. User ratings are 0-100, TMDB ratings are 0-10.
 
     Returns:
         List of (tmdb_rating, user_rating, title) tuples.
@@ -507,29 +633,29 @@ def load_user_vs_tmdb() -> list[tuple[float, float, str]]:
     with _connection() as conn:
         rows = conn.execute(
             """SELECT d.vote_average, r.rating, d.title
-               FROM ratings r
+               FROM user_ratings r
                JOIN movie_details d ON r.movie_id = d.movie_id
                WHERE d.vote_average IS NOT NULL"""
         ).fetchall()
     return [(row["vote_average"], row["rating"], row["title"]) for row in rows]
 
 
-def load_rating_distribution() -> list[float]:
+def load_rating_distribution() -> list[int]:
     """Load all user ratings for histogram visualization.
 
     Returns:
-        List of rating values (0.00-10.00).
+        List of rating values (0-100 in steps of 10).
     """
     with _connection() as conn:
-        rows = conn.execute("SELECT rating FROM ratings").fetchall()
+        rows = conn.execute("SELECT rating FROM user_ratings").fetchall()
     return [row["rating"] for row in rows]
 
 
-def load_rating_history() -> list[tuple[str, float]]:
+def load_rating_history() -> list[tuple[str, int]]:
     """Load user ratings in chronological order.
 
     Returns each rating with its timestamp for a line chart showing
-    how the user's ratings evolve over time.
+    how the user's ratings evolve over time. Ratings are 0-100.
 
     Returns:
         List of (rated_at, rating) tuples, sorted by time ascending.
@@ -537,7 +663,7 @@ def load_rating_history() -> list[tuple[str, float]]:
     with _connection() as conn:
         rows = conn.execute(
             """SELECT r.rated_at, r.rating
-               FROM ratings r
+               FROM user_ratings r
                WHERE r.rated_at IS NOT NULL
                ORDER BY r.rated_at ASC"""
         ).fetchall()
@@ -556,7 +682,7 @@ def load_language_distribution() -> list[tuple[str, int]]:
     with _connection() as conn:
         rows = conn.execute(
             """SELECT d.original_language AS lang, COUNT(*) AS count
-               FROM ratings r
+               FROM user_ratings r
                JOIN movie_details d ON r.movie_id = d.movie_id
                WHERE d.original_language IS NOT NULL
                GROUP BY d.original_language
@@ -579,7 +705,7 @@ def load_decade_distribution() -> list[tuple[str, int]]:
             """SELECT (CAST(substr(d.release_date, 1, 4) AS INTEGER) / 10) * 10
                       AS decade,
                       COUNT(*) AS count
-               FROM ratings r
+               FROM user_ratings r
                JOIN movie_details d ON r.movie_id = d.movie_id
                WHERE d.release_date IS NOT NULL AND length(d.release_date) >= 4
                GROUP BY decade
@@ -603,7 +729,7 @@ def load_top_actors(limit: int = 5) -> list[tuple[str, int]]:
     with _connection() as conn:
         rows = conn.execute(
             """SELECT c.person_name, COUNT(*) AS count
-               FROM ratings r
+               FROM user_ratings r
                JOIN movie_cast c ON r.movie_id = c.movie_id
                GROUP BY c.person_id
                ORDER BY count DESC
@@ -621,14 +747,33 @@ def load_rated_movies_table() -> list[dict]:
 
     Returns:
         List of dicts with keys: movie_id, title, runtime, vote_average,
-        rating, poster_path.
+        rating (int 0-100), poster_path.
     """
     with _connection() as conn:
         rows = conn.execute(
             """SELECT r.movie_id, d.title, d.runtime, d.vote_average,
                       r.rating, d.poster_path
-               FROM ratings r
+               FROM user_ratings r
                LEFT JOIN movie_details d ON r.movie_id = d.movie_id
                ORDER BY r.rating DESC""",
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def load_mood_distribution() -> list[tuple[str, int]]:
+    """Load mood reaction counts across all rated movies.
+
+    Each rating can have multiple mood tags, so a single movie may
+    contribute to multiple mood counts.
+
+    Returns:
+        List of (mood, count) tuples, sorted by count descending.
+    """
+    with _connection() as conn:
+        rows = conn.execute(
+            """SELECT mood, COUNT(*) AS count
+               FROM user_rating_moods
+               GROUP BY mood
+               ORDER BY count DESC"""
+        ).fetchall()
+    return [(row["mood"], row["count"]) for row in rows]

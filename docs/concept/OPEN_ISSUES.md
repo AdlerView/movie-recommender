@@ -1,7 +1,7 @@
 # Open Issues
 
 > Conceptual gaps, ambiguities, and pending decisions.
-> Last updated: 2026-03-24
+> Last updated: 2026-03-25
 
 ## Legend
 
@@ -34,13 +34,15 @@
 
 ### Low
 
-- [ ] `#010` **[unclear]** — "Not interested" signal usage
+- [x] `#010` **[unclear]** — "Not interested" signal usage
   - Context: The wireframe has a "not interested" button that skips to the next recommendation. The concept does not specify whether dismissals feed back into the ML model as negative training signals or are just skipped.
-  - Found: 2026-03-18
+  - Decision (2026-03-25): Dismissals ARE negative signals in Layer 2 (online scoring / contra vector). They are NOT used in the offline pipeline (Layer 1). Exact weight contribution to the contra vector is TBD during `scoring.py` implementation. For Phase 0 (DB migration + UI), dismissals remain cosmetic (filtered from results only). Negative signal integration deferred to Phase 2 (online scoring).
+  - Found: 2026-03-18 | Resolved: 2026-03-25
 
-- [ ] `#011` **[unclear]** — "Based on your stream" data source
-  - Context: The wireframe shows a "based on your stream" section with poster thumbnails of watched content. No streaming platform integration is planned. Likely just the in-app rating/watch history, but this is not stated.
-  - Found: 2026-03-18
+- [x] `#011` **[unclear]** — "Based on your stream" data source
+  - Context: The wireframe shows a "based on your interests" section with poster-style recommendations. No streaming platform integration is planned.
+  - Decision (2026-03-25): "Based on your interests" section on the Rate page, displayed as a poster grid identical to the trending movies layout. Powered by the personalized scoring system (Layer 2). Shows top-N recommended movies based on user's rating history. Requires model/ directory to be populated; falls back to trending when no ratings exist.
+  - Found: 2026-03-18 | Resolved: 2026-03-25
 
 ## Resolved
 

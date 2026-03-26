@@ -43,6 +43,94 @@ The single-label subset of labeled keywords trains a classifier (EmbeddingGemma-
 
 ---
 
+## Distribution (After Review)
+
+### Overview
+
+| Metric | Count | % |
+|--------|-------|---|
+| Total keywords | 5000 | 100% |
+| Categorized (single + multi) | 2683 | 53.7% |
+| Uncategorized | 2317 | 46.3% |
+
+| Assignment Type | Count |
+|-----------------|-------|
+| single | 1049 |
+| multi | 1634 |
+| none (Uncategorized) | 2317 |
+
+| Confidence | Count |
+|------------|-------|
+| high | 1518 |
+| medium | 2298 |
+| low | 1184 |
+
+### Single-Label Distribution
+
+The 1049 single-label keywords form the primary training signal for the classifier:
+
+| Mood | Single-Label Count | % of Single |
+|------|--------------------|-------------|
+| Interested | 332 | 31.6% |
+| Happy | 207 | 19.7% |
+| Afraid | 204 | 19.4% |
+| Sad | 187 | 17.8% |
+| Angry | 52 | 5.0% |
+| Surprised | 36 | 3.4% |
+| Disgusted | 31 | 3.0% |
+
+Class imbalance is inherent to the TMDB keyword space: very few keywords are *exclusively* surprising, disgusting, or angry without also being fearful, sad, or interesting. These three moods appear primarily in multi-label combinations.
+
+### Multi-Label Distribution
+
+The 1634 multi-label keywords have the following mood participation counts:
+
+| Mood | Multi-Label Appearances |
+|------|------------------------|
+| Afraid | 756 |
+| Interested | 713 |
+| Sad | 707 |
+| Angry | 501 |
+| Happy | 347 |
+| Disgusted | 221 |
+| Surprised | 183 |
+
+### Total Distribution (Single + Multi)
+
+| Mood | Total Appearances | Single | Multi |
+|------|-------------------|--------|-------|
+| Interested | 1045 | 332 | 713 |
+| Afraid | 960 | 204 | 756 |
+| Sad | 894 | 187 | 707 |
+| Happy | 554 | 207 | 347 |
+| Angry | 553 | 52 | 501 |
+| Disgusted | 252 | 31 | 221 |
+| Surprised | 219 | 36 | 183 |
+
+Afraid, Sad, and Interested dominate multi-label assignments because they co-occur with many other moods (war is Sad+Afraid+Angry, horror is Disgusted+Afraid, politics is Interested+Angry).
+
+### Top Multi-Label Combinations
+
+| Combination | Count | Typical Keywords |
+|-------------|-------|-----------------|
+| Interested,Afraid | 260 | thriller, spy, conspiracy, surveillance |
+| Happy,Sad | 176 | family relationships, romance, nostalgia |
+| Sad,Afraid | 174 | war, disease, disaster, imprisonment |
+| Interested,Sad | 127 | immigration, social issues, coming of age |
+| Afraid,Angry | 117 | terrorism, kidnapping, gang violence |
+| Sad,Angry | 100 | racism, poverty, bullying, betrayal |
+| Interested,Angry | 98 | politics, activism, revolution, censorship |
+| Happy,Interested | 96 | sports, adventure, music, discovery |
+| Interested,Surprised | 93 | sci-fi, surrealism, time travel, alternate reality |
+| Disgusted,Afraid | 69 | horror, zombie, slasher, body horror |
+| Happy,Surprised | 50 | fairy tale, magic, comedy, circus |
+| Sad,Afraid,Angry | 49 | world war, genocide, civil war |
+| Disgusted,Angry | 41 | corruption, hate crime, sexism, pollution |
+| Sad,Disgusted,Angry | 36 | sexual violence, slavery, child abuse |
+| Disgusted,Afraid,Angry | 33 | fascism, torture, massacre, sadism |
+
+---
+
 ## Classification Rules
 
 ### Rule 1: Label the Keyword, Not the Films
@@ -140,7 +228,7 @@ Keywords that reliably signal Interested:
 - **Cultural exploration:** samurai, martial arts, archaeology, filmmaking
 - **Social themes:** politics (+ Angry), feminism (+ Angry), immigration (+ Sad)
 
-### Surprised Indicators (Underrepresented — 80 single-label)
+### Surprised Indicators (Underrepresented — 36 single-label)
 
 Keywords that reliably signal Surprised:
 - **Supernatural encounters:** alien (+ Interested, Afraid), time travel (+ Interested)
@@ -156,7 +244,7 @@ Keywords that reliably signal Sad:
 - **Social suffering:** poverty (+ Angry), homelessness, orphan
 - **Historical trauma:** holocaust (+ Disgusted, Angry), slavery (+ Angry)
 
-### Disgusted Indicators (Most Underrepresented — 33 single-label)
+### Disgusted Indicators (Most Underrepresented — 31 single-label)
 
 Keywords that reliably signal Disgusted:
 - **Graphic content:** gore, cannibal, body horror
@@ -172,7 +260,7 @@ Keywords that reliably signal Afraid:
 - **Threats:** serial killer, kidnapping (+ Angry), stalking, home invasion
 - **Psychological:** nightmare, paranoia, obsession (+ Interested)
 
-### Angry Indicators (Underrepresented — 69 single-label)
+### Angry Indicators (Underrepresented — 52 single-label)
 
 Keywords that reliably signal Angry:
 - **Injustice:** racism (+ Sad), oppression, censorship, sexism (+ Disgusted)
@@ -214,9 +302,18 @@ The corrections primarily **removed false positives** — keywords that were inc
 
 The net effect on class distribution:
 - **Sad and Afraid shrunk** (many settings/objects/professions removed)
-- **Uncategorized grew** (~200 keywords added)
+- **Uncategorized grew significantly** (2317 of 5000 = 46.3%)
 - **Disgusted, Angry, Surprised slightly grew** (targeted additions of legitimately emotional keywords)
 - **Happy stable** (new additions balanced removals)
+
+### Addressing Class Imbalance
+
+The single-label class imbalance (Interested=332 vs. Disgusted=31) is structural, not a labeling failure. Mitigation strategies for classifier training:
+
+1. **Class weights** in the loss function (inversely proportional to class frequency)
+2. **Oversampling** of minority classes (Surprised, Disgusted, Angry)
+3. **Multi-label training** alongside single-label — the 1634 multi-label keywords provide additional signal for underrepresented moods (Disgusted appears in 221 multi-label keywords despite only 31 single-label)
+4. **Threshold tuning** per mood at inference time
 
 ---
 

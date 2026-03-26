@@ -5,7 +5,7 @@ and UI are being replaced. This document defines the new architecture,
 data flows, scoring system, and ML pipeline.
 
 **Created:** 2026-03-25
-**Updated:** 2026-03-25
+**Updated:** 2026-03-26
 
 ---
 
@@ -319,8 +319,15 @@ Normalized to [0, 1].
 **Contra Penalty (0.10):**
 
 Negative cosine similarity between the contra vector (average keyword
-SVD vector from movies rated 1-3) and the candidate's keyword vector.
-Demotes movies that are thematically similar to disliked movies.
+SVD vector from movies rated below threshold) and the candidate's
+keyword vector. Demotes movies that are thematically similar to
+disliked movies.
+
+Sources for the contra vector:
+- Movies with ratings below 40/100 (ratings 0-30)
+- Dismissed movies ("not interested") -- treated as negative signal
+  in Layer 2 (online scoring). Exact weight TBD during scoring.py
+  implementation. Not used in offline pipeline (Layer 1).
 
 ---
 
@@ -520,7 +527,7 @@ model/
   quality_scores.npy            1.17M x 1      float32
   movie_id_index.json           1.17M entries  movie_id <-> row index
   genre_mood_map.json           19 entries     manual genre -> mood rules
-  keyword_mood_map.json         ~500 entries   manual keyword -> mood rules
+  keyword_mood_map.json         ~70K entries   supervised keyword -> mood predictions
   svd_models/
     keyword_svd.pkl                            for transforming new movies
     director_svd.pkl
@@ -616,8 +623,19 @@ The ML evaluation follows the exact workflow taught in lectures 10-11
 and assignments 10-11. See [docs/ML-PIPELINE.md](docs/ML-PIPELINE.md)
 for the full specification.
 
-**Classification task:** Binary -- predict "liked" (>= 60/100) vs
-"disliked" (< 60/100) from 9 scoring-component feature vectors.
+**Two classification tasks:**
+
+1. **User preference:** Binary -- predict "liked" (>= 60/100) vs
+   "disliked" (< 60/100) from 9 scoring-component feature vectors
+2. **Keyword-to-mood:** Multi-class -- predict mood category from
+   sentence embeddings of TMDB keywords (70K+ keywords, 7 moods)
+
+Both follow the same course-compliant evaluation workflow.
+
+**Shared utility:** `app/utils/ml_eval.py` contains all evaluation
+logic. Called by both the Statistics page (compact, video-friendly)
+and `notebooks/ml_evaluation.ipynb` (academic, narrative). No
+duplicated code.
 
 **Mandatory elements (course baseline):**
 
@@ -635,3 +653,4 @@ for the full specification.
 - Content-based scoring with 9 weighted signals
 - Pre-trained emotion transformer
 - Dynamic weight shifting by rating count
+- Supervised keyword-to-mood pipeline (embeddings + classifier)

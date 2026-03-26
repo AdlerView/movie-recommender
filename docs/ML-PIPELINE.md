@@ -4,7 +4,7 @@ Offline ML pipeline that transforms the TMDB SQLite database into
 precomputed model files used at runtime for personalized scoring.
 
 **Created:** 2026-03-26
-**Updated:** 2026-03-25
+**Updated:** 2026-03-26
 
 ---
 
@@ -232,25 +232,64 @@ Stored in: `model/genre_mood_map.json`
 
 ---
 
-### Signal 2: Keyword -> Mood Mapping
+### Signal 2: Keyword -> Mood Mapping (Supervised Pipeline)
 
-Top-500 keywords by movie count, manually tagged with mood weights.
+TMDB has 70K+ unique keywords. Manual tagging is infeasible. Instead,
+a two-stage supervised pipeline produces the mapping.
 
-```
-"revenge"       -> {angry: 0.8}
-"murder"        -> {afraid: 0.5, disgusted: 0.3}
-"love"          -> {happy: 0.7}
-"tragedy"       -> {sad: 0.9}
-"plot twist"    -> {surprised: 0.9}
-"serial killer" -> {afraid: 0.7, disgusted: 0.5}
-"friendship"    -> {happy: 0.6}
-"war"           -> {angry: 0.5, sad: 0.4}
-"dystopia"      -> {afraid: 0.4, angry: 0.3}
-...
-```
+**Stage A: Labeled seed dataset (complete)**
 
-Keywords not in the top-500 are ignored (long tail, most appear in
-fewer than 5 movies).
+5,000 most frequent TMDB keywords labeled by Claude agent.
+Source: `data/tmdb-keyword-frequencies_labeled_top5000.tsv`
+
+| Assignment Type | Count | Description |
+|---|---|---|
+| single | 1,697 | Exactly one mood assigned |
+| multi | 2,047 | Multiple moods assigned |
+| none | 1,256 | Not mood-relevant (metadata, format, identity tags) |
+
+Single-label class distribution:
+
+| Mood | Count |
+|---|---|
+| Interested | 910 |
+| Happy | 363 |
+| Afraid | 177 |
+| Sad | 153 |
+| Angry | 51 |
+| Disgusted | 26 |
+| Surprised | 17 |
+
+Imbalance note: Angry, Disgusted, Surprised are inherently rare as
+single-label assignments. These moods appear primarily in multi-label
+form (Angry: 537, Disgusted: 236, Surprised: 254).
+
+**Stage B: Supervised classification (course-compliant)**
+
+Training uses the single-label subset only (1,697 keywords). This
+gives a methodologically clean 7-class classification problem.
+
+1. **Features:** EmbeddingGemma-300M sentence embeddings (256-dim)
+   per keyword. Model cached at
+   `~/.cache/macmini/huggingface/hub/models--google--embeddinggemma-300m`
+2. **Train/test split:** `train_test_split(stratify=y, random_state=42)`
+3. **Scaling:** `RobustScaler` on embedding vectors (fit on train only)
+4. **Classifier comparison:** KNN, SVC, GaussianNB, LogisticRegression,
+   MLPClassifier, DummyClassifier baselines
+5. **Evaluation:** `classification_report`, confusion matrix, macro-F1
+   (careful interpretation due to class imbalance)
+6. **Cross-validation:** `KFold` + `cross_val_score`
+7. **Hyperparameter tuning:** k in KNN, etc.
+8. **Model selection:** Best classifier chosen by evaluation metrics
+9. **Full inference:** Best model applied to all remaining 70K+
+   unlabeled keywords
+
+This gives a reproducible, evaluable, course-compliant classification
+pipeline rather than an opaque heuristic. It also serves as a second
+ML showcase alongside the user preference classification.
+
+**Output:** `model/keyword_mood_map.json` (70K+ entries, predicted
+mood scores per keyword)
 
 Stored in: `model/keyword_mood_map.json`
 
@@ -461,7 +500,10 @@ User clicks "Discover" with filters
 | `pipeline/03_quality_scores.py` | Stage 3: Bayesian average -> quality_scores.npy | Medium |
 | `pipeline/04_build_index.py` | Stage 4: movie_id_index.json + SVD .pkl saving | Medium |
 | `model/genre_mood_map.json` | 19 genre -> mood rules (manual) | High |
-| `model/keyword_mood_map.json` | Top-500 keyword -> mood rules (manual) | Medium |
+| `model/keyword_mood_map.json` | 70K+ keyword -> mood predictions (from supervised pipeline) | Medium |
+| `pipeline/keyword_mood_classifier.py` | Stage A+B: label seed data, train classifier, infer full keyword set | Medium |
+| `app/utils/ml_eval.py` | Shared ML evaluation logic (classifiers, metrics, CV) for Statistics page + notebook | High |
+| `notebooks/ml_evaluation.ipynb` | Detailed ML evaluation notebook (academic, narrative) | Medium |
 
 ---
 
@@ -521,17 +563,35 @@ the course (lectures 10-11, assignments 10-11).
    - KNN: vary k from 1 to 20, plot accuracy vs k with error bars
    - Select optimal k
 
+### Two Classification Problems
+
+The project demonstrates ML with two distinct classification tasks:
+
+1. **User preference classification:** Predict liked/disliked from 9
+   scoring-component feature vectors (described above)
+2. **Keyword-to-mood classification:** Predict mood category from
+   sentence embeddings of TMDB keywords (see Stage B in Signal 2)
+
+Both follow the same course-compliant evaluation workflow.
+
 ### Where to Show This
 
-Two options (both acceptable):
+Both locations, with shared logic:
 
-- **Option A:** Dedicated "ML Evaluation" section on the Statistics page
-  (Streamlit, visible in the app demo)
-- **Option B:** Separate Jupyter notebook `notebooks/ml_evaluation.ipynb`
-  (submitted with code, referenced in video)
+- **Shared utility:** `app/utils/ml_eval.py` contains all evaluation
+  logic (`evaluate_classifiers()`, `best_model_report()`,
+  `run_cross_validation()`)
+- **Statistics page** (compact, video-friendly): "Run ML Evaluation"
+  button, classifier comparison table, best model KPIs (accuracy + F1),
+  confusion matrix, classification report, cross-validation score
+- **Jupyter notebook** `notebooks/ml_evaluation.ipynb` (academic,
+  narrative): problem definition, feature engineering explanation,
+  data distribution plots, all 7 classifiers with commentary, scaled
+  vs unscaled comparison, KNN hyperparameter tuning (k=1..20 plot),
+  discussion/interpretation
 
-Option A is preferred because it is visible during the video demo and
-shows the ML evaluation as part of the running application.
+Separation principle: notebook shows the "why", Statistics page shows
+the result. No duplicated code -- both call `ml_eval.py`.
 
 ### Cold Start Handling
 

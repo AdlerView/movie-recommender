@@ -14,9 +14,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 At the start of every new session, read ALL of the following files before doing any work:
 
 **Documentation (all `.md` files):**
-- `CLAUDE.md`, `README.md`, `TODO.md`, `MIGRATION.md`
+- `CLAUDE.md`, `README.md`, `TODO.md`, `MIGRATION.md`, `DECISIONS.md`
 - `docs/TMDB_API.md`, `docs/CONTRIBUTION.md`, `docs/REQUIREMENTS.md`
-- `docs/tmdb-schema.mmd`
+- `docs/tmdb-schema.mmd`, `docs/ML-PIPELINE.md`
 - `docs/concept/cs-project.md`, `docs/concept/OPEN_ISSUES.md`, `docs/concept/prototype-movie-recommender.jpg`
 
 **Config:**
@@ -40,8 +40,8 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 - **Framework:** Streamlit (>=1.53.0)
 - **Theme:** "Cinema Gold" — dark base, `#D4A574` gold/copper accent, Poppins font (18 weights via static serving)
 - **API:** TMDB API v3 (key in `.streamlit/secrets.toml`, `append_to_response` for combined calls)
-- **Database:** SQLite (WAL mode, schema v5 via `PRAGMA user_version`) for user data (ratings, watchlist, dismissed). `data/tmdb.db` (8.2 GB, 1.17M movies, 30 tables) used offline only for feature extraction. Runtime uses precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
-- **ML:** Personalized movie recommendations via scikit-learn. Scoring model uses user ratings + mood reactions as training signal, movie features from `tmdb.db` (keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime). Mood scores per film derived from genre→mood mapping, keyword→mood mapping, and emotion classification on overview/review text. 7 mood categories (TMDB Vibes / Ekman model: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry).
+- **Database:** SQLite (WAL mode, schema v5 via `PRAGMA user_version`) for user data (user_ratings INTEGER 0-100, user_rating_moods, watchlist, dismissed, user_subscriptions, user_profile_cache). `data/tmdb.db` (8.2 GB, 1.17M movies, 30 tables) used offline only for feature extraction. Runtime uses precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
+- **ML:** Personalized movie recommendations via scikit-learn. Scoring model uses user ratings + mood reactions as training signal, movie features from `tmdb.db` (keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime). Mood scores per film derived from genre→mood mapping, keyword→mood mapping (supervised pipeline: labeled seed + classifier on sentence embeddings → 70K+ keywords), and emotion classification on overview/review text. 7 mood categories (TMDB Vibes / Ekman model: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Two ML classification tasks: (1) user preference (liked/disliked), (2) keyword-to-mood.
 - **Python:** 3.11 (conda environment in `.conda/`)
 
 ---
@@ -63,13 +63,15 @@ movie-recommender/
 │   │   ├── tmdb.py               # TMDB API client (cached)
 │   │   ├── scoring.py            # Scoring formula + dynamic weights
 │   │   ├── filters.py            # TMDB API parameter builder + local mood filter
-│   │   └── user_profile.py       # User profile computation from ratings
+│   │   ├── user_profile.py       # User profile computation from ratings
+│   │   └── ml_eval.py            # Shared ML evaluation (classifiers, metrics, CV)
 │   └── static/                   # Poppins font files (18 TTFs + OFL license)
 ├── pipeline/
 │   ├── 01_extract_features.py     # Stage 1: DB → feature matrices (keyword/director/actor SVD, genre/decade/language onehot)
 │   ├── 02_predict_moods.py        # Stage 2: Mood scores per film (genre+keyword mapping, emotion classifier on overview/reviews)
 │   ├── 03_quality_scores.py       # Stage 3: Bayesian average quality scores
-│   └── 04_build_index.py         # Stage 4: Save numpy arrays + mappings to model/
+│   ├── 04_build_index.py         # Stage 4: Save numpy arrays + mappings to model/
+│   └── keyword_mood_classifier.py # Keyword → mood: label seed data, train classifier, infer 70K+
 ├── model/                           # Precomputed feature arrays (gitignored)
 │   ├── keyword_svd_vectors.npy    # 1.17M × 200
 │   ├── director_svd_vectors.npy   # 1.17M × 200
@@ -82,7 +84,7 @@ movie-recommender/
 │   ├── quality_scores.npy         # 1.17M × 1
 │   ├── movie_id_index.json        # movie_id ↔ row_index
 │   ├── genre_mood_map.json        # 19 genre → mood rules
-│   ├── keyword_mood_map.json      # Top-500 keyword → mood rules
+│   ├── keyword_mood_map.json      # ~70K keyword → mood predictions (supervised pipeline)
 │   └── svd_models/                # Fitted SVD transformers (.pkl)
 ├── data/                            # Generated data (gitignored except .gitkeep)
 │   ├── tmdb.db                  # Comprehensive TMDB database (~1.17M movies, 30 tables, 8.2 GB)
@@ -94,11 +96,14 @@ movie-recommender/
 │   ├── TMDB_API.md
 │   ├── concept/
 │   └── references/
+├── notebooks/
+│   └── ml_evaluation.ipynb       # Detailed ML evaluation (academic, narrative)
 ├── .streamlit/
 │   ├── config.toml               # Cinema Gold theme + fontFaces + server config
 │   ├── secrets.toml              # API keys (gitignored)
 │   └── secrets.toml.example
 ├── CLAUDE.md
+├── DECISIONS.md
 ├── README.md
 ├── TODO.md
 └── requirements.txt
@@ -152,7 +157,7 @@ Code documentation is a grading criterion (Requirement 6, scored 0-3). ALL Pytho
 - State initialization: `st.session_state.setdefault()` in entry point
 - UX pattern: Each tab has one responsibility. Poster grids on Rate and Watchlist, click → detail dialog overlay (`@st.dialog`)
 - Discover: Filter + personalized recommendation flow. 14 filter controls: Genre (19 TMDB genres, toggle, required), Mood (7 categories, toggle, optional), Certification (country-dependent, e.g. DE: 0/6/12/16/18, US: G/PG/PG-13/R/NC-17), Release Year (from/to), Language (dropdown), Runtime (range slider 0-360), User Score (range slider 0-10), Min Votes (slider 0-500), Keywords (autocomplete via TMDB API `search/keyword`), Streaming Country (dropdown), Streaming Provider (multi-toggle, filtered by country), Only My Subscriptions (checkbox), Sort (personalized score / popularity / rating / release date). All filters are passed as parameters to the TMDB API `/discover/movie` endpoint. Mood filter and personalized scoring run locally against precomputed `.npy` arrays. When sort=personalized: ML scoring ranks candidates by keyword similarity, mood match, director/actor/decade/language/runtime similarity, quality score, and contra-penalty from rating history. Results displayed as card-based one-at-a-time flow or poster grid. Movie cards show Genre and Keyword badges, predicted mood, runtime, streaming providers, and score. Already-rated, dismissed, and watchlisted movies filtered out. Toast feedback on watchlist add and dismiss.
-- Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending. Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). Mood reactions are optional and multi-select, saved alongside the numeric rating in `user_ratings` + `user_rating_moods` tables, and used as ML training signal for personalized recommendations. Already-rated movies excluded from trending grid but shown in search results (allows re-rating). "Search results" / "Trending movies" subtitles.
+- Rate: Pure action tab. TMDB text search + Netflix-style clickable poster grid + trending + "Based on your interests" personalized poster grid (identical layout to trending, powered by scoring.py; falls back to trending when no ratings or model/ not populated). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry — TMDB Vibes / Ekman model). Mood reactions are optional and multi-select, saved alongside the numeric rating in `user_ratings` + `user_rating_moods` tables, and used as ML training signal for personalized recommendations. Already-rated movies excluded from trending grid but shown in search results (allows re-rating). "Search results" / "Trending movies" subtitles.
 - Watchlist: Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (user's selected country), "Remove from watchlist" and "Mark as watched" (with rating slider + 7 mood reaction buttons). Rating removes movie from watchlist.
 - Statistics: KPIs, Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution from user reactions), top directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
 - Pagination: Automatic page advancement on Discover (up to 10 pages from TMDB API, then local scoring of top-20), "Load more" button on Rate
@@ -192,7 +197,20 @@ app/utils/user_profile.py   -> User profile vectors from ratings + .npy arrays
 app/utils/scoring.py         -> Batch cosine similarity scoring (9 signals, ~50ms)
 ```
 
+### Keyword-to-Mood Pipeline
+
+Two-stage supervised pipeline (replaces manual keyword tagging):
+1. Labeled: 5,000 keywords in `data/tmdb-keyword-frequencies_labeled_top5000.tsv` (1,697 single, 2,047 multi, 1,256 none)
+2. Train on single-label subset (1,697) using EmbeddingGemma-300M embeddings, infer remaining 70K+
+Script: `pipeline/keyword_mood_classifier.py`
+
 ### ML Evaluation (Course Requirement 5)
+
+Two classification tasks, both following the same course-compliant workflow:
+1. **User preference:** Binary -- predict "liked" (>= 60) vs "disliked" (< 60) from 9 scoring features
+2. **Keyword-to-mood:** Multi-class -- predict mood from keyword embeddings (70K+ keywords, 7 moods)
+
+Shared utility: `app/utils/ml_eval.py` (called by Statistics page + `notebooks/ml_evaluation.ipynb`)
 
 The course (lectures 10-11, assignments 10-11) mandates a specific sklearn workflow. All of these must be present:
 
@@ -204,8 +222,6 @@ The course (lectures 10-11, assignments 10-11) mandates a specific sklearn workf
 - `KFold(n_splits=10)` + `cross_val_score` -- report mean +/- std
 - Scaled vs unscaled comparison
 - KNN hyperparameter tuning (k=1..20 plot)
-
-Classification task: binary -- predict "liked" (rating >= 60) vs "disliked" (rating < 60) from 9 scoring-component feature vectors.
 
 ### sklearn Imports Reference
 

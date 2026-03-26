@@ -15,6 +15,7 @@ from utils.db import (
     load_decade_distribution,
     load_genre_distribution,
     load_language_distribution,
+    load_mood_distribution,
     load_rated_movies_table,
     load_rating_distribution,
     load_rating_history,
@@ -56,7 +57,7 @@ with st.container(horizontal=True):
     st.metric("Rated", stats["rated_count"], border=True)
     st.metric(
         "Avg rating",
-        f"{stats['avg_rating']:.2f} / 10",
+        f"{stats['avg_rating']:.0f} / 100",
         border=True,
     )
 
@@ -119,14 +120,16 @@ user_vs_tmdb = load_user_vs_tmdb()
 if user_vs_tmdb:
     st.subheader("Your rating vs TMDB", divider="gray")
     scatter_df = pd.DataFrame(user_vs_tmdb, columns=["TMDB", "You", "Title"])
+    # Scale TMDB 0-10 to 0-100 for comparable axes
+    scatter_df["TMDB (scaled)"] = scatter_df["TMDB"] * 10
     # Diagonal reference line: points above = you rate higher than TMDB
-    line_df = pd.DataFrame({"x": [0, 10], "y": [0, 10]})
+    line_df = pd.DataFrame({"x": [0, 100], "y": [0, 100]})
     base_line = alt.Chart(line_df).mark_line(
         strokeDash=[4, 4], color="gray", opacity=0.5,
     ).encode(x="x:Q", y="y:Q")
     points = alt.Chart(scatter_df).mark_circle(size=60).encode(
-        x=alt.X("TMDB:Q", title="TMDB rating", scale=alt.Scale(domain=[0, 10])),
-        y=alt.Y("You:Q", title="Your rating", scale=alt.Scale(domain=[0, 10])),
+        x=alt.X("TMDB (scaled):Q", title="TMDB rating (scaled to 100)", scale=alt.Scale(domain=[0, 100])),
+        y=alt.Y("You:Q", title="Your rating", scale=alt.Scale(domain=[0, 100])),
         tooltip=["Title", "TMDB", "You"],
     )
     st.altair_chart(base_line + points, use_container_width=True)
@@ -137,9 +140,9 @@ rating_values = load_rating_distribution()
 if rating_values:
     st.subheader("Rating distribution", divider="gray")
     rating_df = pd.DataFrame({"Rating": rating_values})
-    # Histogram with bins at whole numbers (0-1, 1-2, ..., 9-10)
+    # Histogram with bins at each step of 10 (0-10, 10-20, ..., 90-100)
     chart = alt.Chart(rating_df).mark_bar().encode(
-        x=alt.X("Rating:Q", bin=alt.Bin(step=1), title="Rating"),
+        x=alt.X("Rating:Q", bin=alt.Bin(step=10), title="Rating (0-100)"),
         y=alt.Y("count()", title="Movies"),
     )
     st.altair_chart(chart, use_container_width=True)
@@ -156,8 +159,20 @@ if len(rating_history) >= 2:
     history_df["Movie #"] = range(1, len(history_df) + 1)
     chart = alt.Chart(history_df).mark_line(point=True).encode(
         x=alt.X("Movie #:Q", title="Movie #"),
-        y=alt.Y("Rating:Q", title="Rating", scale=alt.Scale(domain=[0, 10])),
+        y=alt.Y("Rating:Q", title="Rating", scale=alt.Scale(domain=[0, 100])),
         tooltip=["Movie #", "Rating", "Date"],
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+# --- Mood distribution bar chart ---
+mood_data = load_mood_distribution()
+
+if mood_data:
+    st.subheader("Mood distribution", divider="gray")
+    mood_df = pd.DataFrame(mood_data, columns=["Mood", "Reactions"])
+    chart = alt.Chart(mood_df).mark_bar().encode(
+        x=alt.X("Reactions:Q", title="Reactions"),
+        y=alt.Y("Mood:N", sort="-x", title=None),
     )
     st.altair_chart(chart, use_container_width=True)
 
@@ -194,7 +209,7 @@ if rated_rows:
             "Title": row.get("title") or f"Movie #{row['movie_id']}",
             "Duration": duration,
             "TMDB": round(row["vote_average"], 1) if row.get("vote_average") is not None else None,
-            "Your rating": round(row["rating"], 2),
+            "Your rating": row["rating"],
         })
 
     df = pd.DataFrame(table_data)
@@ -208,7 +223,7 @@ if rated_rows:
             "Duration": st.column_config.TextColumn("Duration"),
             "TMDB": st.column_config.NumberColumn("TMDB", format="%.1f", width="small"),
             "Your rating": st.column_config.NumberColumn(
-                "Your rating", format="%.2f", width="small",
+                "Your rating", format="%d", width="small",
             ),
         },
         hide_index=True,

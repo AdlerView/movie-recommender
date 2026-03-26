@@ -2,7 +2,8 @@
 
 Displays movies the user has added from the Discover page as a Netflix-style
 poster grid. Clicking a poster opens a dialog with TMDB rating, streaming
-providers, and actions (remove from watchlist, mark as watched with rating).
+providers, and actions (remove from watchlist, mark as watched with rating
+slider 0-100 and mood reactions).
 """
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ import requests
 import streamlit as st
 from utils.db import (
     remove_from_watchlist,
+    save_mood_reactions,
     save_movie_details,
     save_movie_keywords,
     save_rating,
@@ -151,37 +153,37 @@ def _show_detail(movie_id: int) -> None:
 
         new_rating = st.slider(
             "Your rating",
-            min_value=0.00,
-            max_value=10.00,
-            value=0.00,
-            step=0.01,
-            format="%.2f/10",
+            min_value=0,
+            max_value=100,
+            value=0,
+            step=10,
+            format="%d/100",
             key=f"watchlist_rate_{movie_id}",
             on_change=_mark_touched,
         )
 
         # Dynamic sentiment label — changes with slider value
-        if new_rating == 0.00:
+        if new_rating == 0:
             _label = ""
-        elif new_rating <= 2.00:
+        elif new_rating <= 20:
             _label = "Awful"
-        elif new_rating <= 4.00:
+        elif new_rating <= 40:
             _label = "Poor"
-        elif new_rating <= 6.00:
+        elif new_rating <= 60:
             _label = "Decent"
-        elif new_rating <= 8.00:
+        elif new_rating <= 80:
             _label = "Great"
         else:
             _label = "Masterpiece"
         if _label:
             st.caption(_label, text_alignment="center")
 
-        # Dynamic slider color: gray (0), red (<=3.33), orange (<=6.66), green (>6.66)
-        if new_rating == 0.00:
+        # Dynamic slider color: gray (0), red (<=33), orange (<=66), green (>66)
+        if new_rating == 0:
             _color = "#d3d3d3"
-        elif new_rating <= 3.33:
+        elif new_rating <= 33:
             _color = "#ff4b4b"
-        elif new_rating <= 6.66:
+        elif new_rating <= 66:
             _color = "#ffa421"
         else:
             _color = "#21c354"
@@ -240,6 +242,20 @@ def _show_detail(movie_id: int) -> None:
             unsafe_allow_html=True,
         )
 
+        # --- Mood reaction buttons (optional, multi-select) ---
+        st.caption("**How did this movie make you feel?** (optional)")
+        _mood_options = [
+            "Happy", "Interested", "Surprised", "Sad",
+            "Disgusted", "Afraid", "Angry",
+        ]
+        selected_moods = st.pills(
+            "Mood",
+            options=_mood_options,
+            selection_mode="multi",
+            key=f"wl_moods_{movie_id}",
+            label_visibility="collapsed",
+        )
+
         # Save button — disabled until the slider is moved at least once
         _slider_ready = st.session_state.get(_touch_key, False)
         if not _slider_ready:
@@ -248,6 +264,8 @@ def _show_detail(movie_id: int) -> None:
             # Save rating to session state and database
             st.session_state.ratings[movie_id] = new_rating
             save_rating(movie_id, new_rating)
+            # Save mood reactions (empty list if none selected)
+            save_mood_reactions(movie_id, list(selected_moods or []))
             # Eager fetch: cache full TMDB details + keywords for Statistics/ML
             try:
                 save_movie_details(movie_id, details)
@@ -267,7 +285,7 @@ def _show_detail(movie_id: int) -> None:
             st.session_state.pop("_watchlist_show_rating", None)
             st.session_state.pop(_touch_key, None)
             st.session_state["_watchlist_toast"] = (
-                f"Rated **{details.get('title', '')}**: {new_rating:.2f}/10"
+                f"Rated **{details.get('title', '')}**: {new_rating}/100"
             )
             st.rerun()
 

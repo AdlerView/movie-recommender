@@ -33,7 +33,7 @@ init_db()
 # After loading, session state is the runtime source of truth.
 # Pages write to both session state and DB on every action.
 if "db_loaded" not in st.session_state:
-    st.session_state.ratings = load_ratings()       # {movie_id: 0.00-10.00}
+    st.session_state.ratings = load_ratings()       # {movie_id: 0-100 int}
     st.session_state.watchlist = load_watchlist()    # [movie_dict, ...]
     st.session_state.dismissed = load_dismissed()    # {movie_id, ...}
     st.session_state.db_loaded = True
