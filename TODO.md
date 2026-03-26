@@ -13,47 +13,17 @@
 
 ## Upcoming
 
-### *Semester Break*
-
-### Week 07 — 2026-04-16 (Coaching: 13.04)
-
-- [ ] Switch to new architecture: TMDB API for filters/discovery, precomputed .npy arrays for scoring, user SQLite for ratings/moods (see MIGRATION.md)
-- [ ] Discover: 14 filter controls (genre, mood, certification, year, language, runtime, score, votes, keywords, streaming)
-- [ ] Discover: personalized sort option (ML scoring from rating history)
-- [ ] Watchlist: add mood reactions to "Mark as watched" dialog
-- [ ] Statistics: add mood distribution chart from user reactions
-
-### Week 08 — 2026-04-23 (Coaching: 20.04)
-
-- [ ] Optional: MVP presentation II
-- [ ] Offline pipeline Stage 1: feature extraction (keyword/director/actor TF-IDF → SVD, genre/decade/language onehot)
-- [ ] Keyword mood classifier — sentence embeddings + supervised pipeline (KNN/SVC/NB/LR/MLP comparison), infer remaining 70K+
-- [ ] Offline pipeline Stage 2: mood scores per film (genre→mood + keyword→mood mapping + emotion classifier on overview/reviews)
-- [ ] Offline pipeline Stage 3: quality scores (Bayesian average)
-- [ ] Offline pipeline Stage 4: build numpy index arrays + mappings
-- [ ] Online scoring: user profile from ratings → cosine similarity scoring → personalized ranking
-- [ ] Create app/utils/ml_eval.py — shared ML evaluation logic (evaluate_classifiers, best_model_report, run_cross_validation)
-- [ ] ML evaluation on Statistics page — "Run ML Evaluation" button, classifier table, confusion matrix, CV scores
-- [ ] ML evaluation notebook — notebooks/ml_evaluation.ipynb (academic narrative, scaled vs unscaled, KNN tuning plot)
-- [ ] Statistics dashboard iteration — layout improvements, additional KPIs, chart refinements
-
-### Week 09 — 2026-04-30 (Coaching: 27.04)
-
+- [ ] Online scoring: user profile from ratings → cosine similarity scoring → personalized ranking (Phase 2)
+- [ ] Discover: personalized sort option (ML scoring from rating history, Phase 4.2)
+- [ ] Rate: "Based on your interests" personalized poster grid (Phase 4.3)
+- [ ] ML evaluation notebook — notebooks/ml_evaluation.ipynb (academic narrative, Phase 3.3)
+- [ ] Statistics dashboard polish — layout improvements, chart refinements (Req 3)
+- [ ] Discover page visual polish — layout refinements, spacing
 - [ ] Finalize contribution matrix (Req 7)
-
-### Week 10 — 2026-05-07 (Coaching: 04.05)
-
-- [ ] Content-based movie recommendations from rated films (if time permits)
-
-### Week 11 — 2026-05-14 (Upload Deadline, Coaching: 11.05)
-
 - [ ] Record 4-minute video with live narration (Req 8)
-- [ ] Final code review and documentation pass
-- [ ] Upload code + video to Canvas by 23:59
-
-## Backlog
-
-- [ ] "Based on your interests" poster grid on Rate page — personalized recommendations identical to trending layout (Open Issue #011)
+- [ ] Final code review and documentation pass (Req 6)
+- [ ] Content-based movie recommendations from rated films (if time permits)
+- [ ] Upload code + video to Canvas by 2026-05-14 23:59
 
 ## Done
 
@@ -106,6 +76,9 @@
 - [x] Discover page redesign — sidebar with 12 filters (genre, year, runtime, rating, min votes, keywords, language, certification, streaming providers), main page with mood pills, sort dropdown, poster grid (5 cols), detail dialog, live filtering, load more, empty-state fallback. New TMDB API functions in tmdb.py. Visual polish pending. (2026-03-26)
 - [x] ML Evaluation utility + Statistics section — `app/utils/ml_eval.py` (4 generic functions: evaluate_classifiers, best_model_report, run_cross_validation, knn_hyperparameter_plot). Statistics page: classifier comparison table, best model KPIs (MLPClassifier 89% val acc, 0.76 F1), confusion matrix, 10-fold CV (81.6% ± 3.8%), KNN k=1..20 plot. All course requirements (Req 5) visible. (2026-03-26)
 - [x] Mood prediction pipeline — `pipeline/02_predict_moods.py`: 4 signals (genre, keyword, overview emotion, review emotion) with dynamic weighting. 996K overviews + 23K reviews classified (distilroberta, 4h18min). Coverage: 94.6% (1.11M/1.17M). mood_scores.npy 31.4 MB. (2026-03-26)
+- [x] Build index pipeline — `pipeline/04_build_index.py`: movie_id_index.json (1.17M entries, 18.4 MB), all 14 pipeline outputs verified. Phase 1a complete. (2026-03-26)
+- [x] Watchlist: mood reactions in "Mark as watched" dialog — rating slider + 7 mood buttons, saves to user_rating_moods (2026-03-26)
+- [x] Statistics: mood distribution chart from user reactions — Altair horizontal bar chart from load_mood_distribution() (2026-03-26)
 
 ## Superseded
 

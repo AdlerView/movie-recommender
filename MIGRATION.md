@@ -706,38 +706,20 @@ section for details.
 
 ---
 
-### Phase 1a: Offline Pipeline `PENDING`
+### Phase 1a: Offline Pipeline `DONE`
 
-Produces `store/` directory with precomputed feature arrays. Reads
-from `store/tmdb.db` (8.2 GB, offline only). Each pipeline stage is
-idempotent and can be re-run independently.
-
-| ID | Task | File(s) | Depends on | Status |
-|---|---|---|---|---|
-| 1a.1 | Create `genre_mood_map.json` (19 genre-to-mood rules) | `store/genre_mood_map.json` | -- | `DONE` |
-| 1a.2 | Feature extraction: keyword TF-IDF/SVD, director/actor SVD, genre/decade/language onehot, runtime | `pipeline/01_extract_features.py` -> 7 `.npy` + `movie_id_index.json` + `.pkl` | `store/tmdb.db` | `DONE` |
-| 1a.3 | Quality scores: Bayesian average, normalize to [0,1] | `pipeline/03_quality_scores.py` -> `quality_scores.npy` | `store/tmdb.db` | `DONE` |
-| 1a.4 | Mood prediction: 4 signals (genre + keyword + overview emotion + review emotion), dynamic weighting | `pipeline/02_predict_moods.py` -> `mood_scores.npy` | 1a.1, 1b.1, `store/tmdb.db` | `DONE` |
-| 1a.5 | Build index: verify all model files, save final mappings | `pipeline/04_build_index.py` | 1a.2, 1a.3, 1a.4 | `DONE` |
-
-**Runtime estimates:**
-- 1a.2: ~2h code + several hours pipeline runtime (keyword TF-IDF peaks ~8 GB RAM)
-- 1a.3: ~30 min (simplest stage)
-- 1a.4: ~2h code + 4-8h runtime (emotion classifier on ~1M texts, requires `transformers` + `torch`)
-
-**Parallelizable:** 1a.1 + 1a.2 + 1a.3 can start simultaneously.
-1a.4 needs 1a.1 and 1b.1 outputs. 1a.5 needs everything.
+Completed 2026-03-26. All 5 stages produced `store/` directory with
+14 pipeline outputs (9 `.npy`, 2 `.json`, 3 `.pkl`). Total ~4 GB.
+Scripts: `pipeline/01_extract_features.py`, `02_predict_moods.py`,
+`03_quality_scores.py`, `04_build_index.py`. See TODO.md "Done"
+section and CLAUDE.md § ML Pipeline for details.
 
 ---
 
 ### Phase 1b: Keyword-to-Mood Classifier `DONE`
 
-Completed 2026-03-26. Supervised classifier trained on 1,049
-single-label keywords (EmbeddingGemma-300M, 768-dim), best model
-MLPClassifier (val F1=0.76, test accuracy=78%), inferred moods for
-65,779 unlabeled keywords. Total: 68,462 entries in
-`store/keyword_mood_map.json`. Script: `pipeline/keyword_mood_classifier.py`.
-Evaluation artifacts: `data/evaluation/keyword_classifier_*.{csv,png}`.
+Completed 2026-03-26. MLPClassifier (val F1=0.76, test acc=78%),
+68,462 keyword mood entries. Script: `pipeline/keyword_mood_classifier.py`.
 See TODO.md "Done" section for details.
 
 ---

@@ -242,16 +242,36 @@ Supporting docs (referenced by MIGRATION.md):
 - [docs/FILTER.md](docs/FILTER.md) — 14 discovery filters, API parameter mapping, caching
 - [docs/MOOD.md](docs/MOOD.md) — keyword-to-mood classification, labeling methodology
 
-Key planned changes (see MIGRATION.md for full details):
-- Discover: 14 filter controls + personalized ML scoring (Phase 2 + 4)
-- Rate: "Based on your interests" personalized poster grid (Phase 4)
-- Statistics: ML evaluation section (Phase 3)
-- Offline pipeline: feature extraction, mood prediction, quality scores (Phase 1a)
+**Remaining planned changes** (see MIGRATION.md for full details):
 - Online scoring: user profile + 9-signal cosine similarity (Phase 2)
+- Discover: personalized sort option via ML scoring (Phase 4.2)
+- Rate: "Based on your interests" personalized poster grid (Phase 4.3)
+- ML evaluation notebook (Phase 3.3)
 
-Already completed (see MIGRATION.md + TODO.md Done):
-- Keyword-to-mood classifier (Phase 1b) — `store/keyword_mood_map.json`
-- Genre-to-mood mapping — `store/genre_mood_map.json`
+**Already completed:**
+- Offline pipeline complete (Phase 1a): 4 scripts, 14 outputs in `store/` (~4 GB)
+- Keyword-to-mood classifier (Phase 1b): MLPClassifier, 68K keyword moods
+- Discover page redesign (Phase 4.1): sidebar + 12 filters + poster grid
+- ML evaluation on Statistics page (Phase 3.1 + 3.2): classifier table, confusion matrix, CV, KNN k-plot
+- Mood reactions on Rate + Watchlist (Phase 0 + 4.4)
+- Statistics mood distribution chart (Phase 4.5)
+
+---
+
+## ML Pipeline (completed)
+
+4 offline pipeline scripts produce precomputed feature arrays in `store/`.
+All idempotent and re-runnable independently.
+
+| Script | Output | Runtime |
+|--------|--------|---------|
+| `pipeline/01_extract_features.py` | 7 `.npy` (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime 1-dim) + 3 SVD `.pkl` | 2m39s |
+| `pipeline/02_predict_moods.py` | `mood_scores.npy` (1.17M × 7, 4 signals: genre + keyword + overview emotion + review emotion) | 4h18m |
+| `pipeline/03_quality_scores.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
+| `pipeline/04_build_index.py` | `movie_id_index.json` (1.17M entries) + output verification | <1s |
+| `pipeline/keyword_mood_classifier.py` | `keyword_mood_map.json` (68,462 entries, MLPClassifier val F1=0.76) | 3m |
+
+Run order: `01` + `03` (parallel) → `keyword_mood_classifier` → `02` → `04`
 
 ### sklearn Imports Reference
 
