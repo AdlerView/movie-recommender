@@ -101,7 +101,7 @@ movie-recommender/
 │   │   ├── __init__.py
 │   │   ├── user_profile.py                 # User profile vectors from ratings + .npy arrays
 │   │   ├── scoring.py                      # 9-signal cosine similarity + dynamic weights
-│   │   ├── filters.py                      # NOT YET CREATED — TMDB API params + mood filter
+│   │   ├── mood_filter.py                  # Local mood filter against mood_scores.npy
 │   │   ├── SCORING.md                      # Scoring formula + component details
 │   │   └── FILTER.md                       # 14 discovery filters documentation
 │   └── evaluation/                         # Academic ML evaluation

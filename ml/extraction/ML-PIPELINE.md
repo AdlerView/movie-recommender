@@ -466,7 +466,7 @@ every Discover request when sort="Personalized Score".
 | File | Responsibility |
 |---|---|
 | `ml/scoring/scoring.py` | Scoring formula, dynamic weights, cosine similarity, batch scoring |
-| `ml/scoring/filters.py` | TMDB API parameter builder from UI state, local mood filter |
+| `ml/scoring/mood_filter.py` | Local mood filter against mood_scores.npy |
 | `ml/scoring/user_profile.py` | User profile computation from ratings (weighted avg of .npy vectors) |
 
 **Data flow:**
@@ -475,12 +475,12 @@ every Discover request when sort="Personalized Score".
 User clicks "Discover" with filters
     |
     v
-1. filters.py: Build TMDB API params from UI state
+1. discover.py: Build TMDB API params from UI state
    GET /3/discover/movie?with_genres=...&certification=...&...
    -> 100-500 candidate movie IDs
     |
     v
-2. filters.py: Local mood filter (if mood selected)
+2. mood_filter.py: Local mood filter (if mood selected)
    mood_scores.npy[movie_id_index[id]] > threshold
    -> Filter down to mood-matching candidates
     |
@@ -519,7 +519,7 @@ User clicks "Discover" with filters
 | `data/output/keyword_mood_map.json` | `DONE` | 68K keyword -> mood predictions (supervised pipeline) |
 | `ml/evaluation/ml_eval.py` | `DONE` | Shared ML evaluation logic (classifiers, metrics, CV) |
 | `ml/scoring/scoring.py` | `DONE` | Scoring formula, dynamic weights, cosine similarity |
-| `ml/scoring/filters.py` | `PENDING` | TMDB API parameter builder from UI state, local mood filter |
+| `ml/scoring/mood_filter.py` | `DONE` | Local mood filter against mood_scores.npy |
 | `ml/scoring/user_profile.py` | `DONE` | User profile computation from ratings |
 | `ml/evaluation/ml_evaluation.ipynb` | `PENDING` | Detailed ML evaluation notebook (academic, narrative) |
 
