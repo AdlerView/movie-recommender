@@ -12,11 +12,12 @@ Streamlit page modules: Discover, Rate, Watchlist, Statistics, Settings.
 
 **Exclusion policy (browse grids):** Rated + dismissed + watchlisted movies are excluded from both Discover and Rate browse grids. Search results on Rate keep rated movies (allows re-rating).
 
-**Dialog pattern:** Poster click sets `_*_selected_id` in session state. `@st.dialog` function called at end of script. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks — `@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun).
+**Dialog pattern:** Poster click sets `_*_selected_id` in session state. Dialog defined inline at trigger point (not via top-level `@st.dialog` decorator) so the movie title can be used as the dynamic dialog header. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks — `@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun). No poster shown inside dialogs (redundant after poster click).
 
-**Detail content:** Two shared functions in `app/utils/__init__.py`, used by all three detail dialogs:
-- `render_movie_detail_top(details, show_*=True)` — hero section (poster, title, tagline, genre badges, TMDB rating, runtime, release date, director, overview) + streaming providers + Watch Now link. Each section toggleable via keyword args.
-- `render_movie_detail_bottom(details, show_*=True)` — trailer embed, cast row (top 5 with photos), user reviews (up to 3). Called after page-specific action buttons.
+**Shared detail renderers** in `app/utils/__init__.py`:
+- `render_discover_detail(details)` — two-column layout: left = runtime + release date, tagline, genre badges + TMDB rating (one line), director, overview, streaming logos. Right = top 5 cast photos (no names). Used by Discover only.
+- `render_watchlist_detail(details)` — compact: streaming logos, runtime, trailer embed (no header), Watch Now link. Used by Watchlist only.
+- `render_movie_detail_bottom(details, show_trailer=, show_cast=, show_reviews=)` — trailer embed, cast row (top 5, photos only), user reviews (up to 3, each in `st.expander`). Used by Discover (reviews only, cast+trailer rendered elsewhere).
 
 **Poster grid CSS:** `inject_poster_grid_css(container_key)` from `app/utils/__init__.py` — invisible button overlay on poster images for click interaction. Used by Discover, Rate, Watchlist.
 
@@ -56,7 +57,11 @@ Language, streaming country, and providers are managed in Settings (applied auto
 2. ML scoring — `score_candidates()` only for Personalized sort, when profile exists
 3. Graceful degradation — no model/no ratings → API popularity order
 
-**Detail dialog actions:** "Not interested" (dismiss + cache details) or "Add to watchlist" (dedup guard + cache details). Both trigger `st.rerun()`.
+**Detail dialog** (`width="large"`, title = movie name):
+- Two-column: left = runtime+date, tagline, genre+rating, director, overview, streaming logo. Right = 5 cast photos.
+- Trailer embed (below metadata, before action buttons — watch first, decide after)
+- Actions: "Not interested" (dismiss + cache details) or "Add to watchlist" (dedup guard + cache details)
+- Reviews: up to 3, each in collapsible `st.expander`
 
 ---
 
@@ -68,7 +73,7 @@ Search bar + browse grid. No sidebar.
 
 **Search results (query active):** `search/movie` by title. No ML ranking. Rated movies shown (allows re-rating).
 
-**Rating dialog:** 0-100 slider (steps of 10), color-coded track, sentiment label. 7 optional mood reaction buttons. Save button disabled until slider moved. On save: rating + moods persisted, TMDB details + keywords eagerly cached.
+**Rating dialog** (`width="small"`, title = movie name): Minimal — just rating slider (0-100, steps of 10), color-coded track, sentiment label, 7 optional mood reaction pills, save button. No metadata, no poster, no streaming. On save: rating + moods persisted, TMDB details + keywords eagerly cached.
 
 ---
 
@@ -76,7 +81,9 @@ Search bar + browse grid. No sidebar.
 
 Poster grid of saved movies. No sidebar, no search.
 
-**Detail dialog:** TMDB details, keyword badges, streaming providers (user's country, flatrate only, brand-colored). Actions: "Remove from watchlist" or "Mark as watched" (opens rating slider + mood buttons → saves rating, removes from watchlist).
+**Detail dialog** (`width="large"`, title = movie name):
+- Content: runtime + streaming logos on one row, trailer embed, Watch Now link (TMDB)
+- Actions: "Remove from watchlist" or "Mark as watched" (opens rating slider + mood buttons → saves rating, removes from watchlist)
 
 ---
 

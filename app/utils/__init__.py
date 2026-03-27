@@ -278,40 +278,22 @@ def _find_best_trailer(details: dict) -> dict | None:
     return trailers[0]
 
 
-def render_movie_detail_top(details: dict) -> None:
-    """Render the upper half of the movie detail dialog.
+def render_discover_detail(details: dict) -> None:
+    """Render the Discover detail dialog content (above action buttons).
 
-    Displays the hero section (poster, title, genre, rating, runtime,
-    release date, director, overview) followed by streaming providers
-    and a Watch Now link. Called before page-specific action buttons.
+    Two-column layout: metadata on the left, cast photos on the right.
+    Compact vertical spacing with genre + rating on one line.
 
     Args:
         details: Full TMDB movie details dict from get_movie_details().
     """
     country_code = _resolve_country_code()
 
-    # === Hero section: poster + metadata ===
-    col_poster, col_info = st.columns([1, 2])
-    with col_poster:
-        st.image(poster_url(details.get("poster_path"), size="w500"), width=250)
+    col_info, col_cast = st.columns([3, 2])
+
+    # === Left column: metadata ===
     with col_info:
-        st.subheader(details.get("title", "Unknown"))
-        # Tagline — marketing hook shown as italic subtitle
-        tagline = details.get("tagline")
-        if tagline:
-            st.caption(f"*{tagline}*")
-        # Genre badges
-        genres = details.get("genres", [])
-        if genres:
-            st.caption("**Genre**")
-            st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
-        # TMDB rating — always 1 decimal for consistency
-        tmdb_rating = details.get("vote_average")
-        st.caption(
-            f"TMDB rating: {tmdb_rating:.1f} / 10" if tmdb_rating
-            else "TMDB rating: N/A",
-        )
-        # Runtime + release date on one line
+        # Runtime + release date directly under movie name
         meta_parts: list[str] = []
         runtime = details.get("runtime")
         if runtime:
@@ -325,6 +307,17 @@ def render_movie_detail_top(details: dict) -> None:
             meta_parts.append(f":material/calendar_month: {release_str}")
         if meta_parts:
             st.caption("  \u00b7  ".join(meta_parts))
+        # Tagline
+        tagline = details.get("tagline")
+        if tagline:
+            st.caption(f"*{tagline}*")
+        # Genre badges + TMDB rating on one line (no "Genre" header)
+        genres = details.get("genres", [])
+        tmdb_rating = details.get("vote_average")
+        genre_str = " ".join(f":gray-badge[{g['name']}]" for g in genres)
+        rating_str = f"  {tmdb_rating:.1f} / 10" if tmdb_rating else ""
+        if genre_str or rating_str:
+            st.markdown(f"{genre_str}{rating_str}")
         # Director
         crew = details.get("credits", {}).get("crew", [])
         directors = [c["name"] for c in crew if c.get("job") == "Director"]
@@ -332,20 +325,69 @@ def render_movie_detail_top(details: dict) -> None:
             st.caption(f":material/movie: Directed by {', '.join(directors)}")
         # Overview
         st.write(details.get("overview", "No description available."))
+        # Streaming provider logo (no header, no label)
+        providers_data = details.get("watch/providers", {}).get("results", {})
+        country_data = providers_data.get(country_code, {})
+        flatrate = country_data.get("flatrate", [])
+        if flatrate:
+            logo_cols = st.columns(min(len(flatrate), 6))
+            for i, p in enumerate(flatrate):
+                with logo_cols[i % len(logo_cols)]:
+                    logo = poster_url(p.get("logo_path"), size="w92")
+                    if logo:
+                        st.image(logo, width=40)
 
-    # === Streaming section: provider logos + Watch Now link ===
+    # === Right column: cast photos ===
+    with col_cast:
+        cast = details.get("credits", {}).get("cast", [])[:5]
+        if cast:
+            cast_cols = st.columns(5)
+            for i, person in enumerate(cast):
+                with cast_cols[i]:
+                    profile = person.get("profile_path")
+                    if profile:
+                        st.image(poster_url(profile, size="w185"), width=80)
+
+
+def render_watchlist_detail(details: dict) -> None:
+    """Render the Watchlist detail dialog content (above action buttons).
+
+    Compact practical layout: runtime + streaming providers on one line,
+    followed by trailer. No genre, rating, director, or overview.
+
+    Args:
+        details: Full TMDB movie details dict from get_movie_details().
+    """
+    country_code = _resolve_country_code()
+
+    # Runtime + streaming logos on one row
     providers_data = details.get("watch/providers", {}).get("results", {})
     country_data = providers_data.get(country_code, {})
     flatrate = country_data.get("flatrate", [])
-    tmdb_link = country_data.get("link")
+    runtime = details.get("runtime")
+    # Provider logos stacked directly under dialog title
     if flatrate:
-        st.caption("**Streaming**")
-        provider_cols = st.columns(min(len(flatrate), 6))
+        logo_cols = st.columns(min(len(flatrate), 6))
         for i, p in enumerate(flatrate):
-            with provider_cols[i % len(provider_cols)]:
+            with logo_cols[i % len(logo_cols)]:
                 logo = poster_url(p.get("logo_path"), size="w92")
                 if logo:
                     st.image(logo, width=40)
+    # Runtime below providers
+    if runtime:
+        hours, mins = divmod(runtime, 60)
+        st.caption(
+            f":material/schedule: {hours}h {mins}min" if hours
+            else f":material/schedule: {mins} min",
+        )
+
+    # Trailer (no header — flows directly under runtime/logos)
+    trailer = _find_best_trailer(details)
+    if trailer:
+        st.video(f"https://www.youtube.com/watch?v={trailer['key']}")
+
+    # Watch Now link
+    tmdb_link = country_data.get("link")
     if tmdb_link:
         st.link_button(
             "Watch Now",
@@ -355,10 +397,31 @@ def render_movie_detail_top(details: dict) -> None:
         )
 
 
+def _render_streaming_logos(details: dict, country_code: str) -> None:
+    """Render streaming provider logos for a country.
+
+    Args:
+        details: Full TMDB movie details dict.
+        country_code: ISO 3166-1 country code.
+    """
+    providers_data = details.get("watch/providers", {}).get("results", {})
+    country_data = providers_data.get(country_code, {})
+    flatrate = country_data.get("flatrate", [])
+    if flatrate:
+        st.caption("**Streaming**")
+        provider_cols = st.columns(min(len(flatrate), 6))
+        for i, p in enumerate(flatrate):
+            with provider_cols[i % len(provider_cols)]:
+                logo = poster_url(p.get("logo_path"), size="w92")
+                if logo:
+                    st.image(logo, width=40)
+
+
 def render_movie_detail_bottom(
     details: dict,
     *,
     show_trailer: bool = True,
+    show_cast: bool = True,
     show_reviews: bool = True,
 ) -> None:
     """Render the lower half of the movie detail dialog.
@@ -369,46 +432,39 @@ def render_movie_detail_bottom(
     Args:
         details: Full TMDB movie details dict from get_movie_details().
         show_trailer: Whether to show the YouTube trailer embed.
+        show_cast: Whether to show the top 5 billed cast.
         show_reviews: Whether to show TMDB user reviews.
     """
     # === Trailer section: YouTube embed ===
     if show_trailer:
         trailer = _find_best_trailer(details)
         if trailer:
-            st.caption("**Trailer**")
             st.video(f"https://www.youtube.com/watch?v={trailer['key']}")
 
     # === Cast section: top 5 billed actors with profile photos ===
-    cast = details.get("credits", {}).get("cast", [])[:5]
-    if cast:
-        st.caption("**Cast**")
-        cols = st.columns(5)
-        for col, person in zip(cols, cast):
-            with col:
-                profile = person.get("profile_path")
-                if profile:
-                    st.image(poster_url(profile, size="w185"), width=100)
-                else:
-                    # Placeholder for actors without a profile photo
-                    st.markdown(":material/person: ")
-                st.caption(f"**{person.get('name', '')}**")
+    if show_cast:
+        cast = details.get("credits", {}).get("cast", [])[:5]
+        if cast:
+            cols = st.columns(5)
+            for col, person in zip(cols, cast):
+                with col:
+                    profile = person.get("profile_path")
+                    if profile:
+                        st.image(poster_url(profile, size="w185"), width=100)
+                    else:
+                        st.markdown(":material/person: ")
+                    st.caption(f"**{person.get('name', '')}**")
 
-    # === Reviews section: up to 3 user reviews ===
+    # === Reviews section: up to 3, separated by dividers ===
     if show_reviews:
         reviews = details.get("reviews", {}).get("results", [])[:3]
-        if reviews:
-            st.caption("**Reviews**")
-            for review in reviews:
-                author = review.get("author", "Anonymous")
-                rating = review.get("author_details", {}).get("rating")
-                content = review.get("content", "")
-                # Truncate long reviews to ~200 characters
-                if len(content) > 200:
-                    content = content[:200].rsplit(" ", 1)[0] + "..."
-                # Rating star + author header
-                header = (
-                    f"\u2605 {rating:.0f}/10  \u00b7  {author}" if rating
-                    else author
-                )
-                st.markdown(f"**{header}**")
+        for review in reviews:
+            author = review.get("author", "Anonymous")
+            rating = review.get("author_details", {}).get("rating")
+            content = review.get("content", "")
+            header = (
+                f"\u2605 {rating:.0f}/10  \u00b7  {author}" if rating
+                else author
+            )
+            with st.expander(header):
                 st.caption(content)

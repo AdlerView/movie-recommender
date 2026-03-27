@@ -116,7 +116,7 @@ Provider list re-fetched when user changes streaming country in Settings.
 
 ```
 GET /search/movie?query={text}&language=en-US&page=1   5m
-GET /movie/{id}?append_to_response=credits,videos,watch/providers   1h
+GET /movie/{id}?append_to_response=credits,videos,watch/providers,release_dates,reviews   1h
 GET /movie/{id}/keywords                               24h
 ```
 
@@ -206,15 +206,19 @@ user_preferences (key PK, value TEXT)
 user_profile_cache (key PK, value BLOB)
 ```
 
-**Normalized detail tables (for Statistics):**
+**Movie details (single table with JSON columns):**
 
 ```sql
-movie_details (movie_id PK, title, runtime, release_date, vote_average, original_language, poster_path, backdrop_path, overview, fetched_at)
-movie_genres (movie_id, genre_id, genre_name)
-movie_cast (movie_id, person_id, person_name, character, billing_order) — top 5 by order
-movie_crew (movie_id, person_id, person_name, job) — Directors only
-movie_countries (movie_id, country_code, country_name)
-movie_keywords (movie_id, keyword_id, keyword_name)
+movie_details (
+    movie_id PK, title, runtime, release_date, vote_average,
+    original_language, poster_path, backdrop_path, overview,
+    genres TEXT,        -- JSON: [{"id":18,"name":"Drama"},...]
+    cast_members TEXT,  -- JSON: [{"name":"...","order":0,"profile_path":"..."},...]  (top 20)
+    crew_members TEXT,  -- JSON: [{"name":"...","job":"...","popularity":0,"profile_path":"..."},...] (top 20, deduped)
+    countries TEXT,     -- JSON: [{"code":"US","name":"United States"},...]
+    keywords TEXT,      -- JSON: [{"id":616,"name":"witch"},...]
+    fetched_at TEXT
+)
 ```
 
-Details saved via `save_movie_details()` on rating save. `save_movie_keywords()` called separately. `get_ratings_without_details()` finds ratings needing backfill.
+`save_movie_details(movie_id, details, keywords=)` saves everything in one INSERT OR REPLACE. Statistics queries use `json_each()` for genre/cast/crew aggregation. `get_ratings_without_details()` finds ratings needing backfill.

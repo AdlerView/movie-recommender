@@ -15,20 +15,9 @@ from app.utils.db import (
     remove_from_watchlist,
     save_mood_reactions,
     save_movie_details,
-    save_movie_keywords,
     save_rating,
 )
 from app.utils.tmdb import get_movie_details, get_movie_keywords, poster_url
-
-# Provider brand colors for badge styling
-_PROVIDER_COLORS: dict[str, str] = {
-    "Netflix": "red",
-    "Amazon Prime Video": "blue",
-    "Disney Plus": "green",
-    "Apple TV Plus": "gray",
-    "Paramount Plus": "orange",
-}
-_DEFAULT_PROVIDER_COLOR = "violet"
 
 # Number of columns in the poster grid (matches Rate page)
 _GRID_COLS = 5
@@ -63,122 +52,7 @@ def _select_movie(movie_id: int) -> None:
     st.session_state._watchlist_selected = movie_id
 
 
-# --- Dialog: movie detail overlay ---
-@st.dialog("Movie details", width="large")
-def _show_detail(movie_id: int) -> None:
-    """Render movie detail dialog with streaming info and actions.
-
-    Args:
-        movie_id: TMDB movie ID to display.
-    """
-    # Fetch full details (cached 1h) for runtime, genres, providers, overview
-    try:
-        details = get_movie_details(movie_id)
-    except requests.RequestException:
-        st.error("Could not load movie details.", icon=":material/error:")
-        return
-
-    # --- Movie info card ---
-    col_poster, col_info = st.columns([1, 2])
-    with col_poster:
-        st.image(poster_url(details.get("poster_path"), size="w500"), width=250)
-    with col_info:
-        st.subheader(details.get("title", "Unknown"))
-        # Genre section
-        genres = details.get("genres", [])
-        if genres:
-            st.caption("**Genre**")
-            st.markdown(" ".join(
-                f":gray-badge[{g['name']}]" for g in genres
-            ))
-        # TMDB rating — 1 decimal for consistent display
-        _tmdb = details.get("vote_average")
-        st.caption(f"TMDB rating: {_tmdb:.1f} / 10" if _tmdb else "TMDB rating: N/A")
-        # Runtime
-        runtime = details.get("runtime")
-        if runtime:
-            hours, mins = divmod(runtime, 60)
-            if hours:
-                st.caption(f":material/schedule: {hours}h {mins}min")
-            else:
-                st.caption(f":material/schedule: {mins} min")
-        # Overview
-        st.write(details.get("overview", "No description available."))
-
-    # --- Streaming providers (Switzerland) ---
-    providers_data = details.get("watch/providers", {}).get("results", {}).get("CH", {})
-    flatrate = providers_data.get("flatrate", [])
-    if flatrate:
-        st.markdown("**Streaming in Switzerland:** " + " ".join(
-            f":{_PROVIDER_COLORS.get(p['provider_name'], _DEFAULT_PROVIDER_COLOR)}-badge[{p['provider_name']}]"
-            for p in flatrate
-        ))
-
-    st.divider()
-
-    # --- Actions ---
-    col_remove, col_watched = st.columns(2)
-    with col_remove:
-        if st.button(
-            "Remove from watchlist",
-            icon=":material/delete:",
-            use_container_width=True,
-        ):
-            # Remove from session state and database
-            st.session_state.watchlist = [
-                m for m in st.session_state.watchlist if m["id"] != movie_id
-            ]
-            remove_from_watchlist(movie_id)
-            st.session_state._watchlist_selected = None
-            st.session_state["_watchlist_toast"] = f"Removed **{details.get('title', '')}** from watchlist"
-            st.rerun()
-
-    with col_watched:
-        if st.button(
-            "Mark as watched",
-            icon=":material/visibility:",
-            type="primary",
-            use_container_width=True,
-        ):
-            # Switch to rating mode inside the dialog
-            st.session_state["_watchlist_show_rating"] = True
-
-    # --- Rating widget (shown after "Mark as watched" click) ---
-    if st.session_state.get("_watchlist_show_rating"):
-        st.subheader("Rate this movie")
-        from app.utils import render_rating_widget
-        new_rating, selected_moods, _slider_ready = render_rating_widget(
-            movie_id, key_prefix="wl",
-        )
-
-        if st.button("Save rating", type="primary", icon=":material/save:", disabled=not _slider_ready):
-            # Save rating to session state and database
-            st.session_state.ratings[movie_id] = new_rating
-            save_rating(movie_id, new_rating)
-            # Save mood reactions (empty list if none selected)
-            save_mood_reactions(movie_id, list(selected_moods or []))
-            # Eager fetch: cache full TMDB details + keywords for Statistics/ML
-            try:
-                save_movie_details(movie_id, details)
-            except (requests.RequestException, sqlite3.Error):
-                pass
-            try:
-                save_movie_keywords(movie_id, get_movie_keywords(movie_id))
-            except (requests.RequestException, sqlite3.Error):
-                pass
-            # Remove from watchlist (watched = no longer on watchlist)
-            st.session_state.watchlist = [
-                m for m in st.session_state.watchlist if m["id"] != movie_id
-            ]
-            remove_from_watchlist(movie_id)
-            # Clean up dialog state
-            st.session_state._watchlist_selected = None
-            st.session_state.pop("_watchlist_show_rating", None)
-            st.session_state.pop(f"_wl_touched_{movie_id}", None)
-            st.session_state["_watchlist_toast"] = (
-                f"Rated **{details.get('title', '')}**: {new_rating}/100"
-            )
-            st.rerun()
+# Dialog defined inline at trigger point below (dynamic title per movie).
 
 
 # --- Clickable poster grid CSS (shared helper) ---
@@ -216,5 +90,70 @@ st.caption(
 )
 
 # --- Trigger dialog after grid renders (dialog must be called in main flow) ---
+# Dialog defined inline so the movie title can be used as the dialog header.
 if st.session_state._watchlist_selected is not None:
-    _show_detail(st.session_state._watchlist_selected)
+    _mid = st.session_state._watchlist_selected
+    try:
+        _details = get_movie_details(_mid)
+    except requests.RequestException:
+        st.error("Could not load movie details.", icon=":material/error:")
+        st.stop()
+
+    @st.dialog(_details.get("title", "Movie details"), width="large")
+    def _show_watchlist_dialog() -> None:
+        """Watchlist dialog: runtime + providers, trailer, watch now, actions."""
+        from app.utils import render_watchlist_detail
+        render_watchlist_detail(_details)
+
+        # Action buttons
+        col_remove, col_watched = st.columns(2)
+        with col_remove:
+            if st.button("Remove from watchlist", icon=":material/delete:",
+                         use_container_width=True):
+                st.session_state.watchlist = [
+                    m for m in st.session_state.watchlist if m["id"] != _mid
+                ]
+                remove_from_watchlist(_mid)
+                st.session_state._watchlist_selected = None
+                st.session_state["_watchlist_toast"] = (
+                    f"Removed **{_details.get('title', '')}** from watchlist"
+                )
+                st.rerun()
+        with col_watched:
+            if st.button("Mark as watched", icon=":material/visibility:",
+                         type="primary", use_container_width=True):
+                st.session_state["_watchlist_show_rating"] = True
+
+        # Rating widget (shown after "Mark as watched" click)
+        if st.session_state.get("_watchlist_show_rating"):
+            st.subheader("Rate this movie")
+            from app.utils import render_rating_widget
+            new_rating, selected_moods, _slider_ready = render_rating_widget(
+                _mid, key_prefix="wl",
+            )
+            if st.button("Save rating", type="primary", icon=":material/save:",
+                         disabled=not _slider_ready):
+                st.session_state.ratings[_mid] = new_rating
+                save_rating(_mid, new_rating)
+                save_mood_reactions(_mid, list(selected_moods or []))
+                try:
+                    _kw = get_movie_keywords(_mid)
+                except requests.RequestException:
+                    _kw = None
+                try:
+                    save_movie_details(_mid, _details, keywords=_kw)
+                except sqlite3.Error:
+                    pass
+                st.session_state.watchlist = [
+                    m for m in st.session_state.watchlist if m["id"] != _mid
+                ]
+                remove_from_watchlist(_mid)
+                st.session_state._watchlist_selected = None
+                st.session_state.pop("_watchlist_show_rating", None)
+                st.session_state.pop(f"_wl_touched_{_mid}", None)
+                st.session_state["_watchlist_toast"] = (
+                    f"Rated **{_details.get('title', '')}**: {new_rating}/100"
+                )
+                st.rerun()
+
+    _show_watchlist_dialog()

@@ -14,7 +14,6 @@ import streamlit as st
 from app.utils.db import (
     save_mood_reactions,
     save_movie_details,
-    save_movie_keywords,
     save_rating,
 )
 from app.utils.tmdb import (
@@ -68,75 +67,7 @@ def _load_more() -> None:
 
 
 
-# --- Dialog: movie detail + rating overlay ---
-@st.dialog("Rate movie", width="large")
-def _show_rating_dialog(movie_id: int) -> None:
-    """Render movie detail dialog with rating slider.
-
-    Args:
-        movie_id: TMDB movie ID to display and rate.
-    """
-    # Fetch full details (cached 1h) for runtime, genres, overview
-    try:
-        details = get_movie_details(movie_id)
-    except requests.RequestException:
-        st.error("Could not load movie details.", icon=":material/error:")
-        return
-
-    # --- Movie info card ---
-    col_poster, col_info = st.columns([1, 2])
-    with col_poster:
-        st.image(poster_url(details.get("poster_path"), size="w500"), width=250)
-    with col_info:
-        st.subheader(details.get("title", "Unknown"))
-        # Genre section
-        genres = details.get("genres", [])
-        if genres:
-            st.caption("**Genre**")
-            st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
-        # TMDB rating — 1 decimal for consistent display
-        _tmdb = details.get("vote_average")
-        st.caption(f"TMDB rating: {_tmdb:.1f} / 10" if _tmdb else "TMDB rating: N/A")
-        # Runtime
-        runtime = details.get("runtime")
-        if runtime:
-            hours, mins = divmod(runtime, 60)
-            if hours:
-                st.caption(f":material/schedule: {hours}h {mins}min")
-            else:
-                st.caption(f":material/schedule: {mins} min")
-        # Overview
-        st.write(details.get("overview", "No description available."))
-
-    st.divider()
-
-    # --- Rating widget (shared: slider + sentiment label + color CSS + mood pills) ---
-    current_rating = st.session_state.ratings.get(movie_id)
-    from app.utils import render_rating_widget
-    new_rating, selected_moods, _slider_ready = render_rating_widget(
-        movie_id, key_prefix="rate", current_rating=current_rating,
-    )
-
-    if st.button("Save rating", type="primary", icon=":material/save:", disabled=not _slider_ready):
-        st.session_state.ratings[movie_id] = new_rating
-        save_rating(movie_id, new_rating)
-        # Save mood reactions (empty list if none selected)
-        save_mood_reactions(movie_id, list(selected_moods or []))
-        # Eager fetch: cache full TMDB details + keywords for Statistics/ML
-        try:
-            save_movie_details(movie_id, details)
-        except (requests.RequestException, sqlite3.Error):
-            pass
-        try:
-            save_movie_keywords(movie_id, get_movie_keywords(movie_id))
-        except (requests.RequestException, sqlite3.Error):
-            pass
-        st.session_state._watched_selected_id = None
-        st.session_state.pop(f"_rate_touched_{movie_id}", None)
-        st.session_state["_watched_toast"] = (
-            f"Rated **{details.get('title', '')}**: {new_rating}/100"
-        )
-        st.rerun()
+# Dialog defined inline at trigger point below (dynamic title per movie).
 
 
 # === Search & Browse ===
@@ -273,5 +204,42 @@ if has_more:
     )
 
 # --- Trigger dialog after page renders (dialog must be called in main flow) ---
+# Dialog defined inline so the movie title can be used as the dialog header.
 if st.session_state._watched_selected_id is not None:
-    _show_rating_dialog(st.session_state._watched_selected_id)
+    _mid = st.session_state._watched_selected_id
+    try:
+        _details = get_movie_details(_mid)
+    except requests.RequestException:
+        st.error("Could not load movie details.", icon=":material/error:")
+        st.stop()
+
+    @st.dialog(_details.get("title", "Rate movie"), width="small")
+    def _show_rating_dialog() -> None:
+        """Rate dialog: minimal — just rating slider + moods."""
+        current_rating = st.session_state.ratings.get(_mid)
+        from app.utils import render_rating_widget
+        new_rating, selected_moods, _slider_ready = render_rating_widget(
+            _mid, key_prefix="rate", current_rating=current_rating,
+        )
+
+        if st.button("Save rating", type="primary", icon=":material/save:",
+                     disabled=not _slider_ready):
+            st.session_state.ratings[_mid] = new_rating
+            save_rating(_mid, new_rating)
+            save_mood_reactions(_mid, list(selected_moods or []))
+            try:
+                _kw = get_movie_keywords(_mid)
+            except requests.RequestException:
+                _kw = None
+            try:
+                save_movie_details(_mid, _details, keywords=_kw)
+            except sqlite3.Error:
+                pass
+            st.session_state._watched_selected_id = None
+            st.session_state.pop(f"_rate_touched_{_mid}", None)
+            st.session_state["_watched_toast"] = (
+                f"Rated **{_details.get('title', '')}**: {new_rating}/100"
+            )
+            st.rerun()
+
+    _show_rating_dialog()

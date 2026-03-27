@@ -481,124 +481,85 @@ else:
 # DETAIL DIALOG (triggered by poster click)
 # ============================================================
 
-@st.dialog("Movie details", width="large")
-def _show_detail_dialog(movie_id: int) -> None:
-    """Show movie detail dialog with watchlist and dismiss actions.
-
-    Args:
-        movie_id: TMDB movie ID to display.
-    """
+# Trigger dialog after page renders (must be in main flow).
+# Dialog is defined inline so the title can be set dynamically per movie.
+if st.session_state._discover_selected_id is not None:
+    _mid = st.session_state._discover_selected_id
     try:
-        details = get_movie_details(movie_id)
+        _details = get_movie_details(_mid)
     except requests.RequestException:
         st.error("Could not load movie details.", icon=":material/error:")
-        return
+        st.stop()
 
-    # Movie info card
-    col_poster, col_info = st.columns([1, 2])
-    with col_poster:
-        st.image(poster_url(details.get("poster_path"), size="w500"), width=250)
-    with col_info:
-        st.subheader(details.get("title", "Unknown"))
-        # Genre badges
-        genres = details.get("genres", [])
-        if genres:
-            st.caption("**Genre**")
-            st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
-        # TMDB rating
-        _tmdb = details.get("vote_average")
-        st.caption(f"TMDB rating: {_tmdb:.1f} / 10" if _tmdb else "TMDB rating: N/A")
-        # Runtime
-        runtime = details.get("runtime")
-        if runtime:
-            hours, mins = divmod(runtime, 60)
-            st.caption(f":material/schedule: {hours}h {mins}min" if hours
-                       else f":material/schedule: {mins} min")
-        # Overview
-        st.write(details.get("overview", "No description available."))
-
-    # Streaming providers (country from Settings preference)
-    _providers = details.get("watch/providers", {}).get("results", {})
-    _pref_country_name = load_preference("streaming_country", "Switzerland")
-    try:
-        _country_list = get_countries()
-        _dialog_country_code = next(
-            (c["iso_3166_1"] for c in _country_list
-             if c.get("english_name") == _pref_country_name),
-            "CH",
+    @st.dialog(_details.get("title", "Movie details"), width="large")
+    def _show_discover_dialog() -> None:
+        """Discover detail dialog: metadata, trailer, actions, reviews."""
+        from app.utils import (
+            _find_best_trailer,
+            render_discover_detail,
+            render_movie_detail_bottom,
         )
-    except requests.RequestException:
-        _dialog_country_code = "CH"
-    _country_data = _providers.get(_dialog_country_code, {})
-    _flatrate = _country_data.get("flatrate", [])
-    if _flatrate:
-        st.caption("**Streaming**")
-        _provider_cols = st.columns(len(_flatrate))
-        for i, p in enumerate(_flatrate):
-            with _provider_cols[i]:
-                _logo = poster_url(p.get("logo_path"), size="w92")
-                if _logo:
-                    st.image(_logo, width=40)
-                st.caption(p["provider_name"])
+        render_discover_detail(_details)
 
-    st.divider()
+        # Trailer before action buttons (watch first, decide after)
+        _trailer = _find_best_trailer(_details)
+        if _trailer:
+            st.video(f"https://www.youtube.com/watch?v={_trailer['key']}")
 
-    # Action buttons — use if-st.button + st.rerun() instead of on_click
-    # callbacks, because @st.dialog inherits from @st.fragment and on_click
-    # only triggers a fragment rerun (dialog stays open, main page unchanged).
-    col_dismiss, col_watchlist = st.columns(2)
-    with col_dismiss:
-        if st.button("Not interested", icon=":material/thumb_down:",
-                     use_container_width=True):
-            st.session_state.dismissed.add(movie_id)
-            save_dismissed(movie_id)
-            # Eager fetch: cache details + keywords in single write
-            try:
-                _kw = get_movie_keywords(movie_id)
-            except requests.RequestException:
-                _kw = None
-            try:
-                save_movie_details(movie_id, details, keywords=_kw)
-            except sqlite3.Error:
-                pass
-            st.session_state._discover_selected_id = None
-            st.session_state["_discover_toast"] = (
-                f"Skipped **{details.get('title', '')}**",
-                ":material/thumb_down:",
-            )
-            st.rerun()
-    with col_watchlist:
-        if st.button("Add to watchlist", icon=":material/bookmark:",
-                     type="primary", use_container_width=True):
-            _movie_dict = {
-                "id": movie_id,
-                "title": details.get("title", ""),
-                "poster_path": details.get("poster_path"),
-                "vote_average": details.get("vote_average"),
-                "overview": details.get("overview"),
-                "genre_ids": [g["id"] for g in details.get("genres", [])],
-            }
-            # Guard: prevent duplicate entries in watchlist
-            if movie_id not in {m["id"] for m in st.session_state.watchlist}:
-                st.session_state.watchlist.append(_movie_dict)
-                save_to_watchlist(_movie_dict)
-            # Eager fetch: cache details + keywords in single write
-            try:
-                _kw = get_movie_keywords(movie_id)
-            except requests.RequestException:
-                _kw = None
-            try:
-                save_movie_details(movie_id, details, keywords=_kw)
-            except sqlite3.Error:
-                pass
-            st.session_state._discover_selected_id = None
-            st.session_state["_discover_toast"] = (
-                f"Added **{details.get('title', '')}** to watchlist",
-                ":material/bookmark:",
-            )
-            st.rerun()
+        # Action buttons — if-st.button + st.rerun() because @st.dialog
+        # inherits from @st.fragment (on_click only triggers fragment rerun)
+        col_dismiss, col_watchlist = st.columns(2)
+        with col_dismiss:
+            if st.button("Not interested", icon=":material/thumb_down:",
+                         use_container_width=True):
+                st.session_state.dismissed.add(_mid)
+                save_dismissed(_mid)
+                try:
+                    _kw = get_movie_keywords(_mid)
+                except requests.RequestException:
+                    _kw = None
+                try:
+                    save_movie_details(_mid, _details, keywords=_kw)
+                except sqlite3.Error:
+                    pass
+                st.session_state._discover_selected_id = None
+                st.session_state["_discover_toast"] = (
+                    f"Skipped **{_details.get('title', '')}**",
+                    ":material/thumb_down:",
+                )
+                st.rerun()
+        with col_watchlist:
+            if st.button("Add to watchlist", icon=":material/bookmark:",
+                         type="primary", use_container_width=True):
+                _movie_dict = {
+                    "id": _mid,
+                    "title": _details.get("title", ""),
+                    "poster_path": _details.get("poster_path"),
+                    "vote_average": _details.get("vote_average"),
+                    "overview": _details.get("overview"),
+                    "genre_ids": [g["id"] for g in _details.get("genres", [])],
+                }
+                if _mid not in {m["id"] for m in st.session_state.watchlist}:
+                    st.session_state.watchlist.append(_movie_dict)
+                    save_to_watchlist(_movie_dict)
+                try:
+                    _kw = get_movie_keywords(_mid)
+                except requests.RequestException:
+                    _kw = None
+                try:
+                    save_movie_details(_mid, _details, keywords=_kw)
+                except sqlite3.Error:
+                    pass
+                st.session_state._discover_selected_id = None
+                st.session_state["_discover_toast"] = (
+                    f"Added **{_details.get('title', '')}** to watchlist",
+                    ":material/bookmark:",
+                )
+                st.rerun()
 
+        # Reviews below action buttons (trailer already shown above)
+        render_movie_detail_bottom(
+            _details, show_trailer=False, show_cast=False,
+        )
 
-# Trigger dialog after page renders (must be in main flow)
-if st.session_state._discover_selected_id is not None:
-    _show_detail_dialog(st.session_state._discover_selected_id)
+    _show_discover_dialog()

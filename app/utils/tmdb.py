@@ -215,11 +215,12 @@ def get_movie_details(movie_id: int) -> dict:
         Full movie details dict with nested credits, videos, and
         watch/providers keys.
     """
-    # GET /movie/{id}?append_to_response=credits,videos,watch/providers
-    # One call replaces three separate requests for credits, videos, providers
+    # GET /movie/{id}?append_to_response=credits,videos,watch/providers,release_dates,reviews
+    # One call replaces separate requests for credits, videos, providers,
+    # country-specific release dates, and user reviews
     return _get(
         f"/movie/{movie_id}",
-        append_to_response="credits,videos,watch/providers",
+        append_to_response="credits,videos,watch/providers,release_dates,reviews",
         language="en-US",
     )
 
