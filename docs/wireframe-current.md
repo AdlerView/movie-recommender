@@ -1,6 +1,6 @@
 # Current UI Wireframe
 
-> Mermaid flowchart of the current app UI flow, derived from source code analysis (2026-03-27, updated after UX cleanup).
+> Mermaid flowchart of the current app UI flow, derived from source code analysis (2026-03-27, updated 2026-03-27: Discover more button on Watchlist).
 
 ```mermaid
 flowchart TB
@@ -35,6 +35,7 @@ flowchart TB
     subgraph WATCHLIST["Watchlist Page"]
         direction TB
         WGRID[Poster Grid — 5 columns, clickable]
+        WDISC["Discover more button — navigates to Discover page"]
         WDLG["Detail Dialog (large)<br>Streaming logos · Runtime<br>Trailer embed · Watch Now link<br>Buttons: Remove · Mark as watched<br>Rating widget on Mark as watched"]
     end
 
@@ -69,6 +70,7 @@ flowchart TB
     RDLG -- "Save rating" --> STABLE
     WDLG -- "Mark as watched" --> STABLE
     WDLG -- "Remove" --> WGRID
+    WDISC -- "switch_page" --> DISCOVER
 
     %% Settings influence
     SETTINGS -. "country, providers,<br>language preferences" .-> DISCOVER
@@ -84,6 +86,6 @@ flowchart TB
 |------|--------|-------------|-------------|
 | Discover | Sidebar + main | 8 filters, mood pills, sort dropdown, poster grid, detail dialog | TMDB API + ML scoring |
 | Rate | Single column | Search bar, poster grid, rating dialog (slider + moods) | TMDB API + ML scoring |
-| Watchlist | Single column | Poster grid, detail dialog (streaming, trailer, rating) | SQLite + TMDB API |
+| Watchlist | Single column | Poster grid, Discover more button, detail dialog (streaming, trailer, rating) | SQLite + TMDB API |
 | Statistics | Single column | KPIs, 4 charts, rankings, rated movies table | SQLite only |
 | Settings | Single column | Country dropdown, provider grid, language dropdown, reset | SQLite + TMDB API |

@@ -207,6 +207,7 @@ if has_more:
         icon=":material/expand_more:",
         on_click=_load_more,
         use_container_width=True,
+        type="primary",
     )
 
 # --- Trigger dialog after page renders (dialog must be called in main flow) ---

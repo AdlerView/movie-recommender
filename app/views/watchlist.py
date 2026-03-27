@@ -39,6 +39,10 @@ if not watchlist:
         "No movies in your watchlist yet. Head to Discover to find some!",
         icon=":material/bookmark_border:",
     )
+    # "Discover more" button as actionable next step (same styling as Load more
+    # on Discover/Rate: full container width, no icon)
+    if st.button("Discover more", use_container_width=True, type="primary"):
+        st.switch_page("app/views/discover.py")
     st.stop()
 
 
@@ -82,6 +86,12 @@ with st.container(key="watchlist_grid"):
                     on_click=_select_movie,
                     args=(movie["id"],),
                 )
+
+# --- "Discover more" button (always shown after grid, mirrors Load more styling) ---
+# Uses st.switch_page for environment-agnostic navigation (works on localhost
+# and production domains without hardcoding URLs)
+if st.button("Discover more", use_container_width=True, type="primary"):
+    st.switch_page("app/views/discover.py")
 
 # --- Trigger dialog after grid renders (dialog must be called in main flow) ---
 # Dialog defined inline so the movie title can be used as the dialog header.

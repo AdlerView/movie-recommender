@@ -451,7 +451,8 @@ if movies:
     # Load more button
     if _has_more:
         st.button("Load more", icon=":material/expand_more:",
-                  on_click=_load_more, use_container_width=True)
+                  on_click=_load_more, use_container_width=True,
+                  type="primary")
 else:
     # Empty results — show info and fallback recommendations
     st.info("No movies match your filters. Try fewer criteria.",
