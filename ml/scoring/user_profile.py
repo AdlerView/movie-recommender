@@ -165,6 +165,7 @@ class UserProfile:
 
     Attributes:
         keyword_vec: Weighted average of keyword SVD vectors (200-dim).
+        genre_vec: Weighted average of genre multi-hot vectors (19-dim).
         director_vec: Weighted average of director SVD vectors (200-dim).
         actor_vec: Weighted average of actor SVD vectors (200-dim).
         decade_vec: Weighted average of decade onehot vectors (15-dim).
@@ -176,6 +177,7 @@ class UserProfile:
     """
 
     keyword_vec: np.ndarray
+    genre_vec: np.ndarray
     director_vec: np.ndarray
     actor_vec: np.ndarray
     decade_vec: np.ndarray
@@ -295,6 +297,7 @@ def compute_user_profile(
 
     # --- Compute weighted-average profile vectors ---
     keyword_vec = _weighted_average(model.keyword_svd, row_indices, weights)
+    genre_vec = _weighted_average(model.genre_vectors, row_indices, weights)
     director_vec = _weighted_average(model.director_svd, row_indices, weights)
     actor_vec = _weighted_average(model.actor_svd, row_indices, weights)
     decade_vec = _weighted_average(model.decade_vectors, row_indices, weights)
@@ -335,6 +338,7 @@ def compute_user_profile(
 
     return UserProfile(
         keyword_vec=keyword_vec,
+        genre_vec=genre_vec,
         director_vec=director_vec,
         actor_vec=actor_vec,
         decade_vec=decade_vec,

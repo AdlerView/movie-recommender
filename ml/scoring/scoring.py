@@ -1,12 +1,13 @@
-"""Personalized movie scoring with 9-signal cosine similarity.
+"""Personalized movie scoring with 10-signal cosine similarity.
 
-Scores candidate movies against a user profile using 9 weighted similarity
+Scores candidate movies against a user profile using 10 weighted similarity
 signals. All computations are batch-vectorized with numpy for performance
-(~50ms for 300 candidates on a single CPU core).
+(~8ms for 300 candidates on a single CPU core).
 
-The 9 signals and their full-personalization weights (50+ ratings):
-    keyword_similarity   0.25  — cosine sim of keyword SVD vectors
+The 10 signals and their full-personalization weights (50+ ratings):
+    keyword_similarity   0.20  — cosine sim of keyword SVD vectors
     mood_match           0.20  — explicit mood selection or implicit mood profile
+    genre_similarity     0.05  — cosine sim of genre multi-hot vectors
     director_similarity  0.15  — cosine sim of director SVD vectors
     actor_similarity     0.10  — cosine sim of actor SVD vectors
     decade_similarity    0.05  — cosine sim of decade onehot vectors
@@ -40,19 +41,19 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Dynamic weight table (from SCORING.md)
 # ---------------------------------------------------------------------------
-# Columns: keyword, mood, director, actor, decade, language, runtime, quality, contra
+# Columns: keyword, mood, genre, director, actor, decade, language, runtime, quality, contra
 # Each row sums to 1.0.
 
 _WEIGHT_TABLE: Final[dict[str, np.ndarray]] = {
-    "cold":  np.array([0.00, 0.40, 0.00, 0.00, 0.00, 0.00, 0.00, 0.60, 0.00], dtype=np.float32),
-    "few":   np.array([0.10, 0.25, 0.05, 0.03, 0.02, 0.01, 0.01, 0.50, 0.03], dtype=np.float32),
-    "mid":   np.array([0.20, 0.22, 0.12, 0.08, 0.04, 0.02, 0.02, 0.20, 0.10], dtype=np.float32),
-    "full":  np.array([0.25, 0.20, 0.15, 0.10, 0.05, 0.03, 0.02, 0.10, 0.10], dtype=np.float32),
+    "cold":  np.array([0.00, 0.40, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.60, 0.00], dtype=np.float32),
+    "few":   np.array([0.08, 0.25, 0.02, 0.05, 0.03, 0.02, 0.01, 0.01, 0.50, 0.03], dtype=np.float32),
+    "mid":   np.array([0.16, 0.22, 0.04, 0.12, 0.08, 0.04, 0.02, 0.02, 0.20, 0.10], dtype=np.float32),
+    "full":  np.array([0.20, 0.20, 0.05, 0.15, 0.10, 0.05, 0.03, 0.02, 0.10, 0.10], dtype=np.float32),
 }
 
 # Signal names in the same order as the weight columns
 SIGNAL_NAMES: Final[list[str]] = [
-    "keyword", "mood", "director", "actor", "decade",
+    "keyword", "mood", "genre", "director", "actor", "decade",
     "language", "runtime", "quality", "contra",
 ]
 
@@ -64,7 +65,7 @@ def get_weights(rating_count: int) -> np.ndarray:
         rating_count: Number of movies the user has rated.
 
     Returns:
-        Weight vector of shape (9,) summing to 1.0.
+        Weight vector of shape (10,) summing to 1.0.
     """
     if rating_count == 0:
         return _WEIGHT_TABLE["cold"]
@@ -115,7 +116,7 @@ def score_candidates(
 ) -> list[tuple[int, float]]:
     """Score candidate movies against the user profile.
 
-    Computes 9 similarity signals for each candidate, applies dynamic
+    Computes 10 similarity signals for each candidate, applies dynamic
     weights based on the user's rating count, and returns sorted results.
 
     Candidates not found in the movie_id_index (e.g., very new movies)
@@ -177,36 +178,41 @@ def score_candidates(
         # Implicit mood: dot product with user's mood frequency vector
         mood_match = candidate_moods @ profile.implicit_mood
 
-    # --- Signal 3: Director similarity ---
+    # --- Signal 3: Genre similarity ---
+    genre_sim = _batch_cosine_sim(
+        profile.genre_vec, model.genre_vectors[rows],
+    )
+
+    # --- Signal 4: Director similarity ---
     director_sim = _batch_cosine_sim(
         profile.director_vec, model.director_svd[rows],
     )
 
-    # --- Signal 4: Actor similarity ---
+    # --- Signal 5: Actor similarity ---
     actor_sim = _batch_cosine_sim(
         profile.actor_vec, model.actor_svd[rows],
     )
 
-    # --- Signal 5: Decade similarity ---
+    # --- Signal 6: Decade similarity ---
     decade_sim = _batch_cosine_sim(
         profile.decade_vec, model.decade_vectors[rows],
     )
 
-    # --- Signal 6: Language similarity ---
+    # --- Signal 7: Language similarity ---
     language_sim = _batch_cosine_sim(
         profile.language_vec, model.language_vectors[rows],
     )
 
-    # --- Signal 7: Runtime similarity ---
+    # --- Signal 8: Runtime similarity ---
     # 1.0 - |user_pref - candidate| (both already normalized to [0, 1])
     candidate_runtimes = model.runtime_normalized[rows].flatten()  # (n,)
     runtime_sim = 1.0 - np.abs(profile.runtime_pref - candidate_runtimes)
     runtime_sim = runtime_sim.astype(np.float32)
 
-    # --- Signal 8: Quality score (precomputed, already [0, 1]) ---
+    # --- Signal 9: Quality score (precomputed, already [0, 1]) ---
     quality = model.quality_scores[rows].flatten()  # (n,)
 
-    # --- Signal 9: Contra penalty ---
+    # --- Signal 10: Contra penalty ---
     # Negative cosine similarity: high similarity to disliked themes → low score
     contra_raw = _batch_cosine_sim(
         profile.contra_vec, model.keyword_svd[rows],
@@ -214,17 +220,18 @@ def score_candidates(
     contra_penalty = -contra_raw  # Negate: similar to disliked → negative contribution
 
     # --- Stack signals and compute weighted sum ---
-    # signals: (n, 9), weights: (9,)
+    # signals: (n, 10), weights: (10,)
     signals = np.column_stack([
         keyword_sim,      # 0
         mood_match,       # 1
-        director_sim,     # 2
-        actor_sim,        # 3
-        decade_sim,       # 4
-        language_sim,     # 5
-        runtime_sim,      # 6
-        quality,          # 7
-        contra_penalty,   # 8
+        genre_sim,        # 2
+        director_sim,     # 3
+        actor_sim,        # 4
+        decade_sim,       # 5
+        language_sim,     # 6
+        runtime_sim,      # 7
+        quality,          # 8
+        contra_penalty,   # 9
     ])
 
     final_scores = (signals * weights).sum(axis=1)  # (n,)

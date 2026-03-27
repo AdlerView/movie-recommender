@@ -73,8 +73,9 @@ Only used when sort order is "Personalized Score".
 
 ```
 final_score(movie) =
-    0.25 * keyword_similarity
+    0.20 * keyword_similarity
   + 0.20 * mood_match
+  + 0.05 * genre_similarity
   + 0.15 * director_similarity
   + 0.10 * actor_similarity
   + 0.05 * decade_similarity
@@ -92,7 +93,7 @@ final_score(movie) =
 
 ---
 
-### Keyword Similarity (0.25)
+### Keyword Similarity (0.20)
 
 Cosine similarity between the user's keyword preference vector and
 the candidate's keyword vector. The user vector is a weighted average
@@ -127,6 +128,20 @@ mood_match = dot(user_implicit_mood, candidate_mood_scores)
 ```
 
 **Data source:** `mood_scores.npy` (1.17M x 7)
+
+---
+
+### Genre Similarity (0.05)
+
+Cosine similarity between the user's genre preference vector and the
+candidate's genre multi-hot vector. The user vector is a weighted average
+of genre vectors from all rated movies (same weight formula as keywords).
+
+**What it captures:** "User prefers Action + Thriller over Romance +
+Comedy" — learned from genre distributions of rated films. Complements
+keyword similarity which operates at a finer thematic level.
+
+**Data source:** `genre_vectors.npy` (1.17M x 19, multi-hot)
 
 ---
 
@@ -246,12 +261,12 @@ With few ratings, quality (objective film quality) dominates. With many
 ratings, personalization (keyword, director, actor preferences)
 dominates.
 
-| Rated Films | Keyword | Mood | Director | Actor | Decade | Language | Runtime | Quality | Contra |
-|---|---|---|---|---|---|---|---|---|---|
-| 0 (cold start) | 0.00 | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.60 | 0.00 |
-| 1-9 | 0.10 | 0.25 | 0.05 | 0.03 | 0.02 | 0.01 | 0.01 | 0.50 | 0.03 |
-| 10-49 | 0.20 | 0.22 | 0.12 | 0.08 | 0.04 | 0.02 | 0.02 | 0.20 | 0.10 |
-| 50+ (full) | 0.25 | 0.20 | 0.15 | 0.10 | 0.05 | 0.03 | 0.02 | 0.10 | 0.10 |
+| Rated Films | Keyword | Mood | Genre | Director | Actor | Decade | Language | Runtime | Quality | Contra |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 (cold start) | 0.00 | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.60 | 0.00 |
+| 1-9 | 0.08 | 0.25 | 0.02 | 0.05 | 0.03 | 0.02 | 0.01 | 0.01 | 0.50 | 0.03 |
+| 10-49 | 0.16 | 0.22 | 0.04 | 0.12 | 0.08 | 0.04 | 0.02 | 0.02 | 0.20 | 0.10 |
+| 50+ (full) | 0.20 | 0.20 | 0.05 | 0.15 | 0.10 | 0.05 | 0.03 | 0.02 | 0.10 | 0.10 |
 
 All rows sum to 1.00. The transition is smooth -- no hard cutoffs.
 
