@@ -69,7 +69,7 @@ with st.container(horizontal=True):
 genre_data = load_genre_ratings()
 
 if genre_data:
-    st.subheader("Your genres", divider="gray")
+    st.subheader("Genres", divider="gray")
     genre_df = pd.DataFrame(
         genre_data, columns=["Genre", "Movies", "Avg Rating"],
     )
@@ -98,7 +98,7 @@ if genre_data:
 mood_data = load_mood_distribution()
 
 if mood_data:
-    st.subheader("Your moods", divider="gray")
+    st.subheader("Moods", divider="gray")
     # Map each Ekman mood to emoji + fixed color for instant recognition
     _emoji = {
         "Happy": "😊", "Interested": "🤔", "Surprised": "😲",
@@ -212,14 +212,14 @@ if directors or actors:
             render_person_ranking(actors, "actor")
 
 # ============================================================
-# YOUR RATINGS — sortable table with all rated movies
+# RATINGS — sortable table with all rated movies
 # ============================================================
 
 # load_rated_movies_table() joins user_ratings with movie_details
 rated_rows = load_rated_movies_table()
 
 if rated_rows:
-    st.subheader("Your ratings", divider="gray")
+    st.subheader("Ratings", divider="gray")
 
     # Build table data with fallback for missing details
     table_data = [

@@ -41,7 +41,6 @@ if "_settings_toast" in st.session_state:
 # ============================================================
 
 st.subheader("Streaming country")
-st.caption("Region used for provider availability on the Discover page.")
 
 # Load saved country (default: Switzerland)
 _saved_country = load_preference("streaming_country", DEFAULT_COUNTRY_NAME)
@@ -89,14 +88,11 @@ _selected_country = st.selectbox(
 )
 _selected_country_code = _country_code_map.get(_selected_country, DEFAULT_COUNTRY_CODE)
 
-st.divider()
-
 # ============================================================
 # STREAMING SUBSCRIPTIONS
 # ============================================================
 
 st.subheader("My subscriptions")
-st.caption("Select the streaming providers you subscribe to.")
 
 # Fetch providers for the saved country
 try:
@@ -219,14 +215,11 @@ if _providers:
 else:
     st.info("Could not load streaming providers.", icon=":material/wifi_off:")
 
-st.divider()
-
 # ============================================================
 # PREFERRED LANGUAGE
 # ============================================================
 
 st.subheader("Preferred language")
-st.caption("Default original language filter on the Discover page.")
 
 _saved_lang = load_preference("preferred_language")
 
@@ -265,8 +258,6 @@ st.selectbox(
     label_visibility="collapsed",
     on_change=_on_language_change,
 )
-
-st.divider()
 
 # ============================================================
 # RESET ALL

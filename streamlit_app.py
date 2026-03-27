@@ -79,6 +79,9 @@ st.html("""<style>
     [data-testid="stToolbar"] .rc-overflow > .rc-overflow-item:nth-child(4) {
         margin-left: auto !important;
     }
+    .stMainBlockContainer {
+        padding-top: 1rem !important;
+    }
 </style>""")
 
 # --- Navigation ---
