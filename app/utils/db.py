@@ -56,14 +56,8 @@ def init_db() -> None:
     - user_subscriptions: streaming provider preferences
     - user_preferences: key-value store for user settings (country, language)
     - user_profile_cache: cached ML profile vectors (BLOB)
-
-    Normalized detail tables (for Statistics dashboard):
-    - movie_details: core TMDB metadata (runtime, release_date, etc.)
-    - movie_genres: genre assignments per movie (many-to-many)
-    - movie_cast: top 5 cast members per movie by billing order
-    - movie_crew: directors per movie (filtered on job='Director')
-    - movie_countries: production countries per movie
-    - movie_keywords: thematic tags per movie
+    - movie_details: TMDB metadata + JSON columns for genres, cast, crew,
+      countries, keywords (Statistics dashboard + ML cache)
 
     Called once at app startup from streamlit_app.py.
     """
@@ -115,45 +109,12 @@ def init_db() -> None:
                 poster_path       TEXT,
                 backdrop_path     TEXT,
                 overview          TEXT,
+                genres            TEXT,   -- JSON: [{"id":18,"name":"Drama"},...]
+                cast_members      TEXT,   -- JSON: [{"name":"...","order":0,"profile_path":"..."},...]
+                crew_members      TEXT,   -- JSON: [{"name":"...","job":"...","popularity":0,"profile_path":"..."},...]
+                countries         TEXT,   -- JSON: [{"code":"US","name":"United States"},...]
+                keywords          TEXT,   -- JSON: [{"id":616,"name":"witch"},...]
                 fetched_at        TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS movie_genres (
-                movie_id   INTEGER NOT NULL,
-                genre_id   INTEGER NOT NULL,
-                genre_name TEXT NOT NULL,
-                PRIMARY KEY (movie_id, genre_id),
-                FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
-            );
-            CREATE TABLE IF NOT EXISTS movie_cast (
-                movie_id      INTEGER NOT NULL,
-                person_id     INTEGER NOT NULL,
-                person_name   TEXT NOT NULL,
-                character     TEXT,
-                billing_order INTEGER NOT NULL,
-                PRIMARY KEY (movie_id, person_id),
-                FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
-            );
-            CREATE TABLE IF NOT EXISTS movie_crew (
-                movie_id    INTEGER NOT NULL,
-                person_id   INTEGER NOT NULL,
-                person_name TEXT NOT NULL,
-                job         TEXT NOT NULL,
-                PRIMARY KEY (movie_id, person_id, job),
-                FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
-            );
-            CREATE TABLE IF NOT EXISTS movie_countries (
-                movie_id     INTEGER NOT NULL,
-                country_code TEXT NOT NULL,
-                country_name TEXT NOT NULL,
-                PRIMARY KEY (movie_id, country_code),
-                FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
-            );
-            CREATE TABLE IF NOT EXISTS movie_keywords (
-                movie_id     INTEGER NOT NULL,
-                keyword_id   INTEGER NOT NULL,
-                keyword_name TEXT NOT NULL,
-                PRIMARY KEY (movie_id, keyword_id),
-                FOREIGN KEY (movie_id) REFERENCES movie_details(movie_id)
             );
         """)
         conn.commit()
@@ -413,27 +374,87 @@ def delete_preference(key: str) -> None:
         conn.commit()
 
 
-# --- Movie Details (normalized cache for Statistics) ---
+# --- Movie Details (single table with JSON columns) ---
 
 
-def save_movie_details(movie_id: int, details: dict) -> None:
-    """Save TMDB movie details to normalized tables.
+def save_movie_details(
+    movie_id: int,
+    details: dict,
+    keywords: list[dict] | None = None,
+) -> None:
+    """Save TMDB movie details with JSON-serialized related data.
 
-    Parses the full TMDB response (with appended credits) and distributes
-    data across movie_details, movie_genres, movie_cast, movie_crew, and
-    movie_countries tables. Uses DELETE + INSERT for idempotent updates.
+    Stores core metadata as scalar columns and related data (genres, cast,
+    crew, countries, keywords) as JSON TEXT columns. Single INSERT OR REPLACE
+    for idempotent updates.
+
+    Cast: top 20 by billing_order (name, order, profile_path).
+    Crew: top 20 by popularity, deduplicated by person ID with merged jobs
+        (name, job, popularity, profile_path).
 
     Args:
         movie_id: TMDB movie ID.
         details: Full TMDB movie details dict from get_movie_details().
+        keywords: Optional keyword list from get_movie_keywords().
+            If None, keywords column is set to empty JSON array.
     """
+    # Genres: [{id, name}]
+    genres_json = json.dumps(details.get("genres", []))
+
+    # Cast: top 20 by billing_order, selected fields only
+    raw_cast = details.get("credits", {}).get("cast", [])[:20]
+    cast_json = json.dumps([
+        {
+            "name": c["name"],
+            "order": c.get("order", 99),
+            "profile_path": c.get("profile_path"),
+        }
+        for c in raw_cast
+    ])
+
+    # Crew: deduplicate by person ID, merge jobs, top 20 by popularity
+    raw_crew = details.get("credits", {}).get("crew", [])
+    crew_by_id: dict[int, dict] = {}
+    for c in raw_crew:
+        pid = c["id"]
+        if pid in crew_by_id:
+            # Append job if not already present
+            if c.get("job") and c["job"] not in crew_by_id[pid]["jobs"]:
+                crew_by_id[pid]["jobs"].append(c["job"])
+        else:
+            crew_by_id[pid] = {
+                "name": c["name"],
+                "jobs": [c["job"]] if c.get("job") else [],
+                "popularity": c.get("popularity", 0),
+                "profile_path": c.get("profile_path"),
+            }
+    crew_sorted = sorted(crew_by_id.values(), key=lambda x: x["popularity"], reverse=True)[:20]
+    crew_json = json.dumps([
+        {
+            "name": c["name"],
+            "job": ", ".join(c["jobs"]),
+            "popularity": c["popularity"],
+            "profile_path": c["profile_path"],
+        }
+        for c in crew_sorted
+    ])
+
+    # Countries: [{code, name}]
+    countries_json = json.dumps([
+        {"code": c["iso_3166_1"], "name": c["name"]}
+        for c in details.get("production_countries", [])
+    ])
+
+    # Keywords: [{id, name}]
+    keywords_json = json.dumps(keywords or [])
+
     with _connection() as conn:
-        # Core metadata
         conn.execute(
             """INSERT OR REPLACE INTO movie_details
                (movie_id, title, runtime, release_date, vote_average,
-                original_language, poster_path, backdrop_path, overview)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                original_language, poster_path, backdrop_path, overview,
+                genres, cast_members, crew_members, countries, keywords)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 movie_id,
                 details.get("title", ""),
@@ -444,80 +465,13 @@ def save_movie_details(movie_id: int, details: dict) -> None:
                 details.get("poster_path"),
                 details.get("backdrop_path"),
                 details.get("overview"),
+                genres_json,
+                cast_json,
+                crew_json,
+                countries_json,
+                keywords_json,
             ),
         )
-
-        # Genres — clear and re-insert for idempotent updates
-        conn.execute("DELETE FROM movie_genres WHERE movie_id = ?", (movie_id,))
-        for genre in details.get("genres", []):
-            conn.execute(
-                """INSERT INTO movie_genres (movie_id, genre_id, genre_name)
-                   VALUES (?, ?, ?)""",
-                (movie_id, genre["id"], genre["name"]),
-            )
-
-        # Cast — top 5 by billing order (main cast only)
-        conn.execute("DELETE FROM movie_cast WHERE movie_id = ?", (movie_id,))
-        for member in details.get("credits", {}).get("cast", [])[:5]:
-            conn.execute(
-                """INSERT INTO movie_cast
-                   (movie_id, person_id, person_name, character, billing_order)
-                   VALUES (?, ?, ?, ?, ?)""",
-                (
-                    movie_id,
-                    member["id"],
-                    member["name"],
-                    member.get("character"),
-                    member.get("order", 99),
-                ),
-            )
-
-        # Crew — directors only (job == "Director")
-        conn.execute("DELETE FROM movie_crew WHERE movie_id = ?", (movie_id,))
-        for member in details.get("credits", {}).get("crew", []):
-            if member.get("job") == "Director":
-                conn.execute(
-                    """INSERT INTO movie_crew
-                       (movie_id, person_id, person_name, job)
-                       VALUES (?, ?, ?, ?)""",
-                    (movie_id, member["id"], member["name"], "Director"),
-                )
-
-        # Production countries
-        conn.execute(
-            "DELETE FROM movie_countries WHERE movie_id = ?", (movie_id,),
-        )
-        for country in details.get("production_countries", []):
-            conn.execute(
-                """INSERT INTO movie_countries
-                   (movie_id, country_code, country_name)
-                   VALUES (?, ?, ?)""",
-                (movie_id, country["iso_3166_1"], country["name"]),
-            )
-
-        conn.commit()
-
-
-def save_movie_keywords(movie_id: int, keywords: list[dict]) -> None:
-    """Save TMDB keywords for a movie.
-
-    Fetched separately from movie details via get_movie_keywords().
-    Uses DELETE + INSERT for idempotent updates.
-
-    Args:
-        movie_id: TMDB movie ID.
-        keywords: List of keyword dicts with "id" and "name" keys.
-    """
-    with _connection() as conn:
-        conn.execute(
-            "DELETE FROM movie_keywords WHERE movie_id = ?", (movie_id,),
-        )
-        for kw in keywords:
-            conn.execute(
-                """INSERT INTO movie_keywords (movie_id, keyword_id, keyword_name)
-                   VALUES (?, ?, ?)""",
-                (movie_id, kw["id"], kw["name"]),
-            )
         conn.commit()
 
 
@@ -589,10 +543,11 @@ def load_genre_distribution() -> list[tuple[str, int]]:
     """
     with _connection() as conn:
         rows = conn.execute(
-            """SELECT g.genre_name, COUNT(*) AS count
+            """SELECT je.value->>'name' AS genre_name, COUNT(*) AS count
                FROM user_ratings r
-               JOIN movie_genres g ON r.movie_id = g.movie_id
-               GROUP BY g.genre_name
+               JOIN movie_details d ON r.movie_id = d.movie_id,
+                    json_each(d.genres) je
+               GROUP BY genre_name
                ORDER BY count DESC"""
         ).fetchall()
     return [(row["genre_name"], row["count"]) for row in rows]
@@ -600,6 +555,9 @@ def load_genre_distribution() -> list[tuple[str, int]]:
 
 def load_top_directors(limit: int = 5) -> list[tuple[str, int]]:
     """Load directors with the most rated movies.
+
+    Parses the crew_members JSON column and filters for entries whose
+    job field contains "Director".
 
     Args:
         limit: Maximum number of directors to return.
@@ -609,11 +567,12 @@ def load_top_directors(limit: int = 5) -> list[tuple[str, int]]:
     """
     with _connection() as conn:
         rows = conn.execute(
-            """SELECT c.person_name, COUNT(*) AS count
+            """SELECT je.value->>'name' AS person_name, COUNT(*) AS count
                FROM user_ratings r
-               JOIN movie_crew c ON r.movie_id = c.movie_id
-               WHERE c.job = 'Director'
-               GROUP BY c.person_id
+               JOIN movie_details d ON r.movie_id = d.movie_id,
+                    json_each(d.crew_members) je
+               WHERE je.value->>'job' LIKE '%Director%'
+               GROUP BY person_name
                ORDER BY count DESC
                LIMIT ?""",
             (limit,),
@@ -717,8 +676,7 @@ def load_decade_distribution() -> list[tuple[str, int]]:
 def load_top_actors(limit: int = 5) -> list[tuple[str, int]]:
     """Load actors appearing most frequently in rated movies.
 
-    Only counts top-5-billed cast members (billing_order < 5) to focus
-    on lead actors rather than minor roles.
+    Uses all stored cast members (top 20 by billing_order per movie).
 
     Args:
         limit: Maximum number of actors to return.
@@ -728,10 +686,11 @@ def load_top_actors(limit: int = 5) -> list[tuple[str, int]]:
     """
     with _connection() as conn:
         rows = conn.execute(
-            """SELECT c.person_name, COUNT(*) AS count
+            """SELECT je.value->>'name' AS person_name, COUNT(*) AS count
                FROM user_ratings r
-               JOIN movie_cast c ON r.movie_id = c.movie_id
-               GROUP BY c.person_id
+               JOIN movie_details d ON r.movie_id = d.movie_id,
+                    json_each(d.cast_members) je
+               GROUP BY person_name
                ORDER BY count DESC
                LIMIT ?""",
             (limit,),

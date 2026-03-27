@@ -82,6 +82,11 @@
 - [x] Rate "Based on your interests" (Phase 4.3) — replaced trending with `discover/movie` retrieval + ML re-ranking. Unified retrieval layer across both pages (2026-03-27)
 - [x] Architecture redesign complete — unified discover/movie retrieval, personalized ranking, Settings page, all Phase 0-4 tasks done (2026-03-27)
 - [x] Deleted MIGRATION.md — migration complete, unique content merged into UTILS.md (API flows, DB schema) and EVALUATION.md (ML eval spec). Open tasks moved to TODO.md (2026-03-27)
+- [x] DB schema merge — 6 movie detail tables (movie_details + movie_genres/cast/crew/countries/keywords) merged into 1 table with JSON columns. Cast: top 20 by billing_order (name, order, profile_path). Crew: top 20 by popularity, deduped with merged jobs. `save_movie_keywords()` removed, merged into `save_movie_details(..., keywords=)`. Stats queries use `json_each()`. (2026-03-27)
+- [x] Eager fetch on all Discover actions — `save_movie_details` + keywords now cached on Watchlist add and Dismiss (not just rating save). Details dict already loaded in dialog, no extra API call for details. (2026-03-27)
+- [x] Watchlist streaming providers — replaced colored text badges with TMDB logo images (matching Discover dialog). Country code read from Settings preference instead of hardcoded "CH". (2026-03-27)
+- [x] Settings page UX overhaul — removed all 6 Save/Reset buttons. Auto-save via `on_change` callbacks (country, language) and in `_toggle_provider` (subscriptions). Provider selection via clickable logo grid with green checkmark overlay (`st.html` inline). Selected providers shown as `:primary-badge` names. "Reset to factory settings" button at bottom. (2026-03-27)
+- [x] Refactoring: DRY extraction — `inject_poster_grid_css()` + `render_rating_widget()` in `app/utils/__init__.py`. `except Exception` → specific exceptions. `st.markdown(unsafe_allow_html)` → `st.html()`. `__import__("pathlib")` → top-level import. `chartCategoricalColors` 3→10 colors. `headingFontSizes` 5→6 values. (2026-03-27)
 
 ## Superseded
 
