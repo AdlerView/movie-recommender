@@ -80,7 +80,7 @@ st.html("""<style>
         margin-left: auto !important;
     }
     .stMainBlockContainer {
-        padding-top: 1rem !important;
+        padding-top: 3.75rem !important;
     }
 </style>""")
 
