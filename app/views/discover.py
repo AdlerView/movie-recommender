@@ -1,45 +1,47 @@
 """Discover page — Find new movies with sidebar filters and poster grid.
 
-Sidebar layout with 12 filter controls (genre, year, runtime, rating,
-min votes, keywords, language, certification, streaming). Main page shows
-mood pills, sort dropdown, and a clickable poster grid (5 columns).
+Sidebar layout with 8 filter controls (genre, year, runtime, rating,
+min votes, certification, keywords) plus Settings-managed preferences
+(language, streaming country, providers). Main page shows mood pills,
+sort dropdown, and a clickable poster grid (5 columns).
+
 Live filtering: grid updates on every filter/mood/sort change.
 
 This is the only page with a sidebar. Filters are collapsible via
 Streamlit's native sidebar toggle. Detail dialog on poster click shows
 movie info with "Add to watchlist" and "Not interested" actions.
+
+Dependencies:
+    app.utils: shared constants, CSS injection, detail renderers, cache helper
+    app.utils.db: preferences, dismissed, watchlist persistence
+    app.utils.tmdb: TMDB API client (discover, genres, certifications, keywords)
+    ml.scoring: mood filter, user profile, personalized scoring
 """
 from __future__ import annotations
 
-import sqlite3
-
 import requests
 import streamlit as st
+from app.utils import (
+    GRID_COLS,
+    TMDB_PAGE_SIZE,
+    fetch_and_cache_details,
+)
 from app.utils.db import (
     load_preference,
     save_dismissed,
-    save_movie_details,
     save_to_watchlist,
 )
 from app.utils.tmdb import (
     discover_movies_filtered,
     get_certifications,
-    get_countries,
     get_genre_map,
     get_languages,
     get_movie_details,
-    get_movie_keywords,
     poster_url,
     search_keywords,
 )
 from ml.scoring import filter_by_mood, get_or_compute_profile, score_candidates
 
-# --- Constants ---
-
-# Number of columns in the poster grid
-_GRID_COLS = 5
-# Movies per TMDB API page
-_TMDB_PAGE_SIZE = 20
 # 7 Ekman mood categories (canonical source: ml.scoring.user_profile.MOODS)
 from ml.scoring.user_profile import MOODS as _MOODS
 # Genre pill order optimized for sidebar width (shorter names grouped together)
@@ -209,15 +211,11 @@ with st.sidebar:
 
 
 # ============================================================
-# MAIN PAGE — Header, Mood, Sort, Poster Grid
+# MAIN PAGE — Sort, Mood, Poster Grid
 # ============================================================
 
-st.header("Which movie will you watch?", divider="gray", text_alignment="center")
-
-# --- Sort + section heading on same line ---
-col_heading, col_sort = st.columns([3, 1])
-with col_heading:
-    st.subheader("Recommended Movies")
+# --- Sort dropdown (right-aligned via spacer column) ---
+col_spacer, col_sort = st.columns([3, 1])
 with col_sort:
     sort_option = st.selectbox(
         "Sort",
@@ -313,43 +311,40 @@ def _build_discover_params() -> list[tuple[str, str]]:
     _subs = st.session_state.get("subscriptions", set())
     if _subs:
         params.append(("with_watch_providers", "|".join(str(pid) for pid in _subs)))
-        # Streaming country from Settings preference
-        _pref_country = load_preference("streaming_country", "Switzerland")
-        try:
-            _countries_list = get_countries()
-            _code = next(
-                (c["iso_3166_1"] for c in _countries_list
-                 if c.get("english_name") == _pref_country),
-                "CH",
-            )
-        except requests.RequestException:
-            _code = "CH"
-        params.append(("watch_region", _code))
+        # Streaming country from Settings preference (resolved via shared helper)
+        from app.utils import _resolve_country_code
+        params.append(("watch_region", _resolve_country_code()))
         params.append(("with_watch_monetization_types", "flatrate"))
 
     return params
 
 
 # ============================================================
-# FETCH MOVIES
+# FETCH MOVIES — Retrieval layer (TMDB API) + Ranking layer (ML)
 # ============================================================
 
-# Sets for filtering out already-seen movies
+# Build exclusion sets from session state to hide already-seen movies.
+# This is the shared exclusion policy: rated + dismissed + watchlisted
+# movies are removed from both Discover and Rate browse grids.
 _dismissed = st.session_state.dismissed
 _watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
 _rated_ids = st.session_state.ratings
 
-# Build API parameters and fetch movies
+# Convert filter state into TMDB API query parameters
 _params = tuple(_build_discover_params())
-_target_count = st.session_state._discover_pages * _TMDB_PAGE_SIZE
+# Target count: how many movies to load (pages × 20 per page)
+_target_count = st.session_state._discover_pages * TMDB_PAGE_SIZE
 movies: list[dict] = []
-_has_more = True
+_has_more = True  # Whether TMDB has more pages available
 
 try:
+    # Fetch loop: load pages until we have enough unseen movies or exhaust TMDB.
+    # We may need extra pages because filtered-out movies (rated/dismissed)
+    # reduce the effective count per page.
     _page = 0
     while len(movies) < _target_count and _has_more and _page < 10:
         _page += 1
-        # Always use discover endpoint (params always non-empty: sort_by + vote_count)
+        # GET /discover/movie with all filter parameters
         response = discover_movies_filtered(_params, page=_page)
         _page_movies = response.get("results", [])
 
@@ -357,24 +352,31 @@ try:
             _has_more = False
             break
 
-        # Filter: remove poster-less, duplicates, and already-seen movies
+        # Per-page filtering: remove poster-less (visual requirement),
+        # cross-page duplicates, and already-seen movies
         _seen_ids = {m["id"] for m in movies}
         _page_movies = [
             m for m in _page_movies
-            if m.get("poster_path")
-            and m["id"] not in _seen_ids
-            and m["id"] not in _dismissed
-            and m["id"] not in _watchlisted_ids
-            and m["id"] not in _rated_ids
+            if m.get("poster_path")           # Must have a poster for the grid
+            and m["id"] not in _seen_ids      # No cross-page duplicates
+            and m["id"] not in _dismissed     # User said "not interested"
+            and m["id"] not in _watchlisted_ids  # Already on watchlist
+            and m["id"] not in _rated_ids     # Already rated
         ]
         movies.extend(_page_movies)
 
-        if len(_page_movies) < _TMDB_PAGE_SIZE:
+        # TMDB returns 20 results per full page; fewer means last page
+        if len(_page_movies) < TMDB_PAGE_SIZE:
             _has_more = _page < 10
 
+    # Trim to exact target count (may have fetched slightly more)
     movies = movies[:_target_count]
 
-    # --- Mood filter (applies to ALL sort orders) ---
+    # --- Mood filter (local, applies to ALL sort orders) ---
+    # This is the only filter that runs locally — all other filters are
+    # handled by the TMDB API. Uses precomputed mood_scores.npy (1.17M × 7).
+    # Threshold with stepwise fallback (0.3 → 0.2 → 0.1 → 0.0) to prevent
+    # empty results for rare moods like "Disgusted".
     if selected_moods and movies:
         _filtered_ids = set(filter_by_mood(
             [m["id"] for m in movies], list(selected_moods),
@@ -382,6 +384,10 @@ try:
         movies = [m for m in movies if m["id"] in _filtered_ids]
 
     # --- Personalized ranking (only for "Personalized" sort) ---
+    # Computes 10-signal cosine similarity between user profile and each
+    # candidate, then re-sorts by final score (descending). Other sort
+    # options (Popularity, Rating, Release date) use TMDB's API sort order.
+    # Graceful degradation: no model files → no profile → API order used.
     if sort_option == "Personalized" and movies:
         _profile = get_or_compute_profile(ratings=st.session_state.ratings)
         if _profile is not None:
@@ -389,12 +395,14 @@ try:
                 _profile, [m["id"] for m in movies],
                 list(selected_moods) if selected_moods else None,
             )
+            # Build score lookup and sort movies by ML score
             _id_to_score = {mid: score for mid, score in _scored}
             movies.sort(
                 key=lambda m: _id_to_score.get(m["id"], 0.0), reverse=True,
             )
 
 except requests.HTTPError as e:
+    # 401 = invalid API key (common setup issue), other errors = transient
     if e.response is not None and e.response.status_code == 401:
         st.error("Invalid TMDB API key. Check `.streamlit/secrets.toml`.",
                  icon=":material/key_off:")
@@ -427,9 +435,9 @@ def _load_more() -> None:
 
 if movies:
     with st.container(key="discover_grid"):
-        for row_start in range(0, len(movies), _GRID_COLS):
-            row_movies = movies[row_start:row_start + _GRID_COLS]
-            cols = st.columns(_GRID_COLS)
+        for row_start in range(0, len(movies), GRID_COLS):
+            row_movies = movies[row_start:row_start + GRID_COLS]
+            cols = st.columns(GRID_COLS)
             for col, movie in zip(cols, row_movies):
                 with col:
                     st.image(poster_url(movie.get("poster_path"), size="w342"))
@@ -458,12 +466,12 @@ else:
         _fallback = [m for m in _fallback if m.get("poster_path")
                      and m["id"] not in _dismissed
                      and m["id"] not in _watchlisted_ids
-                     and m["id"] not in _rated_ids][:_TMDB_PAGE_SIZE]
+                     and m["id"] not in _rated_ids][:TMDB_PAGE_SIZE]
         if _fallback:
             with st.container(key="discover_grid"):
-                for row_start in range(0, len(_fallback), _GRID_COLS):
-                    row_movies = _fallback[row_start:row_start + _GRID_COLS]
-                    cols = st.columns(_GRID_COLS)
+                for row_start in range(0, len(_fallback), GRID_COLS):
+                    row_movies = _fallback[row_start:row_start + GRID_COLS]
+                    cols = st.columns(GRID_COLS)
                     for col, movie in zip(cols, row_movies):
                         with col:
                             st.image(poster_url(movie.get("poster_path"), size="w342"))
@@ -514,14 +522,7 @@ if st.session_state._discover_selected_id is not None:
                          use_container_width=True):
                 st.session_state.dismissed.add(_mid)
                 save_dismissed(_mid)
-                try:
-                    _kw = get_movie_keywords(_mid)
-                except requests.RequestException:
-                    _kw = None
-                try:
-                    save_movie_details(_mid, _details, keywords=_kw)
-                except sqlite3.Error:
-                    pass
+                fetch_and_cache_details(_mid, _details)
                 st.session_state._discover_selected_id = None
                 st.session_state["_discover_toast"] = (
                     f"Skipped **{_details.get('title', '')}**",
@@ -542,14 +543,7 @@ if st.session_state._discover_selected_id is not None:
                 if _mid not in {m["id"] for m in st.session_state.watchlist}:
                     st.session_state.watchlist.append(_movie_dict)
                     save_to_watchlist(_movie_dict)
-                try:
-                    _kw = get_movie_keywords(_mid)
-                except requests.RequestException:
-                    _kw = None
-                try:
-                    save_movie_details(_mid, _details, keywords=_kw)
-                except sqlite3.Error:
-                    pass
+                fetch_and_cache_details(_mid, _details)
                 st.session_state._discover_selected_id = None
                 st.session_state["_discover_toast"] = (
                     f"Added **{_details.get('title', '')}** to watchlist",

@@ -1,17 +1,25 @@
 """Settings page — Streaming subscriptions, country, and language preferences.
 
 Manages user preferences that affect Discover page filtering. All changes
-are auto-saved to SQLite immediately — no Save/Reset buttons needed.
+are auto-saved to SQLite immediately via on_change callbacks — no explicit
+Save/Reset buttons needed (except the factory reset at the bottom).
 
 Sections:
-- Streaming country: default region for provider availability
-- Streaming subscriptions: select providers the user subscribes to
-- Preferred language: default original language filter
+    1. Streaming country: default region for provider availability
+    2. Streaming subscriptions: clickable provider logo grid with toggle
+    3. Preferred language: default original language filter
+    4. Reset to factory settings: clears all preferences
+
+Dependencies:
+    app.utils: DEFAULT_COUNTRY_NAME, DEFAULT_COUNTRY_CODE constants
+    app.utils.db: preference and subscription persistence
+    app.utils.tmdb: countries, languages, watch providers API
 """
 from __future__ import annotations
 
 import requests
 import streamlit as st
+from app.utils import DEFAULT_COUNTRY_CODE, DEFAULT_COUNTRY_NAME
 from app.utils.db import (
     delete_preference,
     load_preference,
@@ -20,9 +28,10 @@ from app.utils.db import (
 )
 from app.utils.tmdb import get_countries, get_languages, get_watch_providers_list, poster_url
 
-st.header("Settings", divider="gray", text_alignment="center")
-
-# --- Deferred toast ---
+# --- Deferred toast (shown after rerun following a save action) ---
+# Pattern: save action stores (message, icon) tuple in session state,
+# then calls st.rerun(). On the next run, this block pops and displays it.
+# st.toast() before st.rerun() would be lost because the rerun resets the page.
 if "_settings_toast" in st.session_state:
     _msg, _icon = st.session_state.pop("_settings_toast")
     st.toast(_msg, icon=_icon)
@@ -35,18 +44,23 @@ st.subheader("Streaming country")
 st.caption("Region used for provider availability on the Discover page.")
 
 # Load saved country (default: Switzerland)
-_saved_country = load_preference("streaming_country", "Switzerland")
+_saved_country = load_preference("streaming_country", DEFAULT_COUNTRY_NAME)
 
+# Fetch country list from TMDB (cached 24h). Graceful degradation: if the
+# API is unreachable, show only the default country as a fallback option.
 try:
     _countries = get_countries()
+    # Deduplicate and sort alphabetically for the dropdown
     _country_names = sorted(
         {c["english_name"] for c in _countries if c.get("english_name")},
     )
+    # Build name→code lookup for resolving the selected country to an ISO code
     _country_code_map = {c["english_name"]: c["iso_3166_1"] for c in _countries}
 except requests.RequestException:
-    _country_names = ["Switzerland"]
-    _country_code_map = {"Switzerland": "CH"}
+    _country_names = [DEFAULT_COUNTRY_NAME]
+    _country_code_map = {DEFAULT_COUNTRY_NAME: DEFAULT_COUNTRY_CODE}
 
+# Pre-select the saved country in the dropdown (fallback: first item)
 _country_idx = (
     _country_names.index(_saved_country)
     if _saved_country in _country_names else 0
@@ -55,7 +69,7 @@ _country_idx = (
 
 def _on_country_change() -> None:
     """Auto-save streaming country when changed."""
-    _val = st.session_state.get("settings_country", "Switzerland")
+    _val = st.session_state.get("settings_country", DEFAULT_COUNTRY_NAME)
     save_preference("streaming_country", _val)
     # Reset provider init so grid reloads for the new country
     st.session_state.pop("_settings_subs_init", None)
@@ -73,7 +87,7 @@ _selected_country = st.selectbox(
     label_visibility="collapsed",
     on_change=_on_country_change,
 )
-_selected_country_code = _country_code_map.get(_selected_country, "CH")
+_selected_country_code = _country_code_map.get(_selected_country, DEFAULT_COUNTRY_CODE)
 
 st.divider()
 
@@ -107,15 +121,25 @@ if _providers:
     _selected_set: set[int] = st.session_state.get("_settings_selected_subs", set())
 
     def _toggle_provider(pid: int) -> None:
-        """Toggle a provider and auto-save to DB."""
+        """Toggle a streaming provider subscription on/off and persist.
+
+        Called via on_click from each provider button. Toggles the provider
+        in session state AND immediately saves the full subscription set
+        to SQLite. Also updates the shared subscriptions set that Discover
+        reads when building API parameters.
+
+        Args:
+            pid: TMDB provider ID to toggle.
+        """
         s = st.session_state.get("_settings_selected_subs", set())
         if pid in s:
-            s.discard(pid)
+            s.discard(pid)  # Deselect: remove provider from set
         else:
-            s.add(pid)
+            s.add(pid)      # Select: add provider to set
         st.session_state["_settings_selected_subs"] = s
-        # Auto-save to DB
+        # Persist to SQLite (replaces all rows atomically)
         save_subscriptions(list(s), _selected_country_code)
+        # Update shared session state so Discover reads the new selection
         st.session_state.subscriptions = set(s)
 
     # CSS: compact grid with invisible overlay buttons
@@ -252,10 +276,10 @@ st.divider()
 def _reset_all() -> None:
     """Reset all settings to factory defaults."""
     # Country → Switzerland
-    save_preference("streaming_country", "Switzerland")
-    st.session_state["settings_country"] = "Switzerland"
+    save_preference("streaming_country", DEFAULT_COUNTRY_NAME)
+    st.session_state["settings_country"] = DEFAULT_COUNTRY_NAME
     # Subscriptions → empty
-    save_subscriptions([], "CH")
+    save_subscriptions([], DEFAULT_COUNTRY_CODE)
     st.session_state.subscriptions = set()
     st.session_state["_settings_selected_subs"] = set()
     st.session_state.pop("_settings_subs_init", None)

@@ -1,16 +1,38 @@
 """Utility modules for the movie recommender app.
 
-Shared UI helpers used across multiple pages to avoid code duplication.
+Shared UI helpers and constants used across multiple pages to avoid code
+duplication. All page-level modules (discover, rate, watchlist, statistics,
+settings) import from here rather than defining their own copies.
+
+Exports:
+    Constants: GRID_COLS, TMDB_PAGE_SIZE, DEFAULT_COUNTRY_NAME, DEFAULT_COUNTRY_CODE
+    Functions: inject_poster_grid_css, render_rating_widget, render_discover_detail,
+        render_watchlist_detail, render_movie_detail_bottom, find_best_trailer,
+        fetch_and_cache_details, render_person_ranking
 """
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime
+from typing import Final
 
 import requests
 import streamlit as st
 
 from app.utils.db import load_preference
-from app.utils.tmdb import get_countries, poster_url
+from app.utils.tmdb import get_countries, get_movie_keywords, poster_url
+
+# ---------------------------------------------------------------------------
+# Shared constants (used by discover.py, rate.py, watchlist.py)
+# ---------------------------------------------------------------------------
+
+# Number of columns in the poster grid across all pages
+GRID_COLS: Final[int] = 5
+# Movies per TMDB API page (fixed by TMDB, not configurable)
+TMDB_PAGE_SIZE: Final[int] = 20
+# Default streaming country (used as fallback in multiple places)
+DEFAULT_COUNTRY_NAME: Final[str] = "Switzerland"
+DEFAULT_COUNTRY_CODE: Final[str] = "CH"
 
 
 def inject_poster_grid_css(container_key: str) -> None:
@@ -180,22 +202,83 @@ def render_rating_widget(
     return new_rating, list(selected_moods or []), slider_ready
 
 
+def fetch_and_cache_details(movie_id: int, details: dict) -> None:
+    """Fetch keywords and cache movie details + keywords in SQLite.
+
+    Shared by all pages that perform actions on movies (rate, watchlist add,
+    dismiss). Fetches keywords from TMDB and saves both details and keywords
+    to the movie_details table for use by Statistics and ML scoring.
+
+    Silently ignores network or database errors — caching is best-effort.
+
+    Args:
+        movie_id: TMDB movie ID.
+        details: Full TMDB movie details dict (already fetched for the dialog).
+    """
+    from app.utils.db import save_movie_details
+
+    # Fetch keywords separately (not included in append_to_response)
+    try:
+        keywords = get_movie_keywords(movie_id)
+    except requests.RequestException:
+        keywords = None
+    # Save details + keywords to SQLite (idempotent INSERT OR REPLACE)
+    try:
+        save_movie_details(movie_id, details, keywords=keywords)
+    except sqlite3.Error:
+        pass  # Best-effort caching — app works without it
+
+
+def render_person_ranking(
+    persons: list[dict],
+    label: str,
+) -> None:
+    """Render a ranked list of directors or actors with photos and stats.
+
+    Displays profile photos in columns with name, movie count, and average
+    rating. Used by the Statistics page for both directors and actors.
+
+    Args:
+        persons: List of dicts with keys: name, movies, avg_rating, profile_path.
+        label: Section label (e.g., "directors", "actors") for singular/plural.
+    """
+    if not persons:
+        return
+    cols = st.columns(len(persons))
+    for i, person in enumerate(persons):
+        with cols[i]:
+            photo = poster_url(person["profile_path"], size="w185")
+            if photo:
+                st.image(photo, width=100)
+            # Format: "Name\nN movies · rating/100"
+            count = person["movies"]
+            st.caption(
+                f"**{person['name']}**  \n"
+                f"{count} {'movie' if count == 1 else 'movies'}"
+                f" · {person['avg_rating']:.0f}/100",
+            )
+
+
 def _resolve_country_code() -> str:
     """Resolve the user's streaming country preference to an ISO 3166-1 code.
 
+    Reads the streaming_country preference from SQLite and resolves it to
+    an ISO 3166-1 two-letter code via the TMDB countries API.
+
     Returns:
-        Two-letter country code (e.g. "CH", "DE", "US"). Defaults to "CH".
+        Two-letter country code (e.g. "CH", "DE", "US").
+        Defaults to DEFAULT_COUNTRY_CODE if preference is missing or API fails.
     """
-    pref_name = load_preference("streaming_country", "Switzerland")
+    pref_name = load_preference("streaming_country", DEFAULT_COUNTRY_NAME)
     try:
         countries = get_countries()
         code = next(
             (c["iso_3166_1"] for c in countries
              if c.get("english_name") == pref_name),
-            "CH",
+            DEFAULT_COUNTRY_CODE,
         )
     except requests.RequestException:
-        code = "CH"
+        code = DEFAULT_COUNTRY_CODE
     return code
 
 

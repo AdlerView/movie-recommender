@@ -4,25 +4,24 @@ Displays movies the user has added from the Discover page as a Netflix-style
 poster grid. Clicking a poster opens a dialog with TMDB rating, streaming
 providers, and actions (remove from watchlist, mark as watched with rating
 slider 0-100 and mood reactions).
+
+Dependencies:
+    app.utils: shared constants, CSS injection, detail renderer, rating widget,
+        cache helper
+    app.utils.db: watchlist and rating persistence
+    app.utils.tmdb: TMDB API client (movie details, poster URLs)
 """
 from __future__ import annotations
 
-import sqlite3
-
 import requests
 import streamlit as st
+from app.utils import GRID_COLS, fetch_and_cache_details
 from app.utils.db import (
     remove_from_watchlist,
     save_mood_reactions,
-    save_movie_details,
     save_rating,
 )
-from app.utils.tmdb import get_movie_details, get_movie_keywords, poster_url
-
-# Number of columns in the poster grid (matches Rate page)
-_GRID_COLS = 5
-
-st.header("Your watchlist", divider="gray", text_alignment="center")
+from app.utils.tmdb import get_movie_details, poster_url
 
 # --- Deferred toast ---
 if "_watchlist_toast" in st.session_state:
@@ -70,9 +69,9 @@ for m in watchlist:
         _seen.add(m["id"])
 
 with st.container(key="watchlist_grid"):
-    for row_start in range(0, len(grid_movies), _GRID_COLS):
-        row_movies = grid_movies[row_start:row_start + _GRID_COLS]
-        cols = st.columns(_GRID_COLS)
+    for row_start in range(0, len(grid_movies), GRID_COLS):
+        row_movies = grid_movies[row_start:row_start + GRID_COLS]
+        cols = st.columns(GRID_COLS)
         for col, movie in zip(cols, row_movies):
             with col:
                 st.image(poster_url(movie.get("poster_path"), size="w342"))
@@ -83,11 +82,6 @@ with st.container(key="watchlist_grid"):
                     on_click=_select_movie,
                     args=(movie["id"],),
                 )
-
-# Footer: total count
-st.caption(
-    f"{len(watchlist)} movie{'s' if len(watchlist) != 1 else ''} in your watchlist"
-)
 
 # --- Trigger dialog after grid renders (dialog must be called in main flow) ---
 # Dialog defined inline so the movie title can be used as the dialog header.
@@ -136,14 +130,7 @@ if st.session_state._watchlist_selected is not None:
                 st.session_state.ratings[_mid] = new_rating
                 save_rating(_mid, new_rating)
                 save_mood_reactions(_mid, list(selected_moods or []))
-                try:
-                    _kw = get_movie_keywords(_mid)
-                except requests.RequestException:
-                    _kw = None
-                try:
-                    save_movie_details(_mid, _details, keywords=_kw)
-                except sqlite3.Error:
-                    pass
+                fetch_and_cache_details(_mid, _details)
                 st.session_state.watchlist = [
                     m for m in st.session_state.watchlist if m["id"] != _mid
                 ]

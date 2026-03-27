@@ -1,25 +1,31 @@
 """Rate page — Search and rate movies you've already seen.
 
-Find movies via TMDB text search or browse personalized recommendations, then rate them
-on a 0-100 scale (steps of 10) with optional mood reactions. Clicking a
-poster opens a detail dialog with rating slider and mood buttons. Pure
-action tab — rated movies are reviewed on the Statistics page instead.
+Find movies via TMDB text search or browse personalized recommendations,
+then rate them on a 0-100 scale (steps of 10) with optional mood reactions.
+Clicking a poster opens a detail dialog with rating slider and mood buttons.
+Pure action tab — rated movies are reviewed on the Statistics page instead.
+
+Browse grid uses the same TMDB discover/movie endpoint as Discover page
+(unified retrieval layer), re-ranked by ML scoring when a profile exists.
+
+Dependencies:
+    app.utils: shared constants, CSS injection, rating widget, cache helper
+    app.utils.db: rating and mood persistence
+    app.utils.tmdb: TMDB API client (discover, search, details)
+    ml.scoring: user profile computation, personalized scoring
 """
 from __future__ import annotations
 
-import sqlite3
-
 import requests
 import streamlit as st
+from app.utils import GRID_COLS, TMDB_PAGE_SIZE, fetch_and_cache_details
 from app.utils.db import (
     save_mood_reactions,
-    save_movie_details,
     save_rating,
 )
 from app.utils.tmdb import (
     discover_movies_filtered,
     get_movie_details,
-    get_movie_keywords,
     poster_url,
     search_movies,
 )
@@ -30,8 +36,6 @@ _RATE_DISCOVER_PARAMS: tuple[tuple[str, str], ...] = (
     ("sort_by", "popularity.desc"),
     ("vote_count.gte", "50"),
 )
-
-st.header("Rate a movie", divider="gray", text_alignment="center")
 
 # --- Deferred toast ---
 # Shown after rerun following a save (st.toast before st.rerun is lost)
@@ -45,11 +49,6 @@ st.session_state.setdefault("_watched_selected_id", None)
 st.session_state.setdefault("_watched_pages", 1)
 # Track previous query to reset pagination when the search term changes
 st.session_state.setdefault("_watched_prev_query", "")
-
-# Number of columns in the poster grid
-_GRID_COLS = 5
-# TMDB returns 20 results per page — used to detect when no more pages exist
-_TMDB_PAGE_SIZE = 20
 
 
 def _select_movie_id(movie_id: int) -> None:
@@ -71,8 +70,6 @@ def _load_more() -> None:
 
 
 # === Search & Browse ===
-# Search subheader with collapsed widget label for visual consistency
-st.subheader("Search")
 query = st.text_input(
     "Search",
     placeholder="e.g. Inception, The Matrix, Parasite...",
@@ -89,7 +86,7 @@ if current_query != st.session_state._watched_prev_query:
     st.session_state._watched_pages = 1
     st.session_state._watched_prev_query = current_query
 
-# Compute profile once (used for subheader + re-ranking below)
+# Compute profile once (used for section label + re-ranking below)
 _profile = None if current_query else get_or_compute_profile(
     ratings=st.session_state.ratings,
 )
@@ -104,51 +101,60 @@ else:
     st.subheader("Discover movies")
 
 # --- Fetch movies with pagination ---
-# Loads pages until we have enough unrated movies to fill the grid.
-# Rated movies are excluded (they appear in "Your ratings" below),
-# so we may need extra pages to compensate for filtered-out entries.
+# Two modes: search (text query → search/movie API) or browse (no query →
+# discover/movie API, same unified retrieval layer as Discover page).
+# Loads pages until we have enough movies to fill the grid. May need extra
+# pages because rated/dismissed/watchlisted movies are filtered out locally.
 rated_ids = st.session_state.get("ratings", {})
-target_count = st.session_state._watched_pages * _TMDB_PAGE_SIZE
+target_count = st.session_state._watched_pages * TMDB_PAGE_SIZE
 movies: list[dict] = []
-has_more = True  # Whether more pages are available from TMDB
-_max_pages = 10  # Safety cap to avoid excessive API calls
+has_more = True   # Whether TMDB has more pages available
+_max_pages = 10   # Safety cap to avoid excessive API calls
 
 try:
     p = 0
     while len(movies) < target_count and has_more and p < _max_pages:
         p += 1
         if current_query:
+            # Search mode: GET /search/movie?query=...
             page_movies = search_movies(current_query, page=p)
         else:
-            # Discover endpoint with default params (same as Discover page)
+            # Browse mode: GET /discover/movie with popularity sort
+            # Same endpoint as Discover page (unified retrieval layer)
             response = discover_movies_filtered(_RATE_DISCOVER_PARAMS, page=p)
             page_movies = response.get("results", [])
         if not page_movies:
             has_more = False
             break
-        # Filter per page: remove poster-less, duplicates, and already-seen movies.
-        # Browse grid excludes rated + dismissed + watchlisted (same policy as Discover).
-        # Search results keep rated movies (allows re-rating via search).
+
+        # Per-page filtering logic:
+        # - Browse grid: exclude rated + dismissed + watchlisted (same as Discover)
+        # - Search results: keep rated movies (allows re-rating via search)
+        # Both modes exclude poster-less movies and cross-page duplicates
         seen_ids = {m["id"] for m in movies}
         _dismissed = st.session_state.dismissed
         _watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
         page_movies = [
             m for m in page_movies
             if m.get("poster_path") and m["id"] not in seen_ids
-            and (current_query or (
-                m["id"] not in rated_ids
-                and m["id"] not in _dismissed
-                and m["id"] not in _watchlisted_ids
+            and (current_query or (       # Search: keep everything
+                m["id"] not in rated_ids  # Browse: exclude rated
+                and m["id"] not in _dismissed       # Browse: exclude dismissed
+                and m["id"] not in _watchlisted_ids # Browse: exclude watchlisted
             ))
         ]
         movies.extend(page_movies)
-        # TMDB returns 20 per page; fewer means we've reached the last page
-        if len(page_movies) < _TMDB_PAGE_SIZE:
+        # TMDB returns 20 results per full page; fewer = last page
+        if len(page_movies) < TMDB_PAGE_SIZE:
             has_more = p < _max_pages
-    # Trim to exact target count
+
+    # Trim to exact target count (may have fetched slightly more)
     movies = movies[:target_count]
 
-    # --- Personalized re-ranking (when profile exists, no search query) ---
+    # --- Personalized re-ranking (browse mode only, when profile exists) ---
+    # Uses the same 10-signal scoring as Discover page. No mood filter on Rate
+    # (mood pills are only on Discover). Falls back to API popularity order
+    # when no profile exists (cold start: 0 ratings).
     if not current_query and _profile is not None and movies:
         _scored = score_candidates(_profile, [m["id"] for m in movies])
         _id_to_score = {mid: score for mid, score in _scored}
@@ -178,9 +184,9 @@ from app.utils import inject_poster_grid_css
 inject_poster_grid_css("poster_grid")
 
 with st.container(key="poster_grid"):
-    for row_start in range(0, len(movies), _GRID_COLS):
-        row_movies = movies[row_start:row_start + _GRID_COLS]
-        cols = st.columns(_GRID_COLS)
+    for row_start in range(0, len(movies), GRID_COLS):
+        row_movies = movies[row_start:row_start + GRID_COLS]
+        cols = st.columns(GRID_COLS)
         for col, movie in zip(cols, row_movies):
             with col:
                 # Poster image (w342 for sharp display in 5-column grid)
@@ -227,14 +233,7 @@ if st.session_state._watched_selected_id is not None:
             st.session_state.ratings[_mid] = new_rating
             save_rating(_mid, new_rating)
             save_mood_reactions(_mid, list(selected_moods or []))
-            try:
-                _kw = get_movie_keywords(_mid)
-            except requests.RequestException:
-                _kw = None
-            try:
-                save_movie_details(_mid, _details, keywords=_kw)
-            except sqlite3.Error:
-                pass
+            fetch_and_cache_details(_mid, _details)
             st.session_state._watched_selected_id = None
             st.session_state.pop(f"_rate_touched_{_mid}", None)
             st.session_state["_watched_toast"] = (
