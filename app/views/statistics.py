@@ -99,19 +99,37 @@ mood_data = load_mood_distribution()
 
 if mood_data:
     st.subheader("Your moods", divider="gray")
-    # Map each Ekman mood to a representative emoji for visual appeal
+    # Map each Ekman mood to emoji + fixed color for instant recognition
     _emoji = {
         "Happy": "😊", "Interested": "🤔", "Surprised": "😲",
         "Sad": "😢", "Disgusted": "🤢", "Afraid": "😨", "Angry": "😠",
+    }
+    _mood_color = {
+        "Happy": "#FFD700",      # Gold/yellow — warmth, joy
+        "Interested": "#1c83e1", # Blue — curiosity, thought
+        "Surprised": "#ffa421",  # Orange — unexpected
+        "Sad": "#6c8ebf",        # Muted blue — melancholy
+        "Disgusted": "#803df5",  # Purple — visceral revulsion
+        "Afraid": "#ff4b4b",     # Red — danger, alarm
+        "Angry": "#cc0000",      # Dark red — intensity, aggression
     }
     mood_df = pd.DataFrame(mood_data, columns=["Mood", "Reactions"])
     # Prepend emoji to mood name for the Y-axis label
     mood_df["Label"] = mood_df["Mood"].map(
         lambda m: f"{_emoji.get(m, '')} {m}",
     )
+    # Per-mood color via explicit scale domain/range mapping
     chart = alt.Chart(mood_df).mark_bar().encode(
         x=alt.X("Reactions:Q", title="Reactions"),
         y=alt.Y("Label:N", sort="-x", title=None),  # Most-reacted mood on top
+        color=alt.Color(
+            "Mood:N",
+            scale=alt.Scale(
+                domain=list(_mood_color.keys()),
+                range=list(_mood_color.values()),
+            ),
+            legend=None,  # Labels already contain emoji + name
+        ),
         tooltip=["Mood", "Reactions"],
     )
     st.altair_chart(chart, use_container_width=True)
@@ -216,15 +234,16 @@ if rated_rows:
 
     df = pd.DataFrame(table_data)
 
-    # Streamlit dataframe with custom column types for better UX:
-    # - ProgressColumn renders the user rating as a colored progress bar
-    # - NumberColumn formats TMDB score to 1 decimal
+    # Both rating columns as ProgressColumn: two bars side by side make
+    # user vs TMDB instantly visually comparable without reading numbers.
+    # TMDB scale is 0-10, user scale is 0-100.
     st.dataframe(
         df,
         column_config={
             "Title": st.column_config.TextColumn("Title"),
-            "TMDB": st.column_config.NumberColumn(
-                "TMDB", format="%.1f", width="small",
+            "TMDB": st.column_config.ProgressColumn(
+                "TMDB", min_value=0, max_value=10, format="%.1f",
+                width="small",
             ),
             "Your rating": st.column_config.ProgressColumn(
                 "Your rating", min_value=0, max_value=100, format="%d",

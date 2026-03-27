@@ -33,7 +33,6 @@ from app.utils.db import (
 )
 from app.utils.tmdb import (
     discover_movies_filtered,
-    get_certifications,
     get_genre_map,
     get_languages,
     get_movie_details,
@@ -130,17 +129,16 @@ with st.sidebar:
         step=10, key="discover_min_votes",
     )
 
-    # --- Certification dropdown ---
+    # --- Age rating pills (DE certifications, exact match) ---
+    # Using DE because it has the best TMDB coverage (19,655 classified films)
+    # and a well-differentiated 5-level scale. CH data is unreliable.
+    # Uses `certification=X` (exact) not `certification.lte=X` (cumulative).
     _cert_country = "DE"
-    try:
-        _certs = get_certifications(_cert_country)
-        _cert_options = ["Any"] + [c["certification"] for c in
-                                   sorted(_certs, key=lambda x: x.get("order", 0))
-                                   if c["certification"]]
-    except requests.RequestException:
-        _cert_options = ["Any"]
-    selected_cert = st.selectbox(
-        f"Certification ({_cert_country})", options=_cert_options,
+    _cert_options = ["Any", "0", "6", "12", "16", "18"]
+    selected_cert = st.pills(
+        "Age rating",
+        options=_cert_options,
+        default="Any",
         key="discover_certification",
     )
 
@@ -305,7 +303,7 @@ def _build_discover_params() -> list[tuple[str, str]]:
     # Certification
     if selected_cert and selected_cert != "Any":
         params.append(("certification_country", _cert_country))
-        params.append(("certification.lte", selected_cert))
+        params.append(("certification", selected_cert))
 
     # Streaming providers (from Settings subscriptions)
     _subs = st.session_state.get("subscriptions", set())

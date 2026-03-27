@@ -392,11 +392,20 @@ def render_discover_detail(details: dict) -> None:
         tagline = details.get("tagline")
         if tagline:
             st.caption(f"*{tagline}*")
-        # Genre badges + TMDB rating on one line (no "Genre" header)
+        # Genre badges + TMDB rating badge on one line (no "Genre" header)
+        # Rating badge color: green (>7), orange (5-7), red (<5)
         genres = details.get("genres", [])
         tmdb_rating = details.get("vote_average")
         genre_str = " ".join(f":gray-badge[{g['name']}]" for g in genres)
-        rating_str = f"  {tmdb_rating:.1f} / 10" if tmdb_rating else ""
+        if tmdb_rating:
+            if tmdb_rating >= 7:
+                rating_str = f"  :green-badge[{tmdb_rating:.1f}]"
+            elif tmdb_rating >= 5:
+                rating_str = f"  :orange-badge[{tmdb_rating:.1f}]"
+            else:
+                rating_str = f"  :red-badge[{tmdb_rating:.1f}]"
+        else:
+            rating_str = ""
         if genre_str or rating_str:
             st.markdown(f"{genre_str}{rating_str}")
         # Director
