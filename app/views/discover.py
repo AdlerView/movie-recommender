@@ -28,9 +28,7 @@ from app.utils.tmdb import (
     poster_url,
     search_keywords,
 )
-from ml.scoring.mood_filter import filter_by_mood
-from ml.scoring.scoring import score_candidates
-from ml.scoring.user_profile import get_or_compute_profile
+from ml.scoring import filter_by_mood, get_or_compute_profile, score_candidates
 
 # --- Constants ---
 

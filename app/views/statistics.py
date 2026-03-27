@@ -226,7 +226,7 @@ if _eval_results_path.exists():
         import numpy as np
         from sklearn.preprocessing import LabelEncoder, RobustScaler
 
-        from ml.evaluation.ml_eval import knn_hyperparameter_plot, run_cross_validation
+        from ml.evaluation import knn_hyperparameter_plot, run_cross_validation
 
         # Load keyword data and embeddings (same as pipeline)
         _tsv_path = (
@@ -266,7 +266,7 @@ if _eval_results_path.exists():
 
                 # Cross-validation (10-fold, Notebook 10-1 pattern)
                 _best_name = _scaled_non_dummy.iloc[0]["Classifier"] if not _scaled_non_dummy.empty else "MLPClassifier"
-                from ml.evaluation.ml_eval import get_classifiers
+                from ml.evaluation import get_classifiers
                 _classifiers = get_classifiers()
                 _best_clf = _classifiers.get(_best_name, _classifiers["MLPClassifier"])
                 _cv_scores = run_cross_validation(_best_clf, _x_all_s, _y)

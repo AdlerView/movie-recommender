@@ -24,8 +24,7 @@ from app.utils.tmdb import (
     poster_url,
     search_movies,
 )
-from ml.scoring.scoring import score_candidates
-from ml.scoring.user_profile import get_or_compute_profile
+from ml.scoring import get_or_compute_profile, score_candidates
 
 # Default discover params for the browse grid (same endpoint as Discover page)
 _RATE_DISCOVER_PARAMS: tuple[tuple[str, str], ...] = (
