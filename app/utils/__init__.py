@@ -4,7 +4,13 @@ Shared UI helpers used across multiple pages to avoid code duplication.
 """
 from __future__ import annotations
 
+from datetime import datetime
+
+import requests
 import streamlit as st
+
+from app.utils.db import load_preference
+from app.utils.tmdb import get_countries, poster_url
 
 
 def inject_poster_grid_css(container_key: str) -> None:
@@ -174,3 +180,235 @@ def render_rating_widget(
         st.caption("Move the slider to set your rating", text_alignment="center")
 
     return new_rating, list(selected_moods or []), slider_ready
+
+
+def _resolve_country_code() -> str:
+    """Resolve the user's streaming country preference to an ISO 3166-1 code.
+
+    Returns:
+        Two-letter country code (e.g. "CH", "DE", "US"). Defaults to "CH".
+    """
+    pref_name = load_preference("streaming_country", "Switzerland")
+    try:
+        countries = get_countries()
+        code = next(
+            (c["iso_3166_1"] for c in countries
+             if c.get("english_name") == pref_name),
+            "CH",
+        )
+    except requests.RequestException:
+        code = "CH"
+    return code
+
+
+def _format_release_date(details: dict, country_code: str) -> str | None:
+    """Extract and format the release date for a specific country.
+
+    Prefers the country-specific theatrical release (type 3) from the
+    release_dates endpoint. Falls back to the global release_date field.
+
+    Args:
+        details: Full TMDB movie details dict.
+        country_code: ISO 3166-1 country code.
+
+    Returns:
+        Formatted date string (e.g. "November 5, 2014") or None.
+    """
+    # Try country-specific release dates first
+    release_dates_data = details.get("release_dates", {}).get("results", [])
+    for country_entry in release_dates_data:
+        if country_entry.get("iso_3166_1") == country_code:
+            dates = country_entry.get("release_dates", [])
+            # Prefer theatrical (type 3), then digital (4), then any
+            for preferred_type in (3, 4):
+                for rd in dates:
+                    if rd.get("type") == preferred_type and rd.get("release_date"):
+                        try:
+                            dt = datetime.fromisoformat(
+                                rd["release_date"].replace("Z", "+00:00"),
+                            )
+                            return dt.strftime("%B %-d, %Y")
+                        except ValueError:
+                            continue
+            # Fallback: first available date for this country
+            if dates and dates[0].get("release_date"):
+                try:
+                    dt = datetime.fromisoformat(
+                        dates[0]["release_date"].replace("Z", "+00:00"),
+                    )
+                    return dt.strftime("%B %-d, %Y")
+                except ValueError:
+                    pass
+            break
+    # Global fallback: release_date from movie details
+    global_date = details.get("release_date")
+    if global_date:
+        try:
+            dt = datetime.strptime(global_date, "%Y-%m-%d")
+            return dt.strftime("%B %-d, %Y")
+        except ValueError:
+            return global_date
+    return None
+
+
+def _find_best_trailer(details: dict) -> dict | None:
+    """Find the best trailer from the videos results.
+
+    Prefers official YouTube trailers, sorted by publish date (newest first).
+
+    Args:
+        details: Full TMDB movie details dict.
+
+    Returns:
+        Video dict with "key", "site", "name" etc., or None.
+    """
+    videos = details.get("videos", {}).get("results", [])
+    # Filter for YouTube trailers only
+    trailers = [
+        v for v in videos
+        if v.get("site") == "YouTube" and v.get("type") == "Trailer"
+    ]
+    if not trailers:
+        return None
+    # Sort: official first, then newest by publish date
+    trailers.sort(
+        key=lambda v: (v.get("official", False), v.get("published_at", "")),
+        reverse=True,
+    )
+    return trailers[0]
+
+
+def render_movie_detail_top(details: dict) -> None:
+    """Render the upper half of the movie detail dialog.
+
+    Displays the hero section (poster, title, genre, rating, runtime,
+    release date, director, overview) followed by streaming providers
+    and a Watch Now link. Called before page-specific action buttons.
+
+    Args:
+        details: Full TMDB movie details dict from get_movie_details().
+    """
+    country_code = _resolve_country_code()
+
+    # === Hero section: poster + metadata ===
+    col_poster, col_info = st.columns([1, 2])
+    with col_poster:
+        st.image(poster_url(details.get("poster_path"), size="w500"), width=250)
+    with col_info:
+        st.subheader(details.get("title", "Unknown"))
+        # Tagline — marketing hook shown as italic subtitle
+        tagline = details.get("tagline")
+        if tagline:
+            st.caption(f"*{tagline}*")
+        # Genre badges
+        genres = details.get("genres", [])
+        if genres:
+            st.caption("**Genre**")
+            st.markdown(" ".join(f":gray-badge[{g['name']}]" for g in genres))
+        # TMDB rating — always 1 decimal for consistency
+        tmdb_rating = details.get("vote_average")
+        st.caption(
+            f"TMDB rating: {tmdb_rating:.1f} / 10" if tmdb_rating
+            else "TMDB rating: N/A",
+        )
+        # Runtime + release date on one line
+        meta_parts: list[str] = []
+        runtime = details.get("runtime")
+        if runtime:
+            hours, mins = divmod(runtime, 60)
+            meta_parts.append(
+                f":material/schedule: {hours}h {mins}min" if hours
+                else f":material/schedule: {mins} min",
+            )
+        release_str = _format_release_date(details, country_code)
+        if release_str:
+            meta_parts.append(f":material/calendar_month: {release_str}")
+        if meta_parts:
+            st.caption("  \u00b7  ".join(meta_parts))
+        # Director
+        crew = details.get("credits", {}).get("crew", [])
+        directors = [c["name"] for c in crew if c.get("job") == "Director"]
+        if directors:
+            st.caption(f":material/movie: Directed by {', '.join(directors)}")
+        # Overview
+        st.write(details.get("overview", "No description available."))
+
+    # === Streaming section: provider logos + Watch Now link ===
+    providers_data = details.get("watch/providers", {}).get("results", {})
+    country_data = providers_data.get(country_code, {})
+    flatrate = country_data.get("flatrate", [])
+    tmdb_link = country_data.get("link")
+    if flatrate:
+        st.caption("**Streaming**")
+        provider_cols = st.columns(min(len(flatrate), 6))
+        for i, p in enumerate(flatrate):
+            with provider_cols[i % len(provider_cols)]:
+                logo = poster_url(p.get("logo_path"), size="w92")
+                if logo:
+                    st.image(logo, width=40)
+    if tmdb_link:
+        st.link_button(
+            "Watch Now",
+            url=tmdb_link,
+            icon=":material/play_circle:",
+            use_container_width=True,
+        )
+
+
+def render_movie_detail_bottom(
+    details: dict,
+    *,
+    show_trailer: bool = True,
+    show_reviews: bool = True,
+) -> None:
+    """Render the lower half of the movie detail dialog.
+
+    Displays trailer, cast, and reviews — called after page-specific
+    action buttons. Sections are conditionally shown via parameters.
+
+    Args:
+        details: Full TMDB movie details dict from get_movie_details().
+        show_trailer: Whether to show the YouTube trailer embed.
+        show_reviews: Whether to show TMDB user reviews.
+    """
+    # === Trailer section: YouTube embed ===
+    if show_trailer:
+        trailer = _find_best_trailer(details)
+        if trailer:
+            st.caption("**Trailer**")
+            st.video(f"https://www.youtube.com/watch?v={trailer['key']}")
+
+    # === Cast section: top 5 billed actors with profile photos ===
+    cast = details.get("credits", {}).get("cast", [])[:5]
+    if cast:
+        st.caption("**Cast**")
+        cols = st.columns(5)
+        for col, person in zip(cols, cast):
+            with col:
+                profile = person.get("profile_path")
+                if profile:
+                    st.image(poster_url(profile, size="w185"), width=100)
+                else:
+                    # Placeholder for actors without a profile photo
+                    st.markdown(":material/person: ")
+                st.caption(f"**{person.get('name', '')}**")
+
+    # === Reviews section: up to 3 user reviews ===
+    if show_reviews:
+        reviews = details.get("reviews", {}).get("results", [])[:3]
+        if reviews:
+            st.caption("**Reviews**")
+            for review in reviews:
+                author = review.get("author", "Anonymous")
+                rating = review.get("author_details", {}).get("rating")
+                content = review.get("content", "")
+                # Truncate long reviews to ~200 characters
+                if len(content) > 200:
+                    content = content[:200].rsplit(" ", 1)[0] + "..."
+                # Rating star + author header
+                header = (
+                    f"\u2605 {rating:.0f}/10  \u00b7  {author}" if rating
+                    else author
+                )
+                st.markdown(f"**{header}**")
+                st.caption(content)
