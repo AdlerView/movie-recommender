@@ -9,7 +9,7 @@ Phase 1b: Build / Train / Select / Infer (productive pipeline).
 Phase 3 reuses the same workflow for academic evaluation (notebook, plots).
 
 Data flow:
-    data/input/tmdb-keyword-frequencies_labeled_top5000.tsv  (1,049 single-label)
+    data/input/labeled_keywords.tsv  (1,049 single-label)
         -> sentence embeddings (EmbeddingGemma-300M, 768-dim)
         -> 80/10/10 split (train/val/test, stratified, random_state=13)
         -> scaled + unscaled classifier comparison (macro-F1)
@@ -78,7 +78,7 @@ def load_labeled_keywords(tsv_path: Path) -> pd.DataFrame:
     """Load and validate the labeled keyword TSV file.
 
     Args:
-        tsv_path: Path to tmdb-keyword-frequencies_labeled_top5000.tsv.
+        tsv_path: Path to labeled_keywords.tsv.
 
     Returns:
         DataFrame with columns: keyword_id, keyword_name, movie_count,
@@ -442,7 +442,7 @@ def main() -> int:
     parser.add_argument(
         "--tsv",
         type=Path,
-        default=Path("data/input/tmdb-keyword-frequencies_labeled_top5000.tsv"),
+        default=Path("data/input/labeled_keywords.tsv"),
         help="Path to labeled keyword TSV (default: data/input/...labeled_top5000.tsv)",
     )
     parser.add_argument(

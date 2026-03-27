@@ -1,16 +1,21 @@
 """SQLite persistence layer for the movie recommender.
 
-Stores watchlist entries, ratings, mood reactions, dismissals, and cached
-TMDB movie details in a local SQLite database. Session state is the runtime
-source of truth; this module handles load-on-start and save-on-change
-persistence.
+Provides all database operations for the app: CRUD for user ratings, mood
+reactions, watchlist, dismissed movies, streaming subscriptions, preferences,
+profile cache, and movie details. Also provides aggregate query functions
+for the Statistics dashboard.
 
-Schema is fully normalized: movie_details holds core metadata, with separate
-junction tables for genres, cast, crew, and production countries. This
-enables efficient SQL aggregations for the Statistics dashboard without
-re-fetching from TMDB.
+Architecture:
+    - Session state is the runtime source of truth (fast reads)
+    - This module handles load-on-start (hydrate session state from SQLite)
+      and save-on-change (persist every user action immediately)
+    - Movie details stored with JSON columns (genres, cast_members,
+      crew_members, countries, keywords) to avoid join tables while still
+      supporting json_each() aggregation in Statistics queries
 
-Database file: data/user.sqlite (gitignored).
+Database: data/user.sqlite (gitignored, WAL journal mode for concurrency).
+Tables: watchlist, user_ratings, user_rating_moods, dismissed,
+    user_subscriptions, user_preferences, user_profile_cache, movie_details.
 """
 from __future__ import annotations
 

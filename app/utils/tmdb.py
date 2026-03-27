@@ -1,8 +1,16 @@
 """TMDB API client for the movie recommender.
 
-Provides cached helper functions for TMDB API v3 endpoints used by the app.
-Authentication is handled via st.secrets. All public functions cache responses
-with appropriate TTLs to minimize API calls.
+Provides cached helper functions for all 9 TMDB API v3 endpoints used by the
+app. Authentication is handled via st.secrets (API key injected lazily per
+request to avoid crash when secrets.toml is missing at import time).
+
+Caching strategy (via @st.cache_data):
+    - Configuration data (genres, languages, countries, certifications): 24h TTL
+    - Discovery/search results: 5-10 min TTL (unbounded key space)
+    - Per-movie details and keywords: 1h TTL (votes change slowly)
+
+All functions raise requests.HTTPError or requests.ConnectionError on failure.
+Callers are responsible for catching these and showing appropriate error UI.
 """
 from __future__ import annotations
 

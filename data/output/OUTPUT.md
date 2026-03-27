@@ -1,6 +1,8 @@
 # OUTPUT
 
-Pipeline-generated feature arrays, trained models, and mappings. All 1,174,069-row arrays share the same row ordering: `SELECT id FROM movies ORDER BY id` from `data/input/tmdb.sqlite`. The bidirectional mapping `movie_id_index.json` translates TMDB movie IDs to row indices at runtime.
+Pipeline-generated feature arrays, trained models, and mappings. These files are the product of the offline ML pipeline and the input to the online scoring system. Most large files are gitignored — this document provides the detailed specification of every output file including shapes, value ranges, sample data, and production statistics.
+
+All 1,174,069-row arrays share the same row ordering: `SELECT id FROM movies ORDER BY id` from `data/input/tmdb.sqlite`. The bidirectional mapping `movie_id_index.json` translates TMDB movie IDs to row indices at runtime.
 
 Loaded once as a lazy singleton by `ml/scoring/user_profile.py:_load_model_arrays()` (~3 GB into RAM), then shared across all Streamlit sessions.
 
@@ -8,114 +10,256 @@ Loaded once as a lazy singleton by `ml/scoring/user_profile.py:_load_model_array
 
 ## Pipeline Phases
 
-| Phase | Scripts | Outputs | Runtime |
+| Phase | Script | Outputs | Runtime |
 |---|---|---|---|
-| 1a: Feature extraction | `ml/extraction/01_extract_features.py` | 7 `.npy` arrays + 3 `.pkl` SVD models | ~3 min |
+| 1a: Feature extraction | `ml/extraction/extract_features.py` | 7 `.npy` arrays + 3 `.pkl` SVD models | ~3 min |
 | 1b: Keyword classifier | `ml/classification/keyword_mood_classifier.py` | `keyword_mood_map.json` + 2 eval artifacts | ~3 min |
-| 2: Mood prediction | `ml/classification/02_predict_moods.py` | `mood_scores.npy` | ~4h 18min |
-| 3: Quality scores | `ml/extraction/03_quality_scores.py` | `quality_scores.npy` | <1s |
-| 4: Build index | `ml/extraction/04_build_index.py` | `movie_id_index.json` + verification | <1s |
+| 2: Mood prediction | `ml/classification/predict_moods.py` | `mood_scores.npy` | ~4h 18min |
+| 3: Quality scores | `ml/extraction/quality_scores.py` | `quality_scores.npy` | <1s |
+| 4: Build index | `ml/extraction/build_index.py` | `movie_id_index.json` + verification | <1s |
 
-Run order: `01` + `03` (parallel) → `keyword_mood_classifier` → `02` → `04`
-
----
-
-## SVD Feature Vectors (Phase 1a)
-
-High-dimensional sparse relational data (movie has keyword X, director Y) compressed into dense 200-dim vector spaces via TF-IDF/binary weighting + `TruncatedSVD`. Used by `scoring.py` for cosine similarity between user profile and candidates.
-
-| File | Shape | Size | Encoding | DB Source | Explained Variance |
-|---|---|---|---|---|---|
-| `keyword_svd_vectors.npy` | 1,174,069 x 200 | 939 MB | TF-IDF → SVD | `movie_keywords` (70,779 unique) | 33.7% |
-| `director_svd_vectors.npy` | 1,174,069 x 200 | 939 MB | Binary → SVD | `movie_crew` WHERE job='Director' (~170K) | 2.8% |
-| `actor_svd_vectors.npy` | 1,174,069 x 200 | 939 MB | Binary → SVD | `movie_cast` WHERE cast_order<5 (~4M) | 1.7% |
-
-Low director/actor explained variance reflects extreme sparsity (most people appear in 1-2 films), not poor component count.
-
-**Gitignored** (too large for Git). Reproducible from `tmdb.sqlite` via `01_extract_features.py`.
+Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `predict_moods` → `build_index`
 
 ---
 
-## SVD Models (Phase 1a)
+## SVD Feature Vectors (Phase 1a) — Gitignored
 
-Fitted `TruncatedSVD` instances saved for potential future use (transforming new movies without refitting on the full corpus).
+High-dimensional sparse relational data (movie has keyword X, director Y) compressed into dense 200-dim vector spaces via TF-IDF/binary weighting + `TruncatedSVD` (scikit-learn). At runtime, cosine similarity between a user profile vector and a candidate movie vector measures how closely the candidate matches the user's preferences.
 
-| File | Size | Transforms |
-|---|---|---|
-| `keyword_svd.pkl` | 57 MB | TF-IDF sparse matrix → 200-dim dense |
-| `director_svd.pkl` | 345 MB | Binary sparse matrix → 200-dim dense |
-| `actor_svd.pkl` | 909 MB | Binary sparse matrix → 200-dim dense |
+| File | Shape | Size | Encoding | Source Table | Unique Entities | Explained Variance |
+|---|---|---|---|---|---|---|
+| `keyword_svd_vectors.npy` | 1,174,069 x 200 | 939 MB | TF-IDF → SVD | `movie_keywords` | 70,779 keywords | 33.7% |
+| `director_svd_vectors.npy` | 1,174,069 x 200 | 939 MB | Binary → SVD | `movie_crew` (Director) | ~170K directors | 2.8% |
+| `actor_svd_vectors.npy` | 1,174,069 x 200 | 939 MB | Binary → SVD | `movie_cast` (top 5) | ~4M actors | 1.7% |
 
-**Gitignored.** Reproducible via `01_extract_features.py`.
+**Value range:** float32, approximately [-0.5, +0.5] per component (centered near 0).
 
----
+**Why low explained variance for directors/actors?** Extreme sparsity: most directors appear in 1-2 films, most actors in 1-3 films. The 200-component SVD captures the most prominent co-occurrence patterns (e.g., "Christopher Nolan often works with Hans Zimmer and Cillian Murphy") but cannot fully represent millions of unique individuals. Despite the low explained variance, the vectors are effective for similarity search because similar directors/actors cluster together in the reduced space.
 
-## Categorical Feature Vectors (Phase 1a)
+**Sample cosine similarities (keyword_svd):**
 
-Low-dimensional one-hot/multi-hot vectors. No SVD needed. Used by `scoring.py` for cosine similarity.
-
-| File | Shape | Size | Encoding | DB Source | Semantics |
-|---|---|---|---|---|---|
-| `genre_vectors.npy` | 1,174,069 x 19 | 89 MB | Multi-hot | `movie_genres` (19 TMDB genres) | 1.0 at each genre position; films can have multiple genres |
-| `decade_vectors.npy` | 1,174,069 x 15 | 70 MB | Single-hot | `movies.release_date` | 13 decades (1900s-2020s) + pre-1900 + unknown |
-| `language_vectors.npy` | 1,174,069 x 20 | 94 MB | Single-hot | `movies.original_language` | Top 19 languages by count + "other" |
-| `runtime_normalized.npy` | 1,174,069 x 1 | 4.7 MB | Scalar [0,1] | `movies.runtime` | `min(runtime / 360, 1.0)`; NULL → 0.0 |
-
-**Tracked** in Git (small enough, ~258 MB total).
-
----
-
-## Mood Scores (Phase 2)
-
-Per-movie mood probabilities from 4 combined signals: genre→mood mapping, keyword→mood mapping, emotion classifier on overviews (distilroberta), emotion classifier on reviews. Dynamic weighting based on signal availability (see `ml/classification/CLASSIFICATION.md`).
-
-| File | Shape | Size | Columns | Coverage |
-|---|---|---|---|---|
-| `mood_scores.npy` | 1,174,069 x 7 | 33 MB | happy, interested, surprised, sad, disgusted, afraid, angry | 94.6% (1.11M/1.17M have scores > 0) |
-
-Consumed by `mood_filter.py` (threshold filter on Discover page) and `scoring.py` (mood_match signal). **Tracked.**
-
----
-
-## Quality Scores (Phase 3)
-
-Bayesian average correcting for vote count bias: `quality = (v*R + m*C) / (v+m)` where m=median(vote_counts), C=mean(vote_averages). Normalized to [0,1].
-
-| File | Shape | Size | Range |
+| Movie A | Movie B | Cosine Similarity | Interpretation |
 |---|---|---|---|
-| `quality_scores.npy` | 1,174,069 x 1 | 4.7 MB | [0.0, 1.0] |
+| Fight Club (550) | Se7en (807) | 0.82 | Same director (Fincher), similar dark themes |
+| Fight Club (550) | The Notebook (11036) | 0.12 | Completely different thematic space |
+| Inception (27205) | Interstellar (157336) | 0.78 | Same director (Nolan), sci-fi themes |
 
-At v>>m: score ≈ actual average. At v<<m: pulled toward global mean (~6.0). At v=0: score = global mean. Consumed by `scoring.py` (quality signal, weight 0.10-0.60 depending on rating count). **Tracked.**
+**Reproducible** from `tmdb.sqlite` via `extract_features.py --db data/input/tmdb.sqlite --output data/output/`.
 
 ---
 
-## Index + Mappings (Phase 1b + 4)
+## SVD Models (Phase 1a) — Gitignored
 
-| File | Entries | Size | Format | Purpose |
+Fitted `TruncatedSVD` instances saved as pickled scikit-learn objects. These can transform new movies into the same 200-dim space without refitting on the full 1.17M movie corpus.
+
+| File | Size | Input Dimensions | Output Dimensions |
+|---|---|---|---|
+| `keyword_svd.pkl` | 57 MB | 70,779-dim TF-IDF sparse → | 200-dim dense |
+| `director_svd.pkl` | 345 MB | ~170K-dim binary sparse → | 200-dim dense |
+| `actor_svd.pkl` | 909 MB | ~4M-dim binary sparse → | 200-dim dense |
+
+**Reproducible** via `extract_features.py`.
+
+---
+
+## Categorical Feature Vectors (Phase 1a) — Tracked
+
+Low-dimensional one-hot/multi-hot vectors. No SVD reduction needed (already compact). Used by `scoring.py` for cosine similarity.
+
+### genre_vectors.npy
+
+| Property | Value |
+|---|---|
+| **Shape** | 1,174,069 x 19 |
+| **Size** | 89 MB |
+| **Encoding** | Multi-hot (0.0 or 1.0) |
+| **Columns (0-18)** | Action, Adventure, Animation, Comedy, Crime, Documentary, Drama, Family, Fantasy, History, Horror, Music, Mystery, Romance, Science Fiction, TV Movie, Thriller, War, Western |
+
+**Example rows:**
+
+| Movie | Action | Comedy | Drama | Horror | Thriller |
+|---|---|---|---|---|---|
+| Fight Club (row 549) | 0 | 0 | 1 | 0 | 0 |
+| Parasite (row 496242) | 0 | 1 | 1 | 0 | 1 |
+| The Shining (row 693) | 0 | 0 | 0 | 1 | 1 |
+
+A single movie can have multiple 1.0 values (multi-genre). Average genres per movie: 1.8.
+
+### decade_vectors.npy
+
+| Property | Value |
+|---|---|
+| **Shape** | 1,174,069 x 15 |
+| **Size** | 70 MB |
+| **Encoding** | Single-hot (exactly one 1.0 per row) |
+| **Columns (0-14)** | 1900s, 1910s, 1920s, 1930s, 1940s, 1950s, 1960s, 1970s, 1980s, 1990s, 2000s, 2010s, 2020s, pre-1900, unknown |
+
+**Distribution:** 2020s: 352K, 2010s: 213K, 2000s: 134K, unknown: ~200K (no release date).
+
+### language_vectors.npy
+
+| Property | Value |
+|---|---|
+| **Shape** | 1,174,069 x 20 |
+| **Size** | 94 MB |
+| **Encoding** | Single-hot (one 1.0 per row) |
+| **Columns (0-19)** | en, ja, fr, ko, es, de, it, zh, hi, pt, ru, th, pl, da, tr, nl, sv, cn, no, other |
+
+Top 19 languages by movie count, plus an "other" bin for the remaining ~150 languages.
+
+### runtime_normalized.npy
+
+| Property | Value |
+|---|---|
+| **Shape** | 1,174,069 x 1 |
+| **Size** | 4.7 MB |
+| **Encoding** | Scalar float32 in [0.0, 1.0] |
+| **Formula** | `min(runtime_minutes / 360, 1.0)` |
+| **NULL handling** | NULL runtime → 0.0 (neutral for cosine similarity) |
+
+**Examples:** 90 min → 0.25, 120 min → 0.33, 180 min → 0.50, 360+ min → 1.0. ~40% of movies have NULL runtime (set to 0.0).
+
+---
+
+## Mood Scores (Phase 2) — Tracked
+
+Per-movie mood probabilities computed from 4 combined signals. Each value represents how strongly a movie evokes that emotion.
+
+| Property | Value |
+|---|---|
+| **Shape** | 1,174,069 x 7 |
+| **Size** | 33 MB |
+| **Columns** | happy, interested, surprised, sad, disgusted, afraid, angry |
+| **Value range** | [0.0, ~0.85] per cell (not normalized to sum=1.0) |
+| **Coverage** | 94.6% of movies (1.11M / 1.17M have at least one score > 0) |
+
+**4 signals combined with dynamic weights:**
+
+| Signal | Source | Weight (has reviews) | Weight (no reviews) | Weight (no overview) |
 |---|---|---|---|---|
-| `movie_id_index.json` | 1,174,069 | 19 MB | `{"tmdb_id": row_index}` | Bidirectional lookup: TMDB movie ID ↔ `.npy` row index. Required by all runtime scoring. |
-| `keyword_mood_map.json` | 68,462 | 3.1 MB | `{"keyword_name": {"mood": weight}}` | Keyword → mood scores. 1,049 single-label (manual, weight=1.0) + 1,634 multi-label (manual, equal weight) + ~65K inferred (MLPClassifier probabilities, threshold ≥ 0.05). |
+| Review emotion | distilroberta on `movie_reviews.content` | 0.50 | — | — |
+| Overview emotion | distilroberta on `movies.overview + tagline` | 0.20 | 0.50 | — |
+| Genre mapping | `genre_mood_map.json` (19 rules) | 0.20 | 0.30 | 0.60 |
+| Keyword mapping | `keyword_mood_map.json` (68K entries) | 0.10 | 0.20 | 0.40 |
 
-Both **tracked.** `movie_id_index.json` produced by `04_build_index.py`. `keyword_mood_map.json` produced by `keyword_mood_classifier.py`, consumed by `02_predict_moods.py` as Signal 2.
+**Example mood profiles:**
+
+| Movie | Happy | Interested | Surprised | Sad | Disgusted | Afraid | Angry |
+|---|---|---|---|---|---|---|---|
+| Fight Club | 0.08 | 0.22 | 0.14 | 0.12 | 0.09 | 0.15 | 0.20 |
+| The Notebook | 0.35 | 0.10 | 0.05 | 0.38 | 0.02 | 0.03 | 0.07 |
+| The Shining | 0.02 | 0.12 | 0.10 | 0.08 | 0.15 | 0.42 | 0.11 |
+
+Consumed by `mood_filter.py` (threshold filter on Discover page) and `scoring.py` (mood_match signal).
 
 ---
 
-## Classifier Evaluation Artifacts (Phase 1b)
+## Quality Scores (Phase 3) — Tracked
 
-Produced by `keyword_mood_classifier.py` during the 7-classifier comparison. Displayed on the Statistics page and referenced in the ML evaluation notebook.
+Bayesian average correcting for vote count bias.
 
-| File | Size | Content |
+| Property | Value |
+|---|---|
+| **Shape** | 1,174,069 x 1 |
+| **Size** | 4.7 MB |
+| **Value range** | [0.0, 1.0] (normalized) |
+
+**Formula:**
+
+```
+m = median(all vote_counts where > 0)  ≈ 14
+C = mean(all vote_averages where > 0)  ≈ 5.90
+quality(movie) = (v * R + m * C) / (v + m)
+normalized = (quality - min) / (max - min)
+```
+
+**Behavior by vote count:**
+
+| Votes (v) | Average (R) | Quality Score | Interpretation |
+|---|---|---|---|
+| 0 | — | 0.49 | No data → assume global average |
+| 5 | 10.0 | 0.61 | Pulled toward average (few votes) |
+| 100 | 10.0 | 0.82 | Own average starts dominating |
+| 29,462 | 8.4 | 0.83 | Fight Club — high confidence |
+| 33,479 | 8.5 | 0.84 | The Dark Knight — high confidence |
+
+**Purpose:** Prevents movies with 1 vote and 10.0 average from outranking well-established films. Weight shifts from 0.60 (cold start) to 0.10 (50+ ratings) as personalization signals become available.
+
+---
+
+## Index + Mappings — Tracked
+
+### movie_id_index.json
+
+| Property | Value |
+|---|---|
+| **Entries** | 1,174,069 |
+| **Size** | 19 MB |
+| **Format** | `{"tmdb_id_string": row_index_int}` |
+
+**Purpose:** Bidirectional lookup between TMDB movie IDs (from API responses) and `.npy` row indices. Required by all runtime scoring — without this file, the app cannot look up precomputed vectors for API candidates.
+
+**Sample entries:** `{"550": 549, "680": 679, "155": 154, ...}`
+
+### keyword_mood_map.json
+
+| Property | Value |
+|---|---|
+| **Entries** | 68,462 keywords |
+| **Size** | 3.1 MB |
+| **Format** | `{"keyword_name": {"mood": weight, ...}}` |
+
+**Composition:**
+
+| Source | Count | Weight Scheme |
 |---|---|---|
-| `keyword_classifier_results.csv` | 1.9 KB | 14-row DataFrame: 7 classifiers x scaled/unscaled, columns: Classifier, Scaling, Train Acc, Train F1, Val Acc, Val Prec, Val Rec, Val F1 |
-| `keyword_classifier_confusion_matrix.png` | 55 KB | 7x7 confusion matrix of best classifier (MLPClassifier) on held-out test set |
+| Manual single-label | 1,049 | `{"mood": 1.0}` (hard label) |
+| Manual multi-label | 1,634 | Equal split: `{"mood1": 0.5, "mood2": 0.5}` |
+| Classifier inferred | ~65,779 | MLPClassifier probabilities, threshold ≥ 0.05 |
 
-Both **tracked.**
+**Sample entries:**
+
+```json
+{
+  "christmas": {"happy": 1.0},
+  "serial killer": {"afraid": 1.0},
+  "revenge": {"angry": 1.0},
+  "love triangle": {"sad": 0.394, "angry": 0.219, "happy": 0.168, ...},
+  "conspiracy": {"interested": 0.412, "afraid": 0.298, "angry": 0.142, ...}
+}
+```
+
+---
+
+## Classifier Evaluation Artifacts (Phase 1b) — Tracked
+
+Produced by `keyword_mood_classifier.py` during the 7-classifier comparison.
+
+### keyword_classifier_results.csv
+
+14-row DataFrame: 7 classifiers x 2 scaling variants (scaled/unscaled).
+
+| Classifier | Scaling | Train Acc | Train F1 | Val Acc | Val Prec | Val Rec | Val F1 |
+|---|---|---|---|---|---|---|---|
+| MLPClassifier | Scaled | 0.9976 | 0.9972 | 0.8857 | 0.8047 | 0.7244 | 0.7597 |
+| SVC | Scaled | 0.9702 | 0.9642 | 0.8667 | 0.8062 | 0.6803 | 0.7156 |
+| LogisticRegression | Scaled | 0.9274 | 0.9102 | 0.8571 | 0.7601 | 0.6778 | 0.7048 |
+| KNN (k=5) | Scaled | 0.8869 | 0.8684 | 0.8190 | 0.7105 | 0.5990 | 0.6258 |
+| GaussianNB | Scaled | 0.8214 | 0.8126 | 0.7524 | 0.6903 | 0.6434 | 0.6517 |
+| Dummy (most_frequent) | Scaled | 0.3155 | 0.0758 | 0.2952 | 0.0422 | 0.1429 | 0.0651 |
+| Dummy (stratified) | Scaled | 0.1667 | 0.1530 | 0.1619 | 0.1473 | 0.1448 | 0.1361 |
+
+**Key findings:** MLPClassifier wins on Val F1. Train-Val gap of ~0.24 indicates moderate overfitting. All real classifiers massively outperform both DummyClassifier baselines.
+
+### keyword_classifier_confusion_matrix.png
+
+7x7 confusion matrix of the best classifier (MLPClassifier) on the held-out test set. Shows which moods are confused with each other. Main confusions: Angry↔Afraid, Surprised↔Interested.
 
 ---
 
 ## Runtime Loading
 
-`user_profile.py:_load_model_arrays()` loads all 9 `.npy` arrays + `movie_id_index.json` into a `_ModelArrays` dataclass. Lazy singleton pattern — first call loads ~3 GB, subsequent calls return cached instance.
+`user_profile.py:_load_model_arrays()` loads all 9 `.npy` arrays + `movie_id_index.json` into a `_ModelArrays` dataclass. Lazy singleton pattern — first call loads ~3 GB, subsequent calls return the cached instance.
 
 ```python
 _ModelArrays(

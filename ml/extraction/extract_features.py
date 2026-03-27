@@ -33,7 +33,7 @@ Data flow:
         → 3 .pkl SVD models in data/output/
 
 All arrays share the same row ordering: SELECT id FROM movies ORDER BY id.
-The movie_id ↔ row_index mapping is saved by Stage 4 (04_build_index.py).
+The movie_id ↔ row_index mapping is saved by Stage 4 (build_index.py).
 """
 from __future__ import annotations
 

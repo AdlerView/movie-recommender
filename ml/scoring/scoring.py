@@ -160,15 +160,22 @@ def score_candidates(
     n = len(rows)
     weights = get_weights(profile.rating_count)
 
-    # --- Signal 1: Keyword similarity ---
+    # --- Signal 1: Keyword similarity (weight 0.20) ---
+    # Cosine sim between user's keyword preference vector and each candidate's
+    # keyword SVD vector. Captures thematic similarity (e.g., "user likes movies
+    # about dark humor and psychology").
     keyword_sim = _batch_cosine_sim(
         profile.keyword_vec, model.keyword_svd[rows],
     )
 
-    # --- Signal 2: Mood match ---
+    # --- Signal 2: Mood match (weight 0.20) ---
+    # Two modes: explicit (user selected moods via pills) or implicit (from
+    # historical mood reactions). Explicit uses the average of selected mood
+    # columns. Implicit uses dot product between user's mood frequency
+    # distribution and the candidate's precomputed mood scores.
     candidate_moods = model.mood_scores[rows]  # (n, 7)
     if selected_moods:
-        # Explicit mood selection: average of selected mood columns
+        # Explicit mood selection: average score for the selected moods only
         mood_indices = [MOOD_IDX[m] for m in selected_moods if m in MOOD_IDX]
         if mood_indices:
             mood_match = candidate_moods[:, mood_indices].mean(axis=1)
@@ -176,64 +183,83 @@ def score_candidates(
             mood_match = np.zeros(n, dtype=np.float32)
     else:
         # Implicit mood: dot product with user's mood frequency vector
+        # (e.g., if user mostly tags "Happy" and "Interested", those moods
+        # get higher weight in the dot product)
         mood_match = candidate_moods @ profile.implicit_mood
 
-    # --- Signal 3: Genre similarity ---
+    # --- Signal 3: Genre similarity (weight 0.05) ---
+    # Cosine sim of 19-dim multi-hot genre vectors. Low weight because genre
+    # preferences are already partially captured by keyword similarity.
     genre_sim = _batch_cosine_sim(
         profile.genre_vec, model.genre_vectors[rows],
     )
 
-    # --- Signal 4: Director similarity ---
+    # --- Signal 4: Director similarity (weight 0.15) ---
+    # Cosine sim of 200-dim director SVD vectors. "User likes Fincher"
+    # automatically boosts Villeneuve/Nolan because their director vectors
+    # are nearby in the SVD space (they direct similar types of movies).
     director_sim = _batch_cosine_sim(
         profile.director_vec, model.director_svd[rows],
     )
 
-    # --- Signal 5: Actor similarity ---
+    # --- Signal 5: Actor similarity (weight 0.10) ---
+    # Same logic as directors but for top-5 billed cast per film.
     actor_sim = _batch_cosine_sim(
         profile.actor_vec, model.actor_svd[rows],
     )
 
-    # --- Signal 6: Decade similarity ---
+    # --- Signal 6: Decade similarity (weight 0.05) ---
+    # Captures era preference: "user prefers 90s/2000s films over classics."
     decade_sim = _batch_cosine_sim(
         profile.decade_vec, model.decade_vectors[rows],
     )
 
-    # --- Signal 7: Language similarity ---
+    # --- Signal 7: Language similarity (weight 0.03) ---
+    # Captures language preference: "user watches mostly English and Korean."
     language_sim = _batch_cosine_sim(
         profile.language_vec, model.language_vectors[rows],
     )
 
-    # --- Signal 8: Runtime similarity ---
-    # 1.0 - |user_pref - candidate| (both already normalized to [0, 1])
+    # --- Signal 8: Runtime similarity (weight 0.02) ---
+    # Distance-based: 1.0 = identical runtime preference, 0.0 = maximum diff.
+    # Both user_pref and candidate runtime are already normalized to [0, 1]
+    # (runtime / 360 minutes). Low weight because runtime is a weak signal.
     candidate_runtimes = model.runtime_normalized[rows].flatten()  # (n,)
     runtime_sim = 1.0 - np.abs(profile.runtime_pref - candidate_runtimes)
     runtime_sim = runtime_sim.astype(np.float32)
 
-    # --- Signal 9: Quality score (precomputed, already [0, 1]) ---
+    # --- Signal 9: Quality score (weight 0.10) ---
+    # Precomputed Bayesian average, already normalized to [0, 1].
+    # Prevents movies with 1 vote and 10.0 average from outranking
+    # well-established films. Higher weight during cold start (0.60).
     quality = model.quality_scores[rows].flatten()  # (n,)
 
-    # --- Signal 10: Contra penalty ---
-    # Negative cosine similarity: high similarity to disliked themes → low score
+    # --- Signal 10: Contra penalty (weight 0.10) ---
+    # Negative cosine similarity against the contra vector (average of
+    # keyword SVD vectors from movies rated ≤30/100 or dismissed).
+    # High similarity to disliked themes → negative score contribution.
     contra_raw = _batch_cosine_sim(
         profile.contra_vec, model.keyword_svd[rows],
     )
-    contra_penalty = -contra_raw  # Negate: similar to disliked → negative contribution
+    contra_penalty = -contra_raw  # Negate so similar-to-disliked hurts the score
 
-    # --- Stack signals and compute weighted sum ---
-    # signals: (n, 10), weights: (10,)
+    # --- Stack all 10 signals and compute the weighted sum ---
+    # signals matrix: (n_candidates, 10), weights vector: (10,)
+    # Final score = dot product of signals and dynamic weights per candidate
     signals = np.column_stack([
-        keyword_sim,      # 0
-        mood_match,       # 1
-        genre_sim,        # 2
-        director_sim,     # 3
-        actor_sim,        # 4
-        decade_sim,       # 5
-        language_sim,     # 6
-        runtime_sim,      # 7
-        quality,          # 8
-        contra_penalty,   # 9
+        keyword_sim,      # 0: thematic similarity via keyword SVD
+        mood_match,       # 1: mood alignment (explicit or implicit)
+        genre_sim,        # 2: genre preference match
+        director_sim,     # 3: director taste (SVD neighborhood)
+        actor_sim,        # 4: actor taste (SVD neighborhood)
+        decade_sim,       # 5: era/decade preference
+        language_sim,     # 6: original language preference
+        runtime_sim,      # 7: runtime length preference
+        quality,          # 8: Bayesian quality baseline
+        contra_penalty,   # 9: penalty for disliked-theme similarity
     ])
 
+    # Element-wise multiply then sum across signals for each candidate
     final_scores = (signals * weights).sum(axis=1)  # (n,)
 
     # --- Build result list ---

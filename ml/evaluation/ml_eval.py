@@ -37,7 +37,6 @@ from sklearn.model_selection import KFold, cross_val_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import RobustScaler
 from sklearn.svm import SVC
 
 # Non-interactive backend for saving plots without display

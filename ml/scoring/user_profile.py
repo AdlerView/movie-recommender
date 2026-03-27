@@ -103,7 +103,7 @@ def _load_model_arrays(output_dir: Path = _DEFAULT_OUTPUT_DIR) -> _ModelArrays:
     if not index_path.exists():
         raise FileNotFoundError(
             f"movie_id_index.json not found in {output_dir}. "
-            "Run the pipeline first (ml/extraction/04_build_index.py)."
+            "Run the pipeline first (ml/extraction/build_index.py)."
         )
 
     with open(index_path) as f:
@@ -300,37 +300,47 @@ def compute_user_profile(
 
     # --- Resolve movie IDs to row indices and compute weights ---
     # Weight formula: (rating - 50) / 50 → maps [0, 100] to [-1.0, +1.0]
-    row_indices: list[int] = []
-    weights: list[float] = []
-    positive_row_indices: list[int] = []
+    # This centering ensures that a 50/100 rating has zero influence (neutral),
+    # while 100/100 = +1.0 (strong positive) and 0/100 = -1.0 (strong negative).
+    # The weighted average thus captures what the user likes AND dislikes.
+    row_indices: list[int] = []     # All rated movies (for preference vectors)
+    weights: list[float] = []       # Corresponding centered weights
+    positive_row_indices: list[int] = []  # Only liked movies (for runtime pref)
     positive_weights: list[float] = []
-    contra_row_indices: list[int] = []
+    contra_row_indices: list[int] = []    # Disliked + dismissed (for contra vec)
 
     for movie_id, rating in ratings.items():
         row = _movie_id_to_row(movie_id, index)
         if row is None:
             continue  # Movie not in precomputed arrays (e.g., very new movie)
 
+        # Center the rating: 50 → 0.0, 100 → +1.0, 0 → -1.0
         w = (rating - 50) / 50.0
         row_indices.append(row)
         weights.append(w)
 
-        # Positive ratings (> 50) for runtime preference
+        # Positive ratings (> 50) contribute to runtime preference.
+        # Runtime pref uses only liked movies to compute average preferred length.
         if rating > POSITIVE_THRESHOLD:
             positive_row_indices.append(row)
             positive_weights.append(w)
 
-        # Low ratings (0-30) for contra vector
+        # Low ratings (0-30) indicate dislike — these movies contribute to the
+        # contra vector, which penalizes thematically similar candidates.
         if rating <= CONTRA_THRESHOLD:
             contra_row_indices.append(row)
 
-    # Dismissed movies also contribute to the contra vector
+    # Dismissed movies ("not interested" on Discover) are treated as negative
+    # signal in the contra vector, same as ratings ≤ 30.
     for movie_id in dismissed:
         row = _movie_id_to_row(movie_id, index)
         if row is not None:
             contra_row_indices.append(row)
 
     # --- Compute weighted-average profile vectors ---
+    # Each call produces a single vector representing the user's "center of
+    # gravity" in that feature space. _weighted_average handles zero-weight
+    # and empty-index edge cases by returning a zero vector.
     keyword_vec = _weighted_average(model.keyword_svd, row_indices, weights)
     genre_vec = _weighted_average(model.genre_vectors, row_indices, weights)
     director_vec = _weighted_average(model.director_svd, row_indices, weights)

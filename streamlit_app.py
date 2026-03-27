@@ -1,8 +1,19 @@
-"""Movie Recommender — Main entry point.
+"""Movie Recommender — Main entry point and Streamlit app configuration.
 
-Configures the Streamlit app, initializes the database, loads persisted data
-into session state, backfills missing movie details, and sets up multi-page
-navigation with top positioning.
+This module is the single entry point for the Streamlit application. It runs
+on every page load / rerun and handles:
+
+1. Page configuration (title, icon, layout) — must be the first st.* call
+2. Database initialization (CREATE TABLE IF NOT EXISTS for all 8 tables)
+3. Session state hydration (load ratings, watchlist, dismissed, subscriptions
+   from SQLite into st.session_state on the first run of each session)
+4. Detail backfill (fetch TMDB details for ratings without cached metadata)
+5. CSS injection for right-aligned navigation tabs (Statistics, Settings)
+6. Multi-page navigation setup (5 pages via st.navigation with top position)
+
+Dependencies:
+    app.utils.db: database initialization and data loading functions
+    app.utils.tmdb: TMDB API client for detail backfill
 """
 from __future__ import annotations
 

@@ -2,7 +2,7 @@
 
 App utilities: SQLite persistence (`db.py`) and TMDB API client (`tmdb.py`).
 
-Full TMDB API reference (all endpoints with JSON examples): `docs/archive/TMDB_API.md`
+Used endpoints and caching strategy documented below. Full TMDB API reference: [developer.themoviedb.org](https://developer.themoviedb.org/reference/)
 
 ---
 

@@ -9,10 +9,10 @@ Offline feature extraction from `tmdb.sqlite` into `.npy` arrays. No ML models �
 ```
 data/input/tmdb.sqlite (7.7 GB, offline only)
     |
-    |  ml/extraction/01_extract_features.py
-    |  ml/classification/02_predict_moods.py
-    |  ml/extraction/03_quality_scores.py
-    |  ml/extraction/04_build_index.py
+    |  ml/extraction/extract_features.py
+    |  ml/classification/predict_moods.py
+    |  ml/extraction/quality_scores.py
+    |  ml/extraction/build_index.py
     |
     v
 data/output/ (~3 GB, shipped to production)
@@ -39,7 +39,7 @@ are loaded into memory for scoring.
 
 ## Stage 1: Feature Extraction
 
-**Script:** `01_extract_features.py`
+**Script:** `extract_features.py`
 
 **Input:** `data/input/tmdb.sqlite`
 
@@ -74,7 +74,7 @@ high-dimensional sparse features via SVD.
 
 ## Stage 3: Quality Scores
 
-**Script:** `03_quality_scores.py`
+**Script:** `quality_scores.py`
 
 **Input:** `data/input/tmdb.sqlite` (`movies.vote_average`, `movies.vote_count`)
 
@@ -96,7 +96,7 @@ Where `v` = vote_count, `R` = vote_average. A movie with 1 vote and
 
 ## Stage 4: Build Index
 
-**Script:** `04_build_index.py`
+**Script:** `build_index.py`
 
 Saves the final mappings:
 
@@ -113,13 +113,13 @@ Verifies all 14 pipeline outputs exist and have consistent row counts.
 
 ```bash
 # Full pipeline (takes several hours for mood prediction)
-python3 ml/extraction/01_extract_features.py --db data/input/tmdb.sqlite --output data/output/
-python3 ml/classification/02_predict_moods.py --db data/input/tmdb.sqlite --output data/output/
-python3 ml/extraction/03_quality_scores.py --db data/input/tmdb.sqlite --output data/output/
-python3 ml/extraction/04_build_index.py --output data/output/
+python3 ml/extraction/extract_features.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/classification/predict_moods.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/extraction/quality_scores.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/extraction/build_index.py --output data/output/
 ```
 
-Run order: `01` + `03` (parallel) → `keyword_mood_classifier` → `02` → `04`.
+Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `predict_moods` → `build_index`.
 Each stage is idempotent and can be re-run independently.
 
 ---
@@ -128,10 +128,10 @@ Each stage is idempotent and can be re-run independently.
 
 | File | Status | Content |
 |---|---|---|
-| `ml/extraction/01_extract_features.py` | DONE | Stage 1: tmdb.sqlite -> SVD/onehot -> .npy |
-| `ml/classification/02_predict_moods.py` | DONE | Stage 2: genre/keyword/emotion -> mood_scores.npy |
-| `ml/extraction/03_quality_scores.py` | DONE | Stage 3: Bayesian average -> quality_scores.npy |
-| `ml/extraction/04_build_index.py` | DONE | Stage 4: movie_id_index.json + verification |
+| `ml/extraction/extract_features.py` | DONE | Stage 1: tmdb.sqlite -> SVD/onehot -> .npy |
+| `ml/classification/predict_moods.py` | DONE | Stage 2: genre/keyword/emotion -> mood_scores.npy |
+| `ml/extraction/quality_scores.py` | DONE | Stage 3: Bayesian average -> quality_scores.npy |
+| `ml/extraction/build_index.py` | DONE | Stage 4: movie_id_index.json + verification |
 | `ml/classification/keyword_mood_classifier.py` | DONE | Keyword-to-mood: train classifier, infer 70K+ |
 | `ml/scoring/scoring.py` | DONE | Scoring formula, dynamic weights, cosine similarity |
 | `ml/scoring/mood_filter.py` | DONE | Local mood filter against mood_scores.npy |

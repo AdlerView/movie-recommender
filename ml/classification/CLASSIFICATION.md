@@ -1,10 +1,10 @@
 # CLASSIFICATION
 
-ML classification models: keyword-to-mood classifier (`keyword_mood_classifier.py`) and mood score prediction (`02_predict_moods.py`).
+ML classification models: keyword-to-mood classifier (`keyword_mood_classifier.py`) and mood score prediction (`predict_moods.py`).
 
 ---
 
-## Mood Score Prediction (02_predict_moods.py)
+## Mood Score Prediction (predict_moods.py)
 
 For each of the 1.17M movies, predicts 7 mood probabilities by combining 4 signals.
 
@@ -125,7 +125,7 @@ Keywords can be: **single** (one mood), **multi** (2-3 moods), or **none** (Unca
 
 ### Stage 1: Initial Labeling (Top 5000 Keywords)
 
-File: `data/input/tmdb-keyword-frequencies_labeled_top5000.tsv`
+File: `data/input/labeled_keywords.tsv`
 
 The top 5000 keywords (by movie_count) were labeled with mood assignments. Each keyword received:
 - `assigned_moods`: comma-separated mood list (canonical order: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry)
