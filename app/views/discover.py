@@ -11,11 +11,14 @@ movie info with "Add to watchlist" and "Not interested" actions.
 """
 from __future__ import annotations
 
+import sqlite3
+
 import requests
 import streamlit as st
 from app.utils.db import (
     load_preference,
     save_dismissed,
+    save_movie_details,
     save_to_watchlist,
 )
 from app.utils.tmdb import (
@@ -25,6 +28,7 @@ from app.utils.tmdb import (
     get_genre_map,
     get_languages,
     get_movie_details,
+    get_movie_keywords,
     poster_url,
     search_keywords,
 )
@@ -76,6 +80,17 @@ _genre_name_to_id = {name: gid for gid, name in genre_map.items()}
 # SIDEBAR — Filter controls
 # ============================================================
 
+    # --- Sidebar widget defaults (set once, then managed via session state) ---
+# Using setdefault so _reset_sidebar() can write to session state without
+# conflicting with widget `value=` parameters (Streamlit DuplicateValue warning).
+st.session_state.setdefault("discover_genre", [])
+st.session_state.setdefault("discover_year", (1900, 2026))
+st.session_state.setdefault("discover_runtime", (0, 360))
+st.session_state.setdefault("discover_rating", (0.0, 10.0))
+st.session_state.setdefault("discover_min_votes", 50)
+st.session_state.setdefault("discover_certification", "Any")
+st.session_state.setdefault("discover_keyword_query", "")
+
 with st.sidebar:
     st.header("Filters")
 
@@ -90,7 +105,7 @@ with st.sidebar:
     # --- Year range (slider instead of number_input — steppers work reliably) ---
     year_range = st.slider(
         "Year", min_value=1900, max_value=2026,
-        value=(1900, 2026), key="discover_year",
+        key="discover_year",
     )
     year_from = year_range[0] if year_range[0] > 1900 else None
     year_to = year_range[1] if year_range[1] < 2026 else None
@@ -98,19 +113,19 @@ with st.sidebar:
     # --- Runtime range slider ---
     runtime_range = st.slider(
         "Runtime (min)", min_value=0, max_value=360,
-        value=(0, 360), step=10, key="discover_runtime",
+        step=10, key="discover_runtime",
     )
 
     # --- Rating range slider ---
     rating_range = st.slider(
         "Rating", min_value=0.0, max_value=10.0,
-        value=(0.0, 10.0), step=0.5, key="discover_rating",
+        step=0.5, key="discover_rating",
     )
 
     # --- Min votes slider ---
     min_votes = st.slider(
         "Min votes", min_value=0, max_value=500,
-        value=50, step=10, key="discover_min_votes",
+        step=10, key="discover_min_votes",
     )
 
     # --- Certification dropdown ---
@@ -537,6 +552,15 @@ def _show_detail_dialog(movie_id: int) -> None:
                      use_container_width=True):
             st.session_state.dismissed.add(movie_id)
             save_dismissed(movie_id)
+            # Eager fetch: cache details + keywords in single write
+            try:
+                _kw = get_movie_keywords(movie_id)
+            except requests.RequestException:
+                _kw = None
+            try:
+                save_movie_details(movie_id, details, keywords=_kw)
+            except sqlite3.Error:
+                pass
             st.session_state._discover_selected_id = None
             st.session_state["_discover_toast"] = (
                 f"Skipped **{details.get('title', '')}**",
@@ -558,6 +582,15 @@ def _show_detail_dialog(movie_id: int) -> None:
             if movie_id not in {m["id"] for m in st.session_state.watchlist}:
                 st.session_state.watchlist.append(_movie_dict)
                 save_to_watchlist(_movie_dict)
+            # Eager fetch: cache details + keywords in single write
+            try:
+                _kw = get_movie_keywords(movie_id)
+            except requests.RequestException:
+                _kw = None
+            try:
+                save_movie_details(movie_id, details, keywords=_kw)
+            except sqlite3.Error:
+                pass
             st.session_state._discover_selected_id = None
             st.session_state["_discover_toast"] = (
                 f"Added **{details.get('title', '')}** to watchlist",
