@@ -242,22 +242,3 @@ def get_movie_keywords(movie_id: int) -> list[dict]:
     # GET /movie/{id}/keywords — thematic tags for content analysis
     return _get(f"/movie/{movie_id}/keywords")["keywords"]
 
-
-@st.cache_data(ttl="1h", show_spinner=False)
-def get_watch_providers(movie_id: int, region: str = "CH") -> list[dict]:
-    """Fetch flatrate streaming providers for a movie in a given region.
-
-    Args:
-        movie_id: TMDB movie ID.
-        region: ISO 3166-1 country code (default: CH for Switzerland).
-
-    Returns:
-        List of provider dicts with "provider_name" and "logo_path" keys.
-        Empty list if no flatrate providers are available in the region.
-    """
-    # GET /movie/{id}/watch/providers — streaming availability per country
-    data = _get(f"/movie/{movie_id}/watch/providers")
-    # Response is keyed by ISO 3166-1 country code (e.g., "CH", "DE", "US")
-    country = data.get("results", {}).get(region, {})
-    # Return only flatrate (subscription) providers; ignore rent/buy/ads
-    return country.get("flatrate", [])

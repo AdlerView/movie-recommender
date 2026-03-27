@@ -31,7 +31,7 @@ from ml.scoring.user_profile import MOOD_IDX, get_model
 
 log = logging.getLogger(__name__)
 
-# Threshold settings (from FILTER.md)
+# Threshold settings (from SCORING.md)
 _INITIAL_THRESHOLD: Final[float] = 0.3
 _FALLBACK_THRESHOLDS: Final[list[float]] = [0.2, 0.1, 0.0]
 _MIN_RESULTS: Final[int] = 20

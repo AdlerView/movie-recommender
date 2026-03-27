@@ -71,7 +71,6 @@ to combine 4 requests into 1. Max 20 appended requests per call.
 |---|---|---|
 | `get_movie_details(movie_id)` | `GET /movie/{id}?append_to_response=credits,videos,watch/providers` | Full details + `credits.cast[]` (id, name, character, order) + `credits.crew[]` (id, name, job) + `videos.results[]` (key, site, type) + `watch/providers.results.{CC}.flatrate[]` |
 | `get_movie_keywords(movie_id)` | `GET /movie/{id}/keywords` | `[{id, name}]` — thematic tags |
-| `get_watch_providers(movie_id, region)` | `GET /movie/{id}/watch/providers` | `[{provider_name, logo_path}]` — flatrate only |
 
 **Discover parameter logic:** Comma = AND, pipe = OR. `with_genres=53,18` (both), `with_keywords=10349|285685` (any). `certification.lte` uses the `order` field from certification list, not numeric value.
 

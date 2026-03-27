@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Created:** 2026-03-23
-**Updated:** 2026-03-26
+**Updated:** 2026-03-27
 
 ---
 

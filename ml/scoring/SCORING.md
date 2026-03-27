@@ -4,7 +4,7 @@ Personalized scoring system for the movie recommender. Defines how
 candidate movies are ranked after TMDB API filtering.
 
 **Created:** 2026-03-26
-**Updated:** 2026-03-26
+**Updated:** 2026-03-27
 
 ---
 
