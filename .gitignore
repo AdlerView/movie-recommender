@@ -72,6 +72,8 @@ Thumbs.db
 
 # Data — large files (fast to regenerate from ML pipeline scripts)
 data/input/tmdb.sqlite
+data/input/tmdb.sqlite-shm
+data/input/tmdb.sqlite-wal
 data/user.sqlite
 data/user.sqlite-shm
 data/user.sqlite-wal
