@@ -195,14 +195,20 @@ try:
         if not page_movies:
             has_more = False
             break
-        # Filter per page: remove poster-less and duplicate movies.
-        # Rated movies are excluded from browse (already rated = not actionable)
-        # but kept in search results (allows re-rating via search).
+        # Filter per page: remove poster-less, duplicates, and already-seen movies.
+        # Browse grid excludes rated + dismissed + watchlisted (same policy as Discover).
+        # Search results keep rated movies (allows re-rating via search).
         seen_ids = {m["id"] for m in movies}
+        _dismissed = st.session_state.dismissed
+        _watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
         page_movies = [
             m for m in page_movies
             if m.get("poster_path") and m["id"] not in seen_ids
-            and (current_query or m["id"] not in rated_ids)
+            and (current_query or (
+                m["id"] not in rated_ids
+                and m["id"] not in _dismissed
+                and m["id"] not in _watchlisted_ids
+            ))
         ]
         movies.extend(page_movies)
         # TMDB returns 20 per page; fewer means we've reached the last page
