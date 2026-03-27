@@ -363,15 +363,10 @@ def save_profile_to_cache(profile: UserProfile) -> None:
     Args:
         profile: Computed user profile to cache.
     """
-    from app.utils.db import _connection
+    from app.utils.db import save_profile_cache
 
     blob = pickle.dumps(profile)
-    with _connection() as conn:
-        conn.execute(
-            "INSERT OR REPLACE INTO user_profile_cache (key, value) VALUES (?, ?)",
-            ("user_profile", blob),
-        )
-        conn.commit()
+    save_profile_cache("user_profile", blob)
     log.info("User profile cached (%d bytes)", len(blob))
 
 
@@ -381,19 +376,14 @@ def load_profile_from_cache() -> UserProfile | None:
     Returns:
         Cached UserProfile, or None if no cache exists.
     """
-    from app.utils.db import _connection
+    from app.utils.db import load_profile_cache
 
-    with _connection() as conn:
-        row = conn.execute(
-            "SELECT value FROM user_profile_cache WHERE key = ?",
-            ("user_profile",),
-        ).fetchone()
-
-    if row is None:
+    blob = load_profile_cache("user_profile")
+    if blob is None:
         return None
 
     try:
-        profile = pickle.loads(row["value"])
+        profile = pickle.loads(blob)
         if isinstance(profile, UserProfile):
             log.info("User profile loaded from cache (%d ratings)", profile.rating_count)
             return profile

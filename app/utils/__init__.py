@@ -162,14 +162,12 @@ def render_rating_widget(
     </style>""")
 
     # Mood reaction pills (optional, multi-select)
+    from ml.scoring.user_profile import MOODS
+
     st.caption("**How did this movie make you feel?** (optional)")
-    _mood_options = [
-        "Happy", "Interested", "Surprised", "Sad",
-        "Disgusted", "Afraid", "Angry",
-    ]
     selected_moods = st.pills(
         "Mood",
-        options=_mood_options,
+        options=MOODS,
         selection_mode="multi",
         key=f"{key_prefix}_moods_{movie_id}",
         label_visibility="collapsed",
@@ -251,7 +249,7 @@ def _format_release_date(details: dict, country_code: str) -> str | None:
     return None
 
 
-def _find_best_trailer(details: dict) -> dict | None:
+def find_best_trailer(details: dict) -> dict | None:
     """Find the best trailer from the videos results.
 
     Prefers official YouTube trailers, sorted by publish date (newest first).
@@ -382,7 +380,7 @@ def render_watchlist_detail(details: dict) -> None:
         )
 
     # Trailer (no header — flows directly under runtime/logos)
-    trailer = _find_best_trailer(details)
+    trailer = find_best_trailer(details)
     if trailer:
         st.video(f"https://www.youtube.com/watch?v={trailer['key']}")
 
@@ -418,7 +416,7 @@ def render_movie_detail_bottom(
     """
     # === Trailer section: YouTube embed ===
     if show_trailer:
-        trailer = _find_best_trailer(details)
+        trailer = find_best_trailer(details)
         if trailer:
             st.video(f"https://www.youtube.com/watch?v={trailer['key']}")
 

@@ -374,6 +374,41 @@ def delete_preference(key: str) -> None:
         conn.commit()
 
 
+# --- Profile Cache ---
+
+
+def save_profile_cache(key: str, value: bytes) -> None:
+    """Save a BLOB value to the user_profile_cache table.
+
+    Args:
+        key: Cache key (e.g., "user_profile").
+        value: Serialized bytes to store.
+    """
+    with _connection() as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO user_profile_cache (key, value) VALUES (?, ?)",
+            (key, value),
+        )
+        conn.commit()
+
+
+def load_profile_cache(key: str) -> bytes | None:
+    """Load a BLOB value from the user_profile_cache table.
+
+    Args:
+        key: Cache key to look up.
+
+    Returns:
+        Stored bytes, or None if the key does not exist.
+    """
+    with _connection() as conn:
+        row = conn.execute(
+            "SELECT value FROM user_profile_cache WHERE key = ?",
+            (key,),
+        ).fetchone()
+    return row["value"] if row else None
+
+
 # --- Movie Details (single table with JSON columns) ---
 
 

@@ -40,8 +40,8 @@ from ml.scoring import filter_by_mood, get_or_compute_profile, score_candidates
 _GRID_COLS = 5
 # Movies per TMDB API page
 _TMDB_PAGE_SIZE = 20
-# 7 Ekman mood categories
-_MOODS = ["Happy", "Interested", "Surprised", "Sad", "Disgusted", "Afraid", "Angry"]
+# 7 Ekman mood categories (canonical source: ml.scoring.user_profile.MOODS)
+from ml.scoring.user_profile import MOODS as _MOODS
 # Genre pill order optimized for sidebar width (shorter names grouped together)
 _GENRE_ORDER = [
     "War", "Music", "Crime",
@@ -495,14 +495,14 @@ if st.session_state._discover_selected_id is not None:
     def _show_discover_dialog() -> None:
         """Discover detail dialog: metadata, trailer, actions, reviews."""
         from app.utils import (
-            _find_best_trailer,
+            find_best_trailer,
             render_discover_detail,
             render_movie_detail_bottom,
         )
         render_discover_detail(_details)
 
         # Trailer before action buttons (watch first, decide after)
-        _trailer = _find_best_trailer(_details)
+        _trailer = find_best_trailer(_details)
         if _trailer:
             st.video(f"https://www.youtube.com/watch?v={_trailer['key']}")
 
