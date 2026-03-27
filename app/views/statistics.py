@@ -26,6 +26,15 @@ from app.utils.db import (
     load_user_vs_tmdb,
 )
 
+# KPI metric values: use Poppins Light (300) for a premium dashboard look.
+# Large numbers at Regular (400) feel flat — Light weight creates visual
+# hierarchy where the number dominates without appearing heavy.
+st.html("""<style>
+    [data-testid="stMetricValue"] div {
+        font-weight: 300 !important;
+    }
+</style>""")
+
 # --- Load aggregated stats from SQLite (single query with JOIN) ---
 stats = load_stats_summary()
 

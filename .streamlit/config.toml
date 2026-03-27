@@ -8,19 +8,13 @@ toolbarMode = "minimal"
 [browser]
 gatherUsageStats = false
 
-# --- Poppins font faces (all 18 weights) ---
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-Thin.ttf"
-style = "normal"
-weight = "100"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-ExtraLight.ttf"
-style = "normal"
-weight = "200"
+# --- Poppins font faces (6 used weights) ---
+# Light:     KPI metric values on Statistics (via CSS font-weight: 300)
+# Regular:   Body text, captions, labels, buttons, inputs, table cells
+# Italic:    Tagline in Discover detail dialog (*tagline* → <em>)
+# Medium:    H2-H6 subheaders (headingFontWeights)
+# SemiBold:  H1 headers, active nav tab (headingFontWeights[0])
+# Bold:      Markdown **bold** in captions (person names, labels)
 
 [[theme.fontFaces]]
 family = "Poppins"
@@ -32,6 +26,12 @@ weight = "300"
 family = "Poppins"
 url = "static/Poppins-Regular.ttf"
 style = "normal"
+weight = "400"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "static/Poppins-Italic.ttf"
+style = "italic"
 weight = "400"
 
 [[theme.fontFaces]]
@@ -51,72 +51,6 @@ family = "Poppins"
 url = "static/Poppins-Bold.ttf"
 style = "normal"
 weight = "700"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-ExtraBold.ttf"
-style = "normal"
-weight = "800"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-Black.ttf"
-style = "normal"
-weight = "900"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-ThinItalic.ttf"
-style = "italic"
-weight = "100"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-ExtraLightItalic.ttf"
-style = "italic"
-weight = "200"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-LightItalic.ttf"
-style = "italic"
-weight = "300"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-Italic.ttf"
-style = "italic"
-weight = "400"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-MediumItalic.ttf"
-style = "italic"
-weight = "500"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-SemiBoldItalic.ttf"
-style = "italic"
-weight = "600"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-BoldItalic.ttf"
-style = "italic"
-weight = "700"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-ExtraBoldItalic.ttf"
-style = "italic"
-weight = "800"
-
-[[theme.fontFaces]]
-family = "Poppins"
-url = "static/Poppins-BlackItalic.ttf"
-style = "italic"
-weight = "900"
 
 # --- Cinema Gold theme (dark base, warm copper/gold accent) ---
 
