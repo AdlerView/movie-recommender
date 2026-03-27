@@ -10,7 +10,6 @@ import requests
 import streamlit as st
 
 # TMDB API v3 base URL and image CDN base
-API_KEY: str = st.secrets["TMDB_API_KEY"]
 BASE_URL = "https://api.themoviedb.org/3"
 IMAGE_BASE = "https://image.tmdb.org/t/p"
 
@@ -38,8 +37,8 @@ def _get(
     # Merge extra params (for dotted keys like "vote_count.gte") into kwargs
     if extra:
         params.update(extra)
-    # Inject API key into every request automatically
-    params["api_key"] = API_KEY
+    # Inject API key into every request (lazy access avoids crash on import)
+    params["api_key"] = st.secrets["TMDB_API_KEY"]
     response = requests.get(f"{BASE_URL}{path}", params=params, timeout=10)
     response.raise_for_status()  # Raises HTTPError for 4xx/5xx responses
     return response.json()

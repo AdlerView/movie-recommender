@@ -27,6 +27,7 @@ Data flow:
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import pickle
@@ -155,6 +156,38 @@ def is_model_available(output_dir: Path = _DEFAULT_OUTPUT_DIR) -> bool:
 # User profile
 # ---------------------------------------------------------------------------
 
+
+def _compute_fingerprint(
+    ratings: dict[int, int],
+    mood_reactions: dict[int, list[str]],
+    dismissed: set[int],
+) -> str:
+    """Compute a hash fingerprint of the input data for cache invalidation.
+
+    Changes to any rating value, mood reaction, or dismissed movie will
+    produce a different fingerprint, triggering profile recomputation.
+
+    Args:
+        ratings: movie_id → rating dict.
+        mood_reactions: movie_id → mood list dict.
+        dismissed: set of dismissed movie IDs.
+
+    Returns:
+        Hex digest string (MD5, 32 chars).
+    """
+    h = hashlib.md5(usedforsecurity=False)
+    # Sorted ratings: captures both count and values
+    for mid, rating in sorted(ratings.items()):
+        h.update(f"{mid}:{rating}".encode())
+    # Sorted mood reactions
+    for mid, moods in sorted(mood_reactions.items()):
+        h.update(f"{mid}:{','.join(sorted(moods))}".encode())
+    # Sorted dismissed
+    for mid in sorted(dismissed):
+        h.update(f"d:{mid}".encode())
+    return h.hexdigest()
+
+
 @dataclass
 class UserProfile:
     """Personalized user profile computed from rating history.
@@ -174,6 +207,7 @@ class UserProfile:
         implicit_mood: Normalized frequency of mood tags from reactions (7-dim).
         contra_vec: Average keyword SVD vector from disliked/dismissed movies (200-dim).
         rating_count: Number of rated movies (determines dynamic weight tier).
+        fingerprint: Hash of input data (ratings + moods + dismissed) for cache invalidation.
     """
 
     keyword_vec: np.ndarray
@@ -186,6 +220,7 @@ class UserProfile:
     implicit_mood: np.ndarray
     contra_vec: np.ndarray
     rating_count: int
+    fingerprint: str = ""
 
 
 def _movie_id_to_row(movie_id: int, index: dict[str, int]) -> int | None:
@@ -347,6 +382,7 @@ def compute_user_profile(
         implicit_mood=implicit_mood,
         contra_vec=contra_vec,
         rating_count=len(ratings),
+        fingerprint=_compute_fingerprint(ratings, mood_reactions, dismissed),
     )
 
 
@@ -421,14 +457,19 @@ def get_or_compute_profile(
 
     if ratings is None:
         ratings = load_ratings()
+    if mood_reactions is None:
+        mood_reactions = load_mood_reactions()
+    if dismissed is None:
+        dismissed = load_dismissed()
 
     if not ratings:
         return None
 
-    # Check cache validity (rating count must match)
+    # Check cache validity via fingerprint (captures rating values, moods, dismissals)
+    current_fp = _compute_fingerprint(ratings, mood_reactions, dismissed)
     if not force_recompute:
         cached = load_profile_from_cache()
-        if cached is not None and cached.rating_count == len(ratings):
+        if cached is not None and cached.fingerprint == current_fp:
             return cached
 
     # Recompute
