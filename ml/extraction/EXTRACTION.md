@@ -7,7 +7,7 @@ Offline feature extraction from `tmdb.sqlite` into `.npy` arrays. No ML models â
 ## Pipeline Architecture
 
 ```
-data/input/tmdb.sqlite (8.2 GB, offline only)
+data/input/tmdb.sqlite (7.7 GB, offline only)
     |
     |  ml/extraction/01_extract_features.py
     |  ml/classification/02_predict_moods.py
@@ -32,7 +32,7 @@ data/output/ (~3 GB, shipped to production)
     actor_svd.pkl
 ```
 
-The 8.2 GB database is never queried at runtime. Only the model files
+The 7.7 GB database is never queried at runtime. Only the model files
 are loaded into memory for scoring.
 
 ---

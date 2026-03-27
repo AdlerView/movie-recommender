@@ -47,7 +47,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 Tech stack overview is in README.md. Agent-relevant details only:
 
 - **API key:** `.streamlit/secrets.toml` (gitignored). Use `append_to_response` for combined TMDB calls.
-- **SQLite tables:** user_ratings (INTEGER 0-100), user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache, movie_details (scalar metadata + JSON columns: genres, cast_members top 20, crew_members top 20 deduped, countries, keywords). `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) — offline only.
+- **SQLite tables:** user_ratings (INTEGER 0-100), user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache, movie_details (scalar metadata + JSON columns: genres, cast_members top 20, crew_members top 20 deduped, countries, keywords). `data/input/tmdb.sqlite` (7.7 GB, 1.17M movies, 30 tables) — offline only.
 - **ML signals:** 7 mood categories (TMDB Vibes / Ekman: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Two classification tasks: (1) user preference (liked/disliked), (2) keyword-to-mood. Features: keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime. Mood scores: genre→mood + keyword→mood + overview emotion + review emotion.
 - **Runtime data:** Precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
 
@@ -121,7 +121,7 @@ movie-recommender/
 ├── data/                                   # PARTIAL — Pipeline data
 │   ├── input/                              # Pipeline inputs (sources, training data, rules)
 │   │   ├── INPUT.md                        # Directory documentation
-│   │   ├── tmdb.sqlite                     # GITIGNORED — Offline TMDB database (8.2 GB)
+│   │   ├── tmdb.sqlite                     # GITIGNORED — Offline TMDB database (7.7 GB)
 │   │   ├── tmdb-keyword-frequencies_labeled_top5000.tsv  # tracked — 5K keywords with mood labels
 │   │   └── genre_mood_map.json             # tracked — 19 genre → mood rules (hand-crafted)
 │   ├── output/                             # Pipeline outputs (feature arrays, models, mappings)

@@ -397,25 +397,6 @@ def render_watchlist_detail(details: dict) -> None:
         )
 
 
-def _render_streaming_logos(details: dict, country_code: str) -> None:
-    """Render streaming provider logos for a country.
-
-    Args:
-        details: Full TMDB movie details dict.
-        country_code: ISO 3166-1 country code.
-    """
-    providers_data = details.get("watch/providers", {}).get("results", {})
-    country_data = providers_data.get(country_code, {})
-    flatrate = country_data.get("flatrate", [])
-    if flatrate:
-        st.caption("**Streaming**")
-        provider_cols = st.columns(min(len(flatrate), 6))
-        for i, p in enumerate(flatrate):
-            with provider_cols[i % len(provider_cols)]:
-                logo = poster_url(p.get("logo_path"), size="w92")
-                if logo:
-                    st.image(logo, width=40)
-
 
 def render_movie_detail_bottom(
     details: dict,

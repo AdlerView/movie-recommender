@@ -1,4 +1,5 @@
 """Academic ML evaluation: classifier comparison, cross-validation, plots."""
+from __future__ import annotations
 from ml.evaluation.ml_eval import (
     best_model_report,
     evaluate_classifiers,

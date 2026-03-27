@@ -80,7 +80,7 @@ _genre_name_to_id = {name: gid for gid, name in genre_map.items()}
 # SIDEBAR — Filter controls
 # ============================================================
 
-    # --- Sidebar widget defaults (set once, then managed via session state) ---
+# --- Sidebar widget defaults (set once, then managed via session state) ---
 # Using setdefault so _reset_sidebar() can write to session state without
 # conflicting with widget `value=` parameters (Streamlit DuplicateValue warning).
 st.session_state.setdefault("discover_genre", [])

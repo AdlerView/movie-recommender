@@ -69,7 +69,7 @@ User clicks "Discover"
 
 ## Scoring Formula
 
-Only used when sort order is "Personalized Score".
+Only used when sort order is "Personalized".
 
 ```
 final_score(movie) =
@@ -295,6 +295,6 @@ user_profile = {
 
 ## Performance
 
-Scoring 300 candidates takes ~50ms on a single CPU core using numpy
+Scoring 300 candidates takes ~8ms on a single CPU core using numpy
 vectorized operations. No GPU required. The bottleneck is the TMDB API
 calls (~500ms), not the scoring.
