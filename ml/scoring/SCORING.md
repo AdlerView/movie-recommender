@@ -274,7 +274,7 @@ All rows sum to 1.00. The transition is smooth -- no hard cutoffs.
 
 ## User Profile Computation
 
-Recomputed after each new rating. Cached in `user_profile_cache`.
+Recomputed when input data changes. Cached in `user_profile_cache` with an MD5 fingerprint over ratings + mood reactions + dismissed set. Re-ratings, mood tag changes, and new dismissals all trigger recomputation.
 
 ```python
 weights = [(rating - 50) / 50 for rating in user_ratings]

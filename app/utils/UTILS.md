@@ -12,8 +12,9 @@ Full TMDB API reference (all endpoints with JSON examples): `docs/archive/TMDB_A
 
 ### Authentication
 
-API key via query parameter: `params["api_key"] = st.secrets["TMDB_API_KEY"]`.
-Injected automatically by `_get()`. Rate limit: ~40 req/s, respect HTTP 429.
+API key via query parameter, injected lazily inside `_get()` on each request
+(not at module import — avoids crash when `secrets.toml` is missing).
+Rate limit: ~40 req/s, respect HTTP 429.
 
 ---
 
@@ -202,7 +203,7 @@ watchlist (movie_id PK, title, poster_path, vote_average, overview, genre_ids, a
 dismissed (movie_id PK, dismissed_at)
 user_subscriptions (provider_id PK, iso_3166_1)
 user_preferences (key PK, value TEXT)
-user_profile_cache (key PK, value BLOB)
+user_profile_cache (key PK, value BLOB) — accessed via save_profile_cache() / load_profile_cache()
 ```
 
 **Movie details (single table with JSON columns):**
