@@ -41,20 +41,21 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Dynamic weight table (from SCORING.md)
 # ---------------------------------------------------------------------------
-# Columns: keyword, mood, genre, director, actor, decade, language, runtime, quality, contra
-# Each row sums to 1.0.
+# Columns: keyword, mood, genre, director, actor, decade, language, runtime, popularity, quality, contra
+# Each row sums to 1.0. Rebalanced: genre↑, popularity new, director↓, keyword↓.
 
 _WEIGHT_TABLE: Final[dict[str, np.ndarray]] = {
-    "cold":  np.array([0.00, 0.40, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.60, 0.00], dtype=np.float32),
-    "few":   np.array([0.08, 0.25, 0.02, 0.05, 0.03, 0.02, 0.01, 0.01, 0.50, 0.03], dtype=np.float32),
-    "mid":   np.array([0.16, 0.22, 0.04, 0.12, 0.08, 0.04, 0.02, 0.02, 0.20, 0.10], dtype=np.float32),
-    "full":  np.array([0.20, 0.20, 0.05, 0.15, 0.10, 0.05, 0.03, 0.02, 0.10, 0.10], dtype=np.float32),
+    #              kw    mood  genre dir   act   dec   lang  run   pop   qual  contra
+    "cold":  np.array([0.00, 0.35, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.65, 0.00], dtype=np.float32),
+    "few":   np.array([0.06, 0.20, 0.06, 0.04, 0.03, 0.02, 0.01, 0.01, 0.04, 0.50, 0.03], dtype=np.float32),
+    "mid":   np.array([0.10, 0.18, 0.12, 0.07, 0.06, 0.04, 0.02, 0.02, 0.07, 0.22, 0.10], dtype=np.float32),
+    "full":  np.array([0.12, 0.18, 0.15, 0.07, 0.07, 0.03, 0.03, 0.03, 0.08, 0.10, 0.14], dtype=np.float32),
 }
 
-# Signal names in the same order as the weight columns
+# Signal names in the same order as the weight columns (11 signals)
 SIGNAL_NAMES: Final[list[str]] = [
     "keyword", "mood", "genre", "director", "actor", "decade",
-    "language", "runtime", "quality", "contra",
+    "language", "runtime", "popularity", "quality", "contra",
 ]
 
 
@@ -220,31 +221,40 @@ def score_candidates(
         profile.language_vec, model.language_vectors[rows],
     )
 
-    # --- Signal 8: Runtime similarity (weight 0.02) ---
+    # --- Signal 8: Runtime similarity (weight 0.03) ---
     # Distance-based: 1.0 = identical runtime preference, 0.0 = maximum diff.
     # Both user_pref and candidate runtime are already normalized to [0, 1]
-    # (runtime / 360 minutes). Low weight because runtime is a weak signal.
+    # (runtime / 360 minutes).
     candidate_runtimes = model.runtime_normalized[rows].flatten()  # (n,)
     runtime_sim = 1.0 - np.abs(profile.runtime_pref - candidate_runtimes)
     runtime_sim = runtime_sim.astype(np.float32)
 
-    # --- Signal 9: Quality score (weight 0.10) ---
+    # --- Signal 9: Popularity similarity (weight 0.08) ---
+    # Distance-based: captures mainstream vs niche preference. A user who
+    # rates mostly blockbusters gets a high popularity_pref; a user who
+    # rates indie films gets a low one. Candidates are scored by how close
+    # their popularity matches the user's preference.
+    candidate_pop = model.popularity_normalized[rows].flatten()  # (n,)
+    popularity_sim = 1.0 - np.abs(profile.popularity_pref - candidate_pop)
+    popularity_sim = popularity_sim.astype(np.float32)
+
+    # --- Signal 10: Quality score (weight 0.10) ---
     # Precomputed Bayesian average, already normalized to [0, 1].
     # Prevents movies with 1 vote and 10.0 average from outranking
-    # well-established films. Higher weight during cold start (0.60).
+    # well-established films. Higher weight during cold start (0.65).
     quality = model.quality_scores[rows].flatten()  # (n,)
 
-    # --- Signal 10: Contra penalty (weight 0.10) ---
+    # --- Signal 11: Contra penalty (weight 0.14) ---
     # Negative cosine similarity against the contra vector (average of
-    # keyword SVD vectors from movies rated ≤30/100 or dismissed).
-    # High similarity to disliked themes → negative score contribution.
+    # keyword SVD vectors from movies rated ≤30/100, dismissed, or removed
+    # from watchlist). High similarity to disliked themes → negative score.
     contra_raw = _batch_cosine_sim(
         profile.contra_vec, model.keyword_svd[rows],
     )
     contra_penalty = -contra_raw  # Negate so similar-to-disliked hurts the score
 
-    # --- Stack all 10 signals and compute the weighted sum ---
-    # signals matrix: (n_candidates, 10), weights vector: (10,)
+    # --- Stack all 11 signals and compute the weighted sum ---
+    # signals matrix: (n_candidates, 11), weights vector: (11,)
     # Final score = dot product of signals and dynamic weights per candidate
     signals = np.column_stack([
         keyword_sim,      # 0: thematic similarity via keyword SVD
@@ -255,8 +265,9 @@ def score_candidates(
         decade_sim,       # 5: era/decade preference
         language_sim,     # 6: original language preference
         runtime_sim,      # 7: runtime length preference
-        quality,          # 8: Bayesian quality baseline
-        contra_penalty,   # 9: penalty for disliked-theme similarity
+        popularity_sim,   # 8: mainstream vs niche preference
+        quality,          # 9: Bayesian quality baseline
+        contra_penalty,   # 10: penalty for disliked-theme similarity
     ])
 
     # Element-wise multiply then sum across signals for each candidate

@@ -138,7 +138,6 @@ with st.sidebar:
     selected_cert = st.pills(
         "Age rating",
         options=_cert_options,
-        default="Any",
         key="discover_certification",
     )
 

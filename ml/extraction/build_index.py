@@ -38,6 +38,7 @@ EXPECTED_NPY = [
     "decade_vectors.npy",
     "language_vectors.npy",
     "runtime_normalized.npy",
+    "popularity_normalized.npy",
     "mood_scores.npy",
     "quality_scores.npy",
 ]

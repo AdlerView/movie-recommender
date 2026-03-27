@@ -80,6 +80,7 @@ class _ModelArrays:
     decade_vectors: np.ndarray = field(default_factory=lambda: np.empty(0))
     language_vectors: np.ndarray = field(default_factory=lambda: np.empty(0))
     runtime_normalized: np.ndarray = field(default_factory=lambda: np.empty(0))
+    popularity_normalized: np.ndarray = field(default_factory=lambda: np.empty(0))
     mood_scores: np.ndarray = field(default_factory=lambda: np.empty(0))
     quality_scores: np.ndarray = field(default_factory=lambda: np.empty(0))
 
@@ -120,6 +121,7 @@ def _load_model_arrays(output_dir: Path = _DEFAULT_OUTPUT_DIR) -> _ModelArrays:
         decade_vectors=np.load(output_dir / "decade_vectors.npy"),
         language_vectors=np.load(output_dir / "language_vectors.npy"),
         runtime_normalized=np.load(output_dir / "runtime_normalized.npy"),
+        popularity_normalized=np.load(output_dir / "popularity_normalized.npy"),
         mood_scores=np.load(output_dir / "mood_scores.npy"),
         quality_scores=np.load(output_dir / "quality_scores.npy"),
     )
@@ -204,6 +206,7 @@ class UserProfile:
         decade_vec: Weighted average of decade onehot vectors (15-dim).
         language_vec: Weighted average of language onehot vectors (20-dim).
         runtime_pref: Weighted average runtime from positively-rated movies (scalar).
+        popularity_pref: Weighted average popularity from positively-rated movies (scalar).
         implicit_mood: Normalized frequency of mood tags from reactions (7-dim).
         contra_vec: Average keyword SVD vector from disliked/dismissed movies (200-dim).
         rating_count: Number of rated movies (determines dynamic weight tier).
@@ -217,6 +220,7 @@ class UserProfile:
     decade_vec: np.ndarray
     language_vec: np.ndarray
     runtime_pref: float
+    popularity_pref: float
     implicit_mood: np.ndarray
     contra_vec: np.ndarray
     rating_count: int
@@ -330,12 +334,26 @@ def compute_user_profile(
         if rating <= CONTRA_THRESHOLD:
             contra_row_indices.append(row)
 
-    # Dismissed movies ("not interested" on Discover) are treated as negative
-    # signal in the contra vector, same as ratings ≤ 30.
+    # Dismissed movies ("not interested" on Discover, or removed from watchlist)
+    # are treated as negative signal in the contra vector, same as ratings ≤ 30.
     for movie_id in dismissed:
         row = _movie_id_to_row(movie_id, index)
         if row is not None:
             contra_row_indices.append(row)
+
+    # Watchlisted movies are a weak positive signal: the user expressed interest
+    # by saving the movie, even though they haven't rated it yet. Weight +0.3
+    # (equivalent to a rating of 65 — interested but unconfirmed).
+    from app.utils.db import load_watchlist
+    _watchlist = load_watchlist()
+    _watchlist_weight = 0.3  # Mild positive: "I want to see this"
+    for movie in _watchlist:
+        row = _movie_id_to_row(movie["id"], index)
+        if row is not None and movie["id"] not in ratings:
+            # Only add watchlisted movies that haven't been rated yet
+            # (rated movies are already in row_indices with their actual weight)
+            row_indices.append(row)
+            weights.append(_watchlist_weight)
 
     # --- Compute weighted-average profile vectors ---
     # Each call produces a single vector representing the user's "center of
@@ -355,6 +373,16 @@ def compute_user_profile(
         )[0])
     else:
         runtime_pref = 0.0
+
+    # Popularity preference: weighted average from positively-rated movies.
+    # Captures whether the user prefers mainstream blockbusters (high popularity)
+    # or indie/niche films (low popularity).
+    if positive_row_indices:
+        popularity_pref = float(_weighted_average(
+            model.popularity_normalized, positive_row_indices, positive_weights,
+        )[0])
+    else:
+        popularity_pref = 0.0
 
     # Contra vector: simple average of keyword SVD vectors from disliked/dismissed
     if contra_row_indices:
@@ -389,6 +417,7 @@ def compute_user_profile(
         decade_vec=decade_vec,
         language_vec=language_vec,
         runtime_pref=runtime_pref,
+        popularity_pref=popularity_pref,
         implicit_mood=implicit_mood,
         contra_vec=contra_vec,
         rating_count=len(ratings),
