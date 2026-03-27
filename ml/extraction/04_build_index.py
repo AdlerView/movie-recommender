@@ -103,9 +103,12 @@ def main() -> int:
             all_ok = False
         log.info("  %-30s %s  rows=%d  %.1f MB", fname, status, rows, size)
 
-    # Check JSON maps
-    for fname in ["genre_mood_map.json", "keyword_mood_map.json"]:
-        fpath = args.output / fname
+    # Check JSON maps (keyword_mood_map in output, genre_mood_map in input)
+    for fname, fdir in [
+        ("keyword_mood_map.json", args.output),
+        ("genre_mood_map.json", args.output.parent / "input"),
+    ]:
+        fpath = fdir / fname
         if fpath.exists():
             with open(fpath) as f:
                 data = json.load(f)

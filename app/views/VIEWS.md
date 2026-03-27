@@ -103,6 +103,7 @@ Dashboard powered by local SQLite (zero API calls).
 
 User preferences persisted in SQLite (`user_preferences` + `user_subscriptions`).
 
-- **Streaming country:** dropdown with save/reset (default: Switzerland). Used by Discover for provider availability.
-- **My subscriptions:** provider pills with save/clear. Used by Discover when filtering by "Only my subscriptions".
-- **Preferred language:** dropdown with save/reset. Applied as default language filter on Discover.
+- **Streaming country:** dropdown, auto-saved on change (default: Switzerland). Used by Discover for provider availability.
+- **My subscriptions:** clickable provider logo grid with green checkmark overlay, auto-saved on toggle. Used by Discover when filtering.
+- **Preferred language:** dropdown, auto-saved on change. Applied as default language filter on Discover.
+- **Reset to factory settings:** button at bottom resets all three preferences.

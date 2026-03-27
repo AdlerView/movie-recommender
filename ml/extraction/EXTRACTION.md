@@ -26,7 +26,6 @@ data/output/ (~3 GB, shipped to production)
     mood_scores.npy             1.17M x 7     float32
     quality_scores.npy          1.17M x 1     float32
     movie_id_index.json         1.17M entries
-    genre_mood_map.json         19 entries
     keyword_mood_map.json       ~70K entries
     keyword_svd.pkl
     director_svd.pkl

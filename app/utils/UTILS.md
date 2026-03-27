@@ -34,8 +34,8 @@ Hardcoded `IMAGE_BASE` in tmdb.py. `poster_url()` helper builds full URL.
 
 ### append_to_response
 
-`get_movie_details()` uses `append_to_response=credits,videos,watch/providers`
-to combine 4 requests into 1. Max 20 appended requests per call.
+`get_movie_details()` uses `append_to_response=credits,videos,watch/providers,release_dates,reviews`
+to combine 6 requests into 1. Max 20 appended requests per call.
 
 ---
 
@@ -69,7 +69,7 @@ to combine 4 requests into 1. Max 20 appended requests per call.
 
 | Function | Endpoint | Returns |
 |---|---|---|
-| `get_movie_details(movie_id)` | `GET /movie/{id}?append_to_response=credits,videos,watch/providers` | Full details + `credits.cast[]` (id, name, character, order) + `credits.crew[]` (id, name, job) + `videos.results[]` (key, site, type) + `watch/providers.results.{CC}.flatrate[]` |
+| `get_movie_details(movie_id)` | `GET /movie/{id}?append_to_response=credits,videos,watch/providers,release_dates,reviews` | Full details + credits + videos + watch/providers + release_dates + reviews |
 | `get_movie_keywords(movie_id)` | `GET /movie/{id}/keywords` | `[{id, name}]` — thematic tags |
 
 **Discover parameter logic:** Comma = AND, pipe = OR. `with_genres=53,18` (both), `with_keywords=10349|285685` (any). `certification.lte` uses the `order` field from certification list, not numeric value.

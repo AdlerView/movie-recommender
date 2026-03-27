@@ -33,7 +33,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 ## Features
 
-**Discover** — Personalized movie discovery with 14 sidebar filters (genre, year, runtime, rating, keywords, certification, streaming providers) and ML-based ranking. Mood pills filter by 7 emotion categories. Results displayed as a poster grid with detail dialogs. Cold-start falls back to popularity order.
+**Discover** — Personalized movie discovery with 8 sidebar filters (genre, year, runtime, rating, min votes, certification, keywords) and ML-based ranking. Mood pills filter by 7 emotion categories. Language, streaming country, and providers managed in Settings. Results displayed as a poster grid with detail dialogs. Cold-start falls back to popularity order.
 
 **Rate** — Search or browse movies ("Based on your interests" when a profile exists). Click a poster to open a detail dialog with a 0-100 rating slider and 7 optional mood reaction buttons. Mood reactions serve as training data for personalization.
 
