@@ -1,4 +1,4 @@
-"""Online scoring: user profile, 9-signal ranking, mood filter."""
+"""Online scoring: user profile, 10-signal ranking, mood filter."""
 from ml.scoring.mood_filter import filter_by_mood
 from ml.scoring.scoring import score_candidates
 from ml.scoring.user_profile import get_or_compute_profile, is_model_available

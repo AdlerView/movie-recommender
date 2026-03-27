@@ -6,7 +6,7 @@ Academic ML evaluation: shared utility functions (`ml_eval.py`) and Jupyter note
 
 ## Two Classification Tasks
 
-1. **User preference:** Binary — predict "liked" (>= 60/100) vs "disliked" (< 60/100) from 9 scoring-component feature vectors
+1. **User preference:** Binary — predict "liked" (>= 60/100) vs "disliked" (< 60/100) from 10 scoring-component feature vectors
 2. **Keyword-to-mood:** Multi-class — predict mood category from sentence embeddings of TMDB keywords (70K+ keywords, 7 moods)
 
 Both follow the same course-compliant evaluation workflow.
@@ -50,7 +50,7 @@ From lectures 10/11, notebooks 10-0 through 11, and assignments 10-11:
 ### Beyond Course (for score 3)
 
 - TF-IDF + TruncatedSVD on 1.17M movies (SVD dimensionality reduction not taught)
-- Content-based scoring with 9 weighted signals
+- Content-based scoring with 10 weighted signals
 - Pre-trained emotion transformer (distilroberta)
 - Dynamic weight shifting by rating count (cold start handling)
 - Supervised keyword-to-mood pipeline (embeddings + classifier)
@@ -83,9 +83,9 @@ from sklearn.metrics import (
 
 ### User Preference Classification
 
-- **Features (X):** For each (user, movie) pair, the 9 scoring components:
-  `[keyword_sim, mood_match, director_sim, actor_sim, decade_sim,
-   language_sim, runtime_sim, quality_score, contra_penalty]`
+- **Features (X):** For each (user, movie) pair, the 10 scoring components:
+  `[keyword_sim, mood_match, genre_sim, director_sim, actor_sim,
+   decade_sim, language_sim, runtime_sim, quality_score, contra_penalty]`
 - **Labels (y):** Binary — `1` = liked (>= 60/100), `0` = disliked (< 60/100)
 - **Data source:** All entries in `user_ratings` table
 

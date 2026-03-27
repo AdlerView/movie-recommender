@@ -110,7 +110,7 @@ movie-recommender/
 │   │   ├── SCORING.md                      # Directory documentation (scoring + mood filter + sort)
 │   │   ├── __init__.py
 │   │   ├── user_profile.py                 # User profile vectors from ratings + .npy arrays
-│   │   ├── scoring.py                      # 9-signal cosine similarity + dynamic weights
+│   │   ├── scoring.py                      # 10-signal cosine similarity + dynamic weights
 │   │   └── mood_filter.py                  # Local mood filter against mood_scores.npy
 │   └── evaluation/                         # Academic ML evaluation
 │       ├── EVALUATION.md                   # Directory documentation
@@ -209,7 +209,7 @@ All candidate movies come from `GET /discover/movie` — the same TMDB API endpo
 **Graceful degradation:**
 - No `data/output/` → `is_model_available()` returns False → API order used
 - No ratings → `get_or_compute_profile()` returns None → API order used
-- Model available + ratings exist → full 9-signal personalized scoring
+- Model available + ratings exist → full 10-signal personalized scoring
 
 ---
 

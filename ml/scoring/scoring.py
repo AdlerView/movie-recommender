@@ -23,7 +23,7 @@ Data flow:
     UserProfile (from user_profile.py)
     + candidate movie IDs (from TMDB API discover response)
     + model arrays (lazy singleton from user_profile.py)
-        → 9 signal scores per candidate (numpy batch)
+        → 10 signal scores per candidate (numpy batch)
         → weighted sum using dynamic weights
         → sorted list of (movie_id, final_score) tuples
 """
