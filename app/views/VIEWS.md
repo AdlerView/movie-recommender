@@ -14,6 +14,10 @@ Streamlit page modules: Discover, Rate, Watchlist, Statistics, Settings.
 
 **Dialog pattern:** Poster click sets `_*_selected_id` in session state. `@st.dialog` function called at end of script. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks — `@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun).
 
+**Detail content:** Two shared functions in `app/utils/__init__.py`, used by all three detail dialogs:
+- `render_movie_detail_top(details, show_*=True)` — hero section (poster, title, tagline, genre badges, TMDB rating, runtime, release date, director, overview) + streaming providers + Watch Now link. Each section toggleable via keyword args.
+- `render_movie_detail_bottom(details, show_*=True)` — trailer embed, cast row (top 5 with photos), user reviews (up to 3). Called after page-specific action buttons.
+
 **Poster grid CSS:** `inject_poster_grid_css(container_key)` from `app/utils/__init__.py` — invisible button overlay on poster images for click interaction. Used by Discover, Rate, Watchlist.
 
 ---

@@ -47,7 +47,7 @@ Movie recommender web app for HSG course 4,125 (Grundlagen und Methoden der Info
 Tech stack overview is in README.md. Agent-relevant details only:
 
 - **API key:** `.streamlit/secrets.toml` (gitignored). Use `append_to_response` for combined TMDB calls.
-- **SQLite tables:** user_ratings (INTEGER 0-100), user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache. `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) — offline only.
+- **SQLite tables:** user_ratings (INTEGER 0-100), user_rating_moods, watchlist, dismissed, user_subscriptions, user_preferences, user_profile_cache, movie_details (scalar metadata + JSON columns: genres, cast_members top 20, crew_members top 20 deduped, countries, keywords). `data/input/tmdb.sqlite` (8.2 GB, 1.17M movies, 30 tables) — offline only.
 - **ML signals:** 7 mood categories (TMDB Vibes / Ekman: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry). Two classification tasks: (1) user preference (liked/disliked), (2) keyword-to-mood. Features: keyword TF-IDF/SVD, genre, director/actor SVD, decade, language, runtime. Mood scores: genre→mood + keyword→mood + overview emotion + review emotion.
 - **Runtime data:** Precomputed `.npy` arrays (~3 GB) + TMDB API for live data.
 
@@ -260,22 +260,22 @@ Every subdirectory (not root-level) MUST have a Markdown documentation file name
 
 - **Discover:** Sidebar + main layout. Sidebar contains filters (genre, year, runtime, rating, min votes, certification, keywords). Language, streaming country, and providers are managed in Settings (applied automatically via DB preferences). Main page has header, sort dropdown (top-right, default: Personalized), mood pills (toggle-deselect behavior), and poster grid (5 columns, clickable → detail dialog with Watchlist/Dismiss). Live filtering: grid updates on every filter change. "Reset all" in sidebar resets only sidebar filters (not mood/sort). Empty results: info message + "You might also like" fallback grid. Already-rated/dismissed/watchlisted movies excluded. "Load more" button for pagination.
 - **Rate:** Pure action tab. TMDB text search + Netflix-style clickable poster grid (personalized via `discover/movie` + ML scoring, or popularity order on cold start). Click → dialog with details, keyword badges, rating slider (0-100 in steps of 10), and 7 mood reaction buttons (see Tech Stack for list). Mood reactions are optional and multi-select, saved alongside the numeric rating. Already-rated movies excluded from browse grid but shown in search results (allows re-rating).
-- **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (CH, flatrate only). Actions: "Remove from watchlist" or "Mark as watched" (rating slider + mood reaction buttons).
+- **Watchlist:** Poster grid of saved movies. Click → dialog with TMDB details, keyword badges, streaming providers (logo images, country from Settings preference). Actions: "Remove from watchlist" or "Mark as watched" (rating slider + mood reaction buttons).
 - **Statistics:** KPIs (watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating), 7 Altair charts (genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution), top 5 directors + actors rankings, sortable rated movies table. All data from SQLite, zero API calls. PoC — layout polish pending.
-- **Settings:** User preferences persisted in SQLite. Three sections: (1) Streaming country — dropdown with save/reset (default: Switzerland), used for provider availability on Discover. (2) My subscriptions — provider pills with save/clear, used by Discover when filtering. (3) Preferred language — dropdown with save/reset, applied as default language filter on Discover.
+- **Settings:** User preferences auto-saved to SQLite on every change. Three sections: (1) Streaming country — dropdown (default: Switzerland), auto-saved on change. (2) My subscriptions — clickable provider logo grid (6 cols, TMDB logos, green checkmark overlay on selected), auto-saved on toggle, selected names shown as `:primary-badge`. (3) Preferred language — dropdown, auto-saved on change. "Reset to factory settings" button at bottom resets all three.
 
 ### UI Patterns
 
 - Rating: Slider 0-100 in steps of 10, color-coded track (gray/red/orange/green), dot tick marks at each step, dynamic sentiment label. Save button disabled until slider is moved (prevents accidental 0-ratings). `on_change` callback sets `_*_touched_` flag in session state; flag cleaned up on save.
 - TMDB rating display: Always 1 decimal (`:.1f`) across all pages for consistency.
 - Dialog pattern: `on_click` sets `_*_selected_id` in session state, `@st.dialog` function called at end of script. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks, because `@st.dialog` inherits from `@st.fragment` and `on_click` only triggers a fragment rerun).
-- Movie details: Fetched from TMDB API via `append_to_response=credits,videos,watch/providers`. Eagerly cached in user SQLite on rating save.
+- Movie details: Fetched from TMDB API via `append_to_response=credits,videos,watch/providers,release_dates,reviews`. Shared rendering via `render_movie_detail_top()` + `render_movie_detail_bottom()` in `app/utils/__init__.py`. Top: title, tagline (italic, 15% coverage), genre badges, TMDB rating, runtime + release date, director, overview, streaming providers + Watch Now link. Bottom (after action buttons): trailer embed, cast row (top 5 with photos), user reviews (up to 3). Each section toggleable via keyword args. Eagerly cached in user SQLite on every action (rating save, watchlist add, dismiss) with keywords via `save_movie_details(id, details, keywords=)`.
 - Navigation: 5 pages — Discover, Rate, Watchlist (left-aligned), Statistics, Settings (right-aligned via CSS `margin-left: auto`)
 - Toolbar: `toolbarMode = "minimal"` hides Streamlit's Deploy button and menu
 - Persistence: SQLite load-on-start, save-on-change; session state is runtime source of truth
 - Headers: All page headers use `text_alignment="center"`. Section headers use `st.subheader` with `label_visibility="collapsed"` on the associated widget.
 - Movie detail badges: Genre = `:gray-badge`, Keywords = `:gray-badge`. Section headers via `st.caption("**Genre**")` etc. Sections only shown when data exists.
-- Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) and provider brand colors (Netflix=red etc.) remain in Python.
+- Theme: All colors defined in `.streamlit/config.toml`, NOT in Python files. Dividers use `divider="gray"`, badges use `:gray-badge[...]`. Only exception: functional slider colors (red/orange/green for rating feedback) remain in Python. Streaming providers show TMDB logo images, no brand colors in code.
 - Fonts: Poppins (Google Fonts, OFL licensed) served via `enableStaticServing = true` from `static/`. 18 TTF files (weights 100-900, normal + italic) registered as `[[theme.fontFaces]]` in config.toml.
 
 ---
@@ -294,6 +294,7 @@ header [data-testid="stHeader"]
                     ├── div.rc-overflow-item (order: 1)  ← Rate
                     ├── div.rc-overflow-item (order: 2)  ← Watchlist
                     ├── div.rc-overflow-item (order: 3)  ← Statistics
+                    ├── div.rc-overflow-item (order: 4)  ← Settings
                     └── div.rc-overflow-item-rest (hidden)
 ```
 
