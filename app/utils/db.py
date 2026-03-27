@@ -553,31 +553,39 @@ def load_genre_distribution() -> list[tuple[str, int]]:
     return [(row["genre_name"], row["count"]) for row in rows]
 
 
-def load_top_directors(limit: int = 5) -> list[tuple[str, int]]:
-    """Load directors with the most rated movies.
-
-    Parses the crew_members JSON column and filters for entries whose
-    job field contains "Director".
+def load_top_directors(limit: int = 5) -> list[dict]:
+    """Load directors with the most rated movies, avg rating, and photo.
 
     Args:
         limit: Maximum number of directors to return.
 
     Returns:
-        List of (director_name, movie_count) tuples, sorted by count desc.
+        List of dicts with keys: name, movies, avg_rating, profile_path.
     """
     with _connection() as conn:
         rows = conn.execute(
-            """SELECT je.value->>'name' AS person_name, COUNT(*) AS count
+            """SELECT je.value->>'name' AS person_name,
+                      COUNT(*) AS count,
+                      ROUND(AVG(r.rating)) AS avg_rating,
+                      je.value->>'profile_path' AS profile_path
                FROM user_ratings r
                JOIN movie_details d ON r.movie_id = d.movie_id,
                     json_each(d.crew_members) je
                WHERE je.value->>'job' LIKE '%Director%'
                GROUP BY person_name
-               ORDER BY count DESC
+               ORDER BY count DESC, avg_rating DESC
                LIMIT ?""",
             (limit,),
         ).fetchall()
-    return [(row["person_name"], row["count"]) for row in rows]
+    return [
+        {
+            "name": row["person_name"],
+            "movies": row["count"],
+            "avg_rating": row["avg_rating"],
+            "profile_path": row["profile_path"],
+        }
+        for row in rows
+    ]
 
 
 def load_user_vs_tmdb() -> list[tuple[float, int, str]]:
@@ -673,29 +681,61 @@ def load_decade_distribution() -> list[tuple[str, int]]:
     return [(f"{row['decade']}s", row["count"]) for row in rows]
 
 
-def load_top_actors(limit: int = 5) -> list[tuple[str, int]]:
-    """Load actors appearing most frequently in rated movies.
-
-    Uses all stored cast members (top 20 by billing_order per movie).
+def load_top_actors(limit: int = 5) -> list[dict]:
+    """Load actors appearing most frequently in rated movies with avg rating and photo.
 
     Args:
         limit: Maximum number of actors to return.
 
     Returns:
-        List of (actor_name, movie_count) tuples, sorted by count desc.
+        List of dicts with keys: name, movies, avg_rating, profile_path.
     """
     with _connection() as conn:
         rows = conn.execute(
-            """SELECT je.value->>'name' AS person_name, COUNT(*) AS count
+            """SELECT je.value->>'name' AS person_name,
+                      COUNT(*) AS count,
+                      ROUND(AVG(r.rating)) AS avg_rating,
+                      je.value->>'profile_path' AS profile_path
                FROM user_ratings r
                JOIN movie_details d ON r.movie_id = d.movie_id,
                     json_each(d.cast_members) je
                GROUP BY person_name
-               ORDER BY count DESC
+               ORDER BY count DESC, avg_rating DESC
                LIMIT ?""",
             (limit,),
         ).fetchall()
-    return [(row["person_name"], row["count"]) for row in rows]
+    return [
+        {
+            "name": row["person_name"],
+            "movies": row["count"],
+            "avg_rating": row["avg_rating"],
+            "profile_path": row["profile_path"],
+        }
+        for row in rows
+    ]
+
+
+def load_genre_ratings() -> list[tuple[str, int, float]]:
+    """Load genre breakdown with count and average user rating.
+
+    Each movie can have multiple genres. Returns genre name, number of
+    rated movies in that genre, and the user's average rating for that genre.
+
+    Returns:
+        List of (genre_name, count, avg_rating) tuples, sorted by count desc.
+    """
+    with _connection() as conn:
+        rows = conn.execute(
+            """SELECT je.value->>'name' AS genre_name,
+                      COUNT(*) AS count,
+                      ROUND(AVG(r.rating)) AS avg_rating
+               FROM user_ratings r
+               JOIN movie_details d ON r.movie_id = d.movie_id,
+                    json_each(d.genres) je
+               GROUP BY genre_name
+               ORDER BY count DESC"""
+        ).fetchall()
+    return [(row["genre_name"], row["count"], row["avg_rating"]) for row in rows]
 
 
 def load_rated_movies_table() -> list[dict]:
