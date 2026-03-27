@@ -404,6 +404,66 @@ def extract_runtime(
     log.info("Saved runtime_normalized.npy")
 
 
+def extract_popularity(
+    conn: sqlite3.Connection,
+    movie_row: dict[int, int],
+    n_movies: int,
+    output_dir: Path,
+) -> None:
+    """Extract log-transformed and normalized popularity feature.
+
+    TMDB popularity scores range from 0 to ~500 with extreme right skew
+    (mean ~0.3, max ~363). Log-transform reduces the skew so that the
+    difference between popularity 1 and 10 matters more than the difference
+    between 100 and 200. Min-max normalized to [0, 1] after log-transform.
+
+    Captures the mainstream-vs-niche axis: blockbusters cluster near 1.0,
+    indie films near 0.0. Used by scoring.py to match candidates to the
+    user's preference for popular vs. obscure films.
+
+    NULL or 0 popularity → log1p(0) = 0.0 (lowest popularity tier).
+
+    Args:
+        conn: SQLite connection to tmdb.sqlite.
+        movie_row: Mapping from movie_id to row index.
+        n_movies: Total number of movies.
+        output_dir: Directory for .npy output.
+    """
+    log.info("--- Popularity log-normalized ---")
+
+    df = pd.read_sql_query("SELECT id, popularity FROM movies ORDER BY id", conn)
+
+    # Build raw popularity array (NULL/0 → 0.0)
+    raw = np.zeros(n_movies, dtype=np.float64)
+    for _, row in df.iterrows():
+        mid = row["id"]
+        if mid not in movie_row:
+            continue
+        pop = row["popularity"]
+        if pd.notna(pop) and pop > 0:
+            raw[movie_row[mid]] = float(pop)
+
+    # Log-transform to reduce extreme skew (popularity ranges 0 to ~500)
+    logged = np.log1p(raw)  # log(1 + x) handles zeros gracefully
+
+    # Min-max normalize to [0, 1]
+    lo, hi = logged.min(), logged.max()
+    if hi - lo > 1e-9:
+        normalized = ((logged - lo) / (hi - lo)).astype(np.float32)
+    else:
+        normalized = np.zeros(n_movies, dtype=np.float32)
+    normalized = normalized.reshape(-1, 1)
+
+    has_pop = int((raw > 0).sum())
+    log.info(
+        "Popularity vectors: %s, raw range=[%.1f, %.1f], with data: %d, without: %d",
+        normalized.shape, raw.min(), raw.max(), has_pop, n_movies - has_pop,
+    )
+
+    np.save(output_dir / "popularity_normalized.npy", normalized)
+    log.info("Saved popularity_normalized.npy")
+
+
 def main() -> int:
     """Run the feature extraction pipeline.
 
@@ -454,11 +514,11 @@ def main() -> int:
     n_movies = len(movie_ids)
 
     # --- Feature 1: Keywords (TF-IDF → SVD) ---
-    log.info("=== Feature 1/7: Keywords ===")
+    log.info("=== Feature 1/8: Keywords ===")
     extract_keyword_svd(conn, movie_row, n_movies, args.svd_components, args.output)
 
     # --- Feature 2: Directors (binary → SVD) ---
-    log.info("=== Feature 2/7: Directors ===")
+    log.info("=== Feature 2/8: Directors ===")
     extract_person_svd(
         conn, movie_row, n_movies, args.svd_components, args.output,
         query="SELECT movie_id, person_id FROM movie_crew WHERE job = 'Director'",
@@ -468,7 +528,7 @@ def main() -> int:
     )
 
     # --- Feature 3: Actors (binary → SVD, top-5 cast only) ---
-    log.info("=== Feature 3/7: Actors ===")
+    log.info("=== Feature 3/8: Actors ===")
     extract_person_svd(
         conn, movie_row, n_movies, args.svd_components, args.output,
         query="SELECT movie_id, person_id FROM movie_cast WHERE cast_order < 5",
@@ -478,20 +538,24 @@ def main() -> int:
     )
 
     # --- Feature 4: Genres (multi-hot) ---
-    log.info("=== Feature 4/7: Genres ===")
+    log.info("=== Feature 4/8: Genres ===")
     extract_genre_vectors(conn, movie_row, n_movies, args.output)
 
     # --- Feature 5: Decades (single-hot) ---
-    log.info("=== Feature 5/7: Decades ===")
+    log.info("=== Feature 5/8: Decades ===")
     extract_decade_vectors(conn, movie_row, n_movies, args.output)
 
     # --- Feature 6: Languages (top-N single-hot) ---
-    log.info("=== Feature 6/7: Languages ===")
+    log.info("=== Feature 6/8: Languages ===")
     extract_language_vectors(conn, movie_row, n_movies, args.top_languages, args.output)
 
     # --- Feature 7: Runtime (normalized) ---
-    log.info("=== Feature 7/7: Runtime ===")
+    log.info("=== Feature 7/8: Runtime ===")
     extract_runtime(conn, movie_row, n_movies, args.output)
+
+    # --- Feature 8: Popularity (log-normalized) ---
+    log.info("=== Feature 8/8: Popularity ===")
+    extract_popularity(conn, movie_row, n_movies, args.output)
 
     conn.close()
 
@@ -500,7 +564,7 @@ def main() -> int:
     expected_files = [
         "keyword_svd_vectors.npy", "director_svd_vectors.npy", "actor_svd_vectors.npy",
         "genre_vectors.npy", "decade_vectors.npy", "language_vectors.npy",
-        "runtime_normalized.npy",
+        "runtime_normalized.npy", "popularity_normalized.npy",
     ]
     for fname in expected_files:
         fpath = args.output / fname
