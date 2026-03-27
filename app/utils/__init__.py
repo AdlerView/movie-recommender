@@ -5,10 +5,12 @@ duplication. All page-level modules (discover, rate, watchlist, statistics,
 settings) import from here rather than defining their own copies.
 
 Exports:
-    Constants: GRID_COLS, TMDB_PAGE_SIZE, DEFAULT_COUNTRY_NAME, DEFAULT_COUNTRY_CODE
-    Functions: inject_poster_grid_css, render_rating_widget, render_discover_detail,
-        render_watchlist_detail, render_movie_detail_bottom, find_best_trailer,
-        fetch_and_cache_details, render_person_ranking
+    Constants: GRID_COLS, TMDB_PAGE_SIZE, DEFAULT_COUNTRY_NAME, DEFAULT_COUNTRY_CODE,
+        RATING_COLORS, MOOD_COLORS
+    Functions: rating_color, inject_poster_grid_css,
+        render_rating_widget, render_discover_detail, render_watchlist_detail,
+        render_movie_detail_bottom, find_best_trailer, fetch_and_cache_details,
+        render_person_ranking
 """
 from __future__ import annotations
 
@@ -33,6 +35,47 @@ TMDB_PAGE_SIZE: Final[int] = 20
 # Default streaming country (used as fallback in multiple places)
 DEFAULT_COUNTRY_NAME: Final[str] = "Switzerland"
 DEFAULT_COUNTRY_CODE: Final[str] = "CH"
+
+# 5-level rating color scale (0-100): used for slider, badges, person rankings
+# Red → Orange → Yellow → Light green → Green
+RATING_COLORS: Final[list[tuple[int, str]]] = [
+    (20, "#ff4b4b"),   # 0-20: Awful (red)
+    (40, "#ffa421"),   # 21-40: Poor (orange)
+    (60, "#e8c840"),   # 41-60: Decent (yellow)
+    (80, "#85cc5a"),   # 61-80: Great (light green)
+    (100, "#21c354"),  # 81-100: Masterpiece (green)
+]
+
+# Mood colors (Ekman model) — canonical source for charts, pills, and badges
+MOOD_COLORS: Final[dict[str, str]] = {
+    "Happy": "#FFD700",       # Gold — warmth, joy
+    "Interested": "#1c83e1",  # Blue — curiosity, thought
+    "Surprised": "#ffa421",   # Orange — unexpected
+    "Sad": "#6c8ebf",         # Muted blue — melancholy
+    "Disgusted": "#803df5",   # Purple — visceral revulsion
+    "Afraid": "#ff4b4b",      # Red — danger, alarm
+    "Angry": "#cc0000",       # Dark red — intensity, aggression
+}
+
+
+def rating_color(value: int | float, scale: int = 100) -> str:
+    """Return the color for a numeric rating value.
+
+    Uses the 5-level RATING_COLORS scale. Works for both 0-100 (user ratings)
+    and 0-10 (TMDB ratings) by normalizing via the scale parameter.
+
+    Args:
+        value: The rating value.
+        scale: Maximum of the scale (100 for user ratings, 10 for TMDB).
+
+    Returns:
+        Hex color string.
+    """
+    normalized = (value / scale) * 100 if scale != 100 else value
+    for threshold, color in RATING_COLORS:
+        if normalized <= threshold:
+            return color
+    return RATING_COLORS[-1][1]
 
 
 def inject_poster_grid_css(container_key: str) -> None:
@@ -111,7 +154,7 @@ def render_rating_widget(
         on_change=_mark_touched,
     )
 
-    # Dynamic sentiment label
+    # Dynamic sentiment label with matching color
     if new_rating == 0:
         _label = ""
     elif new_rating <= 20:
@@ -125,17 +168,14 @@ def render_rating_widget(
     else:
         _label = "Masterpiece"
     if _label:
-        st.caption(_label, text_alignment="center")
+        _lbl_color = rating_color(new_rating)
+        st.html(
+            f'<p style="text-align:center;color:{_lbl_color};font-size:0.875rem;'
+            f'margin:0;font-weight:500">{_label}</p>'
+        )
 
-    # Dynamic slider color: gray (0), red (<=33), orange (<=66), green (>66)
-    if new_rating == 0:
-        _color = "#d3d3d3"
-    elif new_rating <= 33:
-        _color = "#ff4b4b"
-    elif new_rating <= 66:
-        _color = "#ffa421"
-    else:
-        _color = "#21c354"
+    # Dynamic slider color: gray (0), 5-level scale (1-100)
+    _color = "#d3d3d3" if new_rating == 0 else rating_color(new_rating)
     _dots = ", ".join(
         f"radial-gradient(circle, rgba(255,255,255,0.6) 3px, transparent 3px) {i*10}% 50%"
         for i in range(11)
@@ -250,12 +290,16 @@ def render_person_ranking(
             photo = poster_url(person["profile_path"], size="w185")
             if photo:
                 st.image(photo, width=100)
-            # Format: "Name\nN movies · rating/100"
+            # Format: "Name\nN movies · colored rating/100"
             count = person["movies"]
-            st.caption(
-                f"**{person['name']}**  \n"
-                f"{count} {'movie' if count == 1 else 'movies'}"
-                f" · {person['avg_rating']:.0f}/100",
+            avg = person["avg_rating"]
+            _rc = rating_color(avg)
+            st.html(
+                f'<p style="font-size:0.875rem;line-height:1.4;margin:0">'
+                f'<strong>{person["name"]}</strong><br>'
+                f'{count} {"movie" if count == 1 else "movies"}'
+                f' · <span style="color:{_rc};font-weight:600">{avg:.0f}/100</span>'
+                f'</p>'
             )
 
 
@@ -393,14 +437,16 @@ def render_discover_detail(details: dict) -> None:
         if tagline:
             st.caption(f"*{tagline}*")
         # Genre badges + TMDB rating badge on one line (no "Genre" header)
-        # Rating badge color: green (>7), orange (5-7), red (<5)
+        # Badge color mapped from 5-level scale (Streamlit only has 3 badge colors)
         genres = details.get("genres", [])
         tmdb_rating = details.get("vote_average")
         genre_str = " ".join(f":gray-badge[{g['name']}]" for g in genres)
         if tmdb_rating:
-            if tmdb_rating >= 7:
+            _rc = rating_color(tmdb_rating, scale=10)
+            # Map hex to closest Streamlit badge color name
+            if _rc in ("#21c354", "#85cc5a"):
                 rating_str = f"  :green-badge[{tmdb_rating:.1f}]"
-            elif tmdb_rating >= 5:
+            elif _rc in ("#ffa421", "#e8c840"):
                 rating_str = f"  :orange-badge[{tmdb_rating:.1f}]"
             else:
                 rating_str = f"  :red-badge[{tmdb_rating:.1f}]"

@@ -15,7 +15,7 @@ from __future__ import annotations
 import altair as alt
 import pandas as pd
 import streamlit as st
-from app.utils import render_person_ranking
+from app.utils import MOOD_COLORS, render_person_ranking
 from app.utils.db import (
     load_genre_ratings,
     load_mood_distribution,
@@ -74,17 +74,17 @@ if genre_data:
         genre_data, columns=["Genre", "Movies", "Avg Rating"],
     )
     # Bar length = movie count, bar color = average user rating for that genre
-    # Color scale: red (low rating) → orange → green (high rating)
+    # 5-level color scale: red → orange → yellow → light green → green
     chart = alt.Chart(genre_df).mark_bar().encode(
         x=alt.X("Movies:Q", title="Movies"),
         y=alt.Y("Genre:N", sort="-x", title=None),  # Sort by count descending
         color=alt.Color(
             "Avg Rating:Q",
             scale=alt.Scale(
-                domain=[0, 50, 100],               # Diverging scale centered at 50
-                range=["#ff4b4b", "#ffa421", "#21c354"],
+                domain=[0, 20, 40, 60, 80, 100],
+                range=["#ff4b4b", "#ff4b4b", "#ffa421", "#e8c840", "#85cc5a", "#21c354"],
             ),
-            legend=alt.Legend(title="Your avg"),
+            legend=alt.Legend(title="Avg rating"),
         ),
         tooltip=["Genre", "Movies", "Avg Rating"],  # Interactive hover info
     )
@@ -99,34 +99,25 @@ mood_data = load_mood_distribution()
 
 if mood_data:
     st.subheader("Moods", divider="gray")
-    # Map each Ekman mood to emoji + fixed color for instant recognition
+    # Map each Ekman mood to emoji for Y-axis labels
     _emoji = {
         "Happy": "😊", "Interested": "🤔", "Surprised": "😲",
         "Sad": "😢", "Disgusted": "🤢", "Afraid": "😨", "Angry": "😠",
-    }
-    _mood_color = {
-        "Happy": "#FFD700",      # Gold/yellow — warmth, joy
-        "Interested": "#1c83e1", # Blue — curiosity, thought
-        "Surprised": "#ffa421",  # Orange — unexpected
-        "Sad": "#6c8ebf",        # Muted blue — melancholy
-        "Disgusted": "#803df5",  # Purple — visceral revulsion
-        "Afraid": "#ff4b4b",     # Red — danger, alarm
-        "Angry": "#cc0000",      # Dark red — intensity, aggression
     }
     mood_df = pd.DataFrame(mood_data, columns=["Mood", "Reactions"])
     # Prepend emoji to mood name for the Y-axis label
     mood_df["Label"] = mood_df["Mood"].map(
         lambda m: f"{_emoji.get(m, '')} {m}",
     )
-    # Per-mood color via explicit scale domain/range mapping
+    # Per-mood color from shared MOOD_COLORS (same colors as pills on Discover/Rate)
     chart = alt.Chart(mood_df).mark_bar().encode(
         x=alt.X("Reactions:Q", title="Reactions"),
         y=alt.Y("Label:N", sort="-x", title=None),  # Most-reacted mood on top
         color=alt.Color(
             "Mood:N",
             scale=alt.Scale(
-                domain=list(_mood_color.keys()),
-                range=list(_mood_color.values()),
+                domain=list(MOOD_COLORS.keys()),
+                range=list(MOOD_COLORS.values()),
             ),
             legend=None,  # Labels already contain emoji + name
         ),
@@ -172,8 +163,8 @@ if user_vs_tmdb:
         color=alt.Color(
             "Diff:Q",
             scale=alt.Scale(
-                domain=[-50, 0, 50],
-                range=["#ff4b4b", "#888888", "#21c354"],
+                domain=[-50, -20, 0, 20, 50],
+                range=["#ff4b4b", "#ffa421", "#888888", "#85cc5a", "#21c354"],
             ),
             legend=None,  # Color meaning is intuitive from the diagonal
         ),

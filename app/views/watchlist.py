@@ -118,6 +118,12 @@ if st.session_state._watchlist_selected is not None:
                     m for m in st.session_state.watchlist if m["id"] != _mid
                 ]
                 remove_from_watchlist(_mid)
+                # Treat removal as a mild negative signal — add to dismissed
+                # so the movie won't reappear on Discover/Rate and contributes
+                # to the contra vector in the ML scoring profile.
+                from app.utils.db import save_dismissed
+                st.session_state.dismissed.add(_mid)
+                save_dismissed(_mid)
                 st.session_state._watchlist_selected = None
                 st.session_state["_watchlist_toast"] = (
                     f"Removed **{_details.get('title', '')}** from watchlist"
