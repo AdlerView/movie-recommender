@@ -4,152 +4,94 @@ Streamlit page modules: Discover, Rate, Watchlist, Statistics, Settings.
 
 ---
 
-## Discover Layout
+## Shared Patterns
 
-Sidebar + main page. Discover is the only page with a sidebar.
+**Retrieval:** Both Discover and Rate use `GET /discover/movie` as candidate source. No trending endpoints. Discover passes explicit sidebar filters; Rate passes defaults (`sort_by=popularity.desc`, `vote_count.gte=50`).
 
-**Sidebar** (collapsible, filter controls):
+**Ranking:** `score_candidates()` runs whenever a user profile exists. On Discover, mood filter runs before scoring (all sort orders). On Rate, no mood filter. Non-personalized sorts on Discover skip ML entirely.
 
-| # | Filter | UI Element | TMDB API Parameter | Source |
-|---|---|---|---|---|
-| 1 | Genre | `st.pills` multi-select (width-optimized order) | `with_genres` | `GET /3/genre/movie/list` |
-| 2 | Release date from | Year input | `primary_release_date.gte` | -- |
-| 3 | Release date to | Year input | `primary_release_date.lte` | -- |
-| 4 | Runtime | Range slider 0-360 min | `with_runtime.gte` + `with_runtime.lte` | -- |
-| 5 | User score | Range slider 0-10 | `vote_average.gte` + `vote_average.lte` | -- |
-| 6 | Min user votes | Slider 0-500, default 50 | `vote_count.gte` | -- |
-| 7 | Keywords | Autocomplete (`search/keyword`) + removable chips | `with_keywords` | `GET /3/search/keyword` |
-| 8 | Certification | Dropdown (values per country) | `certification_country` + `certification.lte` | `GET /3/certification/movie/list` |
-| -- | Reset all | Button (resets sidebar filters only, not mood/sort) | -- | -- |
+**Exclusion policy (browse grids):** Rated + dismissed + watchlisted movies are excluded from both Discover and Rate browse grids. Search results on Rate keep rated movies (allows re-rating).
+
+**Dialog pattern:** Poster click sets `_*_selected_id` in session state. `@st.dialog` function called at end of script. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks — `@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun).
+
+**Poster grid CSS:** `inject_poster_grid_css(container_key)` from `app/utils/__init__.py` — invisible button overlay on poster images for click interaction. Used by Discover, Rate, Watchlist.
+
+---
+
+## Discover
+
+Sidebar + main page. Only page with a sidebar.
+
+**Sidebar filters:**
+
+| # | Filter | UI Element | TMDB API Parameter |
+|---|---|---|---|
+| 1 | Genre | `st.pills` multi-select (width-optimized order) | `with_genres` |
+| 2 | Release date from | Year input | `primary_release_date.gte` |
+| 3 | Release date to | Year input | `primary_release_date.lte` |
+| 4 | Runtime | Range slider 0-360 min | `with_runtime.gte/lte` |
+| 5 | User score | Range slider 0-10 | `vote_average.gte/lte` |
+| 6 | Min user votes | Slider 0-500, default 50 | `vote_count.gte` |
+| 7 | Certification | Dropdown (per country) | `certification_country` + `certification.lte` |
+| 8 | Keywords | Autocomplete + removable chips | `with_keywords` |
+| — | Reset all | Button (resets sidebar only, not mood/sort) | — |
 
 Language, streaming country, and providers are managed in Settings (applied automatically via DB preferences).
 
-**Main page** (poster grid + mood + sort):
+**Main page:**
 
-| # | Element | UI Element | Position |
-|---|---|---|---|
-| 1 | Header | "Which movie will you watch?" | Center |
-| 2 | Sort | Dropdown (4 options, default: Personalized) | Right-aligned |
-| 3 | Mood | `st.pills` multi-select, toggle-deselect | Below heading |
-| 4 | Poster grid | 5 columns, clickable → detail dialog | Main area |
-| 5 | Load more | Button | Below grid |
+| # | Element | Position |
+|---|---|---|
+| 1 | Sort dropdown (Personalized, Popularity, Rating, Release date) | Top-right |
+| 2 | Mood pills (7 moods, multi-select, toggle-deselect) | Below heading |
+| 3 | Poster grid (5 columns, clickable → detail dialog) | Main area |
+| 4 | Load more button | Below grid |
 
-**Interaction model:** Live filtering — every filter/mood/sort change
-immediately updates the poster grid. No explicit "Discover" button.
+**Scoring pipeline (after fetch, before grid):**
+1. Mood filter — `filter_by_mood()` for all sort orders when mood pills active
+2. ML scoring — `score_candidates()` only for Personalized sort, when profile exists
+3. Graceful degradation — no model/no ratings → API popularity order
 
-**Genre ordering:** Sorted by label width to maximize sidebar space
-(shorter names grouped in same row; longer names get their own row).
-
-**No requirements:** All filters are truly optional — zero filters shows
-personalized recommendations (or popularity order on cold start).
+**Detail dialog actions:** "Not interested" (dismiss + cache details) or "Add to watchlist" (dedup guard + cache details). Both trigger `st.rerun()`.
 
 ---
 
-## Discover Filter Details
+## Rate
+
+Search bar + browse grid. No sidebar.
+
+**Browse grid (no search query):** `discover/movie` with default params, personalized re-ranking when profile exists. Subheader: "Based on your interests" (profile) or "Discover movies" (cold start).
+
+**Search results (query active):** `search/movie` by title. No ML ranking. Rated movies shown (allows re-rating).
+
+**Rating dialog:** 0-100 slider (steps of 10), color-coded track, sentiment label. 7 optional mood reaction buttons. Save button disabled until slider moved. On save: rating + moods persisted, TMDB details + keywords eagerly cached.
 
 ---
 
-### Genre
+## Watchlist
 
-19 toggle buttons loaded from `GET /3/genre/movie/list`.
-Optional (no minimum). Multiple genres use AND logic (comma-separated:
-`with_genres=53,18`).
+Poster grid of saved movies. No sidebar, no search.
 
-| ID | Name | ID | Name |
-|---|---|---|---|
-| 28 | Action | 10402 | Music |
-| 12 | Adventure | 9648 | Mystery |
-| 16 | Animation | 10749 | Romance |
-| 35 | Comedy | 878 | Science Fiction |
-| 80 | Crime | 10770 | TV Movie |
-| 99 | Documentary | 53 | Thriller |
-| 18 | Drama | 10752 | War |
-| 10751 | Family | 37 | Western |
-| 14 | Fantasy | 36 | History |
-| 27 | Horror | | |
+**Detail dialog:** TMDB details, keyword badges, streaming providers (user's country, flatrate only, brand-colored). Actions: "Remove from watchlist" or "Mark as watched" (opens rating slider + mood buttons → saves rating, removes from watchlist).
 
 ---
 
-### Certification
+## Statistics
 
-Toggle buttons whose values change based on the streaming country.
-Loaded from `GET /3/certification/movie/list`.
+Dashboard powered by local SQLite (zero API calls).
 
-| Country | Values |
-|---|---|
-| DE | 0, 6, 12, 16, 18 |
-| US | G, PG, PG-13, R, NC-17 |
-| GB | U, PG, 12A, 15, 18 |
-| FR | TP, 12, 16, 18 |
-
-API: `certification_country=DE&certification.lte=16` (uses `order`
-field, not numeric value).
+- KPIs: watch hours, avg runtime, rated/watchlisted/dismissed counts, avg rating
+- 7 Altair charts: genre, language, decade, rating distribution, rating history, user vs TMDB scatter, mood distribution
+- Top 5 directors + actors rankings
+- Sortable rated movies table with poster thumbnails
+- ML Evaluation section: classifier comparison table, best model KPIs, confusion matrix, cross-validation, KNN k-plot
 
 ---
 
-### Release Date
+## Settings
 
-Two year inputs. API: `primary_release_date.gte=2000-01-01` /
-`primary_release_date.lte=2025-12-31`. If only "from" is set, "to"
-defaults to today.
+User preferences persisted in SQLite (`user_preferences` + `user_subscriptions`).
 
----
-
-### Language
-
-Dropdown from `GET /3/configuration/languages`. Shows `english_name`,
-sends `iso_639_1`. API: `with_original_language=ko`. Default: all.
-
----
-
-### Runtime
-
-Range slider 0-360 min. API: `with_runtime.gte=90&with_runtime.lte=180`.
-Default: full range.
-
----
-
-### User Score
-
-Range slider 0.0-10.0. API: `vote_average.gte=6.0&vote_average.lte=10.0`.
-Default: full range.
-
----
-
-### Min User Votes
-
-Single slider 0-500. API: `vote_count.gte=100`. Default: 50 (filters
-out obscure movies with unreliable averages).
-
----
-
-### Keywords
-
-Text field with autocomplete. Each keystroke (debounced 300ms) triggers
-`GET /3/search/keyword?query={text}&page=1`. Selected keywords passed to
-discover: `with_keywords=10349|285685` (pipe = OR, comma = AND).
-Default: OR logic.
-
----
-
-### Streaming Country
-
-Dropdown from `GET /3/configuration/countries`. Determines which providers
-are shown and `watch_region` for the API. Managed in Settings page,
-applied automatically.
-
----
-
-### Streaming Providers
-
-Multi-toggle buttons with provider logos. API:
-`watch_region=DE&with_watch_providers=8|337&with_watch_monetization_types=flatrate`.
-Managed in Settings page.
-
----
-
-### Only My Subscriptions
-
-Checkbox. Auto-sets provider filter from `user_subscriptions` table:
-`SELECT provider_id FROM user_subscriptions WHERE iso_3166_1 = :country`.
-Adds `with_watch_monetization_types=flatrate`.
+- **Streaming country:** dropdown with save/reset (default: Switzerland). Used by Discover for provider availability.
+- **My subscriptions:** provider pills with save/clear. Used by Discover when filtering by "Only my subscriptions".
+- **Preferred language:** dropdown with save/reset. Applied as default language filter on Discover.
