@@ -177,9 +177,9 @@ def render_rating_widget(
         _label = "Masterpiece"
     if _label:
         _lbl_color = rating_color(new_rating)
-        st.html(
-            f'<p style="text-align:center;color:{_lbl_color};font-size:0.875rem;'
-            f'margin:0;font-weight:500">{_label}</p>'
+        st.markdown(
+            f':color[{_label}]{{foreground="{_lbl_color}"}}',
+            text_alignment="center",
         )
 
     # Dynamic slider color: gray (0), 5-level scale (1-100)
