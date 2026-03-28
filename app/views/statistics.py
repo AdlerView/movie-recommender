@@ -203,32 +203,29 @@ rated_rows = load_rated_movies_table()
 if rated_rows:
     st.subheader("Ratings", divider="gray")
 
-    # Build table data with fallback for missing details
+    # Build table data: scale TMDB from 0-10 → 0-100 for direct comparison.
     table_data = [
         {
             "Title": row.get("title") or f"Movie #{row['movie_id']}",
-            # TMDB rating: 1 decimal for consistency across the app
-            "TMDB": round(row["vote_average"], 1) if row.get("vote_average") is not None else None,
-            "Your rating": row["rating"],  # 0-100 integer
+            "TMDB": round(row["vote_average"] * 10) if row.get("vote_average") is not None else None,
+            "You": row["rating"],
         }
         for row in rated_rows
     ]
-
     df = pd.DataFrame(table_data)
 
-    # Both rating columns as ProgressColumn: two bars side by side make
-    # user vs TMDB instantly visually comparable without reading numbers.
-    # TMDB scale is 0-10, user scale is 0-100.
+    # Both columns on 0-100 scale for visual comparability.
+    # ProgressColumn color is fixed (primaryColor), so color-coding
+    # happens via the "You vs TMDB" scatter chart above.
     st.dataframe(
         df,
         column_config={
             "Title": st.column_config.TextColumn("Title"),
             "TMDB": st.column_config.ProgressColumn(
-                "TMDB", min_value=0, max_value=10, format="%.1f",
-                width="small",
+                "TMDB", min_value=0, max_value=100, format="%d",
             ),
-            "Your rating": st.column_config.ProgressColumn(
-                "Your rating", min_value=0, max_value=100, format="%d",
+            "You": st.column_config.ProgressColumn(
+                "You", min_value=0, max_value=100, format="%d",
             ),
         },
         hide_index=True,
