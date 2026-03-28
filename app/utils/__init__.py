@@ -535,7 +535,7 @@ def render_watchlist_detail(details: dict) -> None:
             "Watch Now",
             url=tmdb_link,
             icon=":material/play_circle:",
-            use_container_width=True,
+            width="stretch",
         )
 
 

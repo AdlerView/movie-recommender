@@ -79,7 +79,7 @@ if genre_data:
         ),
         tooltip=["Genre", "Movies", "Avg Rating"],  # Interactive hover info
     )
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 # ============================================================
 # MOOD PROFILE — horizontal bar chart with emoji labels
@@ -114,7 +114,7 @@ if mood_data:
         ),
         tooltip=["Mood", "Reactions"],
     )
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width="stretch")
 
 # ============================================================
 # RATING BEHAVIOR — scatter plot: user rating vs TMDB rating
@@ -168,7 +168,7 @@ if user_vs_tmdb:
     ).mark_line(strokeDash=[2, 2], opacity=0.6)
 
     # Layer all three: diagonal + scatter points + trend line
-    st.altair_chart(diagonal + points + trend, use_container_width=True)
+    st.altair_chart(diagonal + points + trend, width="stretch")
 
 # ============================================================
 # FAVORITE DIRECTORS + ACTORS — side-by-side photo rankings
@@ -229,5 +229,5 @@ if rated_rows:
             ),
         },
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )

@@ -256,5 +256,5 @@ st.button(
     "Reset to factory settings",
     icon=":material/restart_alt:",
     on_click=_reset_all,
-    use_container_width=True,
+    width="stretch",
 )

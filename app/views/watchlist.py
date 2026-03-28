@@ -41,7 +41,7 @@ if not watchlist:
     )
     # "Discover more" button as actionable next step (same styling as Load more
     # on Discover/Rate: full container width, no icon)
-    if st.button("Discover more", use_container_width=True, type="primary"):
+    if st.button("Discover more", width="stretch", type="primary"):
         st.switch_page("app/views/discover.py")
     st.stop()
 
@@ -90,7 +90,7 @@ with st.container(key="watchlist_grid"):
 # --- "Discover more" button (always shown after grid, mirrors Load more styling) ---
 # Uses st.switch_page for environment-agnostic navigation (works on localhost
 # and production domains without hardcoding URLs)
-if st.button("Discover more", use_container_width=True, type="primary"):
+if st.button("Discover more", width="stretch", type="primary"):
     st.switch_page("app/views/discover.py")
 
 # --- Trigger dialog after grid renders (dialog must be called in main flow) ---
@@ -113,7 +113,7 @@ if st.session_state._watchlist_selected is not None:
         col_remove, col_watched = st.columns(2)
         with col_remove:
             if st.button("Remove from watchlist", icon=":material/delete:",
-                         use_container_width=True):
+                         width="stretch"):
                 st.session_state.watchlist = [
                     m for m in st.session_state.watchlist if m["id"] != _mid
                 ]
@@ -131,7 +131,7 @@ if st.session_state._watchlist_selected is not None:
                 st.rerun()
         with col_watched:
             if st.button("Mark as watched", icon=":material/visibility:",
-                         type="primary", use_container_width=True):
+                         type="primary", width="stretch"):
                 st.session_state["_watchlist_show_rating"] = True
 
         # Rating widget (shown after "Mark as watched" click)

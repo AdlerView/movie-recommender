@@ -206,7 +206,7 @@ if has_more:
         "Load more",
         icon=":material/expand_more:",
         on_click=_load_more,
-        use_container_width=True,
+        width="stretch",
         type="primary",
     )
 

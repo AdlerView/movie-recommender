@@ -175,7 +175,7 @@ with st.sidebar:
         for i, kw in enumerate(selected_keywords):
             with _cols[i]:
                 if st.button(f"✕ {kw['name']}", key=f"discover_kw_rm_{kw['id']}",
-                             use_container_width=True):
+                             width="stretch"):
                     selected_keywords = [k for k in selected_keywords if k["id"] != kw["id"]]
                     st.session_state["_discover_keywords"] = selected_keywords
                     st.rerun()
@@ -204,7 +204,7 @@ with st.sidebar:
         st.session_state["_discover_pages"] = 1
 
     st.button("Reset all", icon=":material/restart_alt:", on_click=_reset_sidebar,
-              use_container_width=True)
+              width="stretch")
 
 
 # ============================================================
@@ -448,7 +448,7 @@ if movies:
     # Load more button
     if _has_more:
         st.button("Load more", icon=":material/expand_more:",
-                  on_click=_load_more, use_container_width=True,
+                  on_click=_load_more, width="stretch",
                   type="primary")
 else:
     # Empty results — show info and fallback recommendations
@@ -517,7 +517,7 @@ if st.session_state._discover_selected_id is not None:
         col_dismiss, col_watchlist = st.columns(2)
         with col_dismiss:
             if st.button("Not interested", icon=":material/thumb_down:",
-                         use_container_width=True):
+                         width="stretch"):
                 st.session_state.dismissed.add(_mid)
                 save_dismissed(_mid)
                 fetch_and_cache_details(_mid, _details)
@@ -529,7 +529,7 @@ if st.session_state._discover_selected_id is not None:
                 st.rerun()
         with col_watchlist:
             if st.button("Add to watchlist", icon=":material/bookmark:",
-                         type="primary", use_container_width=True):
+                         type="primary", width="stretch"):
                 _movie_dict = {
                     "id": _mid,
                     "title": _details.get("title", ""),
