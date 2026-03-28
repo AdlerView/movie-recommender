@@ -302,12 +302,10 @@ def render_person_ranking(
             count = person["movies"]
             avg = person["avg_rating"]
             _rc = rating_color(avg)
-            st.html(
-                f'<p style="font-size:0.875rem;line-height:1.4;margin:0">'
-                f'<strong>{person["name"]}</strong><br>'
+            st.caption(
+                f'**{person["name"]}**  \n'
                 f'{count} {"movie" if count == 1 else "movies"}'
-                f' · <span style="color:{_rc};font-weight:600">{avg:.0f}/100</span>'
-                f'</p>'
+                f' · :color[{avg:.0f}/100]{{foreground="{_rc}"}}'
             )
 
 
