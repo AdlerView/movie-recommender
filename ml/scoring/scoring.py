@@ -66,7 +66,7 @@ def get_weights(rating_count: int) -> np.ndarray:
         rating_count: Number of movies the user has rated.
 
     Returns:
-        Weight vector of shape (10,) summing to 1.0.
+        Weight vector of shape (11,) summing to 1.0.
     """
     if rating_count == 0:
         return _WEIGHT_TABLE["cold"]

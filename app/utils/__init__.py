@@ -78,17 +78,25 @@ def rating_color(value: int | float, scale: int = 100) -> str:
     return RATING_COLORS[-1][1]
 
 
-def inject_poster_grid_css(container_key: str) -> None:
-    """Inject CSS for a clickable poster grid with invisible button overlays.
+def inject_poster_grid_css(container_key: str, gap: str | None = None) -> None:
+    """Inject CSS for a clickable grid with invisible button overlays.
 
     Scoped to the given container key to avoid affecting other elements.
     Uses st.html() so the style block doesn't take up layout space.
+    Used by Discover, Rate, Watchlist (poster grids) and Settings (provider grid).
 
     Args:
         container_key: The key passed to st.container() wrapping the grid.
+        gap: Optional custom gap between columns (e.g., "0.35rem" for compact
+            provider grid). If None, uses Streamlit's default column gap.
     """
+    # Optional gap override for compact grids (e.g., Settings provider logos)
+    gap_css = (
+        f".st-key-{container_key} [data-testid=\"stHorizontalBlock\"] "
+        f"{{ gap: {gap} !important; }}\n        " if gap else ""
+    )
     st.html(f"""<style>
-        .st-key-{container_key} [data-testid="stColumn"] {{
+        {gap_css}.st-key-{container_key} [data-testid="stColumn"] {{
             position: relative !important;
             cursor: pointer !important;
         }}

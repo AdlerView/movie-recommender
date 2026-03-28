@@ -138,41 +138,9 @@ if _providers:
         # Update shared session state so Discover reads the new selection
         st.session_state.subscriptions = set(s)
 
-    # CSS: compact grid with invisible overlay buttons
-    st.html("""<style>
-        .st-key-provider_grid [data-testid="stHorizontalBlock"] {
-            gap: 0.35rem !important;
-        }
-        .st-key-provider_grid [data-testid="stColumn"] {
-            cursor: pointer !important;
-            text-align: center;
-            position: relative !important;
-            padding: 0.15rem !important;
-        }
-        .st-key-provider_grid [data-testid="stColumn"] [data-testid="stElementContainer"]:has(.stButton) {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            z-index: 10 !important;
-        }
-        .st-key-provider_grid [data-testid="stElementContainer"]:has(.stButton) .stButton,
-        .st-key-provider_grid [data-testid="stElementContainer"]:has(.stButton) .stButton button {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            opacity: 0 !important;
-            cursor: pointer !important;
-            border: none !important;
-            background: transparent !important;
-            padding: 0 !important;
-        }
-        .st-key-provider_grid [data-testid="stColumn"]:hover {
-            opacity: 0.85;
-            transition: opacity 0.2s;
-        }
-    </style>""")
+    # Clickable grid CSS (shared helper with compact gap for provider logos)
+    from app.utils import inject_poster_grid_css
+    inject_poster_grid_css("provider_grid", gap="0.35rem")
 
     # Provider logo grid (6 columns)
     _PROVIDER_COLS = 6
