@@ -381,7 +381,7 @@ try:
         movies = [m for m in movies if m["id"] in _filtered_ids]
 
     # --- Personalized ranking (only for "Personalized" sort) ---
-    # Computes 10-signal cosine similarity between user profile and each
+    # Computes 11-signal cosine similarity between user profile and each
     # candidate, then re-sorts by final score (descending). Other sort
     # options (Popularity, Rating, Release date) use TMDB's API sort order.
     # Graceful degradation: no model files → no profile → API order used.

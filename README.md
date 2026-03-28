@@ -35,7 +35,7 @@ With thousands of movies available across streaming platforms, users waste time 
 | Data source | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) — 9 endpoints, cached with TTLs (5m-24h) |
 | User data   | SQLite (WAL mode) — 8 tables: ratings, moods, watchlist, dismissed, subscriptions, preferences, profile cache, movie details (JSON columns) |
 | ML offline  | scikit-learn (TF-IDF, TruncatedSVD, 7 classifiers), transformers (distilroberta emotion classifier), sentence-transformers (EmbeddingGemma-300M) |
-| ML online   | Precomputed `.npy` arrays (~3 GB, 1.17M movies), numpy-vectorized 10-signal cosine similarity scoring (~8ms / 300 candidates) |
+| ML online   | Precomputed `.npy` arrays (~3 GB, 1.17M movies), numpy-vectorized 11-signal cosine similarity scoring (~8ms / 300 candidates) |
 
 ---
 
@@ -125,7 +125,7 @@ Full course-compliant ML evaluation workflow (see `ml/evaluation/ml_evaluation.i
 - **Confusion matrix + classification report** on held-out test set
 - **10-fold cross-validation** with mean ± std accuracy
 - **KNN hyperparameter tuning:** k=1..20, train vs validation accuracy plot
-- **Beyond course:** TF-IDF + TruncatedSVD (1.17M movies), pre-trained emotion transformer, EmbeddingGemma-300M embeddings, Bayesian quality scoring, 10-signal content-based scoring with dynamic weights
+- **Beyond course:** TF-IDF + TruncatedSVD (1.17M movies), pre-trained emotion transformer, EmbeddingGemma-300M embeddings, Bayesian quality scoring, 11-signal content-based scoring with dynamic weights
 
 ---
 
@@ -140,7 +140,7 @@ movie-recommender/
 ├── ml/
 │   ├── extraction/            Offline: feature vectors from tmdb.sqlite → .npy arrays
 │   ├── classification/        Offline: keyword-to-mood classifier + mood score prediction
-│   ├── scoring/               Online: user profile, 10-signal scoring, mood filter
+│   ├── scoring/               Online: user profile, 11-signal scoring, mood filter
 │   └── evaluation/            ML evaluation functions + Jupyter notebook
 ├── data/
 │   ├── input/                 Pipeline sources (tmdb.sqlite, labeled keywords, genre-mood map)
@@ -169,7 +169,7 @@ movie-recommender/
 | 2 | Data via API/database | ✅ implemented (TMDB API v3, 9 endpoints + SQLite, 8 tables + 1.17M movie DB) |
 | 3 | Data visualization | ✅ implemented (4 KPIs, 4 Altair charts, top 5 rankings, sortable table) |
 | 4 | User interaction | ✅ implemented (8 filters, mood pills, ratings, watchlist, settings, 5 pages) |
-| 5 | Machine learning | ✅ implemented (TF-IDF/SVD pipeline, 10-signal scoring, 7 classifiers, evaluation) |
+| 5 | Machine learning | ✅ implemented (TF-IDF/SVD pipeline, 11-signal scoring, 7 classifiers, evaluation) |
 | 6 | Code documentation | ✅ implemented (Google-style docstrings, inline comments, 16 .md files) |
 | 7 | Contribution matrix | ⚠️ structure ready, needs team input |
 | 8 | 4-min video + demo | ❌ not started |

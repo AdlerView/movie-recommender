@@ -152,7 +152,7 @@ try:
     movies = movies[:target_count]
 
     # --- Personalized re-ranking (browse mode only, when profile exists) ---
-    # Uses the same 10-signal scoring as Discover page. No mood filter on Rate
+    # Uses the same 11-signal scoring as Discover page. No mood filter on Rate
     # (mood pills are only on Discover). Falls back to API popularity order
     # when no profile exists (cold start: 0 ratings).
     if not current_query and _profile is not None and movies:

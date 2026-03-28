@@ -6,7 +6,7 @@ This package contains the complete machine learning system in 4 subpackages:
   (TF-IDF, SVD dimensionality reduction, Bayesian quality scores)
 - classification: Keyword-to-mood classifier training + mood score prediction
   (7 Ekman moods, 4 combined signals, 1.17M movies)
-- scoring: Online scoring at request time (10-signal cosine similarity,
+- scoring: Online scoring at request time (11-signal cosine similarity,
   dynamic weight shifting, user profile computation, mood filter)
 - evaluation: Academic ML evaluation functions (classifier comparison,
   cross-validation, KNN tuning) + Jupyter notebook

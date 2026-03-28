@@ -130,21 +130,6 @@ def get_languages() -> list[dict]:
 
 
 @st.cache_data(ttl="24h", show_spinner=False)
-def get_certifications(country: str = "DE") -> list[dict]:
-    """Fetch movie certification levels for a country.
-
-    Args:
-        country: ISO 3166-1 country code (default: DE).
-
-    Returns:
-        List of certification dicts with "certification", "meaning", "order".
-    """
-    # GET /certification/movie/list — certifications per country
-    data = _get("/certification/movie/list")
-    return data.get("certifications", {}).get(country, [])
-
-
-@st.cache_data(ttl="24h", show_spinner=False)
 def get_countries() -> list[dict]:
     """Fetch available countries from TMDB configuration.
 

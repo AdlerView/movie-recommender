@@ -96,14 +96,14 @@
 
 **Evidence:**
 - **Offline pipeline:** TF-IDF + TruncatedSVD (1.17M movies × 200 dims), Bayesian quality scores, emotion classifier (distilroberta), keyword-to-mood classifier (7 classes, EmbeddingGemma-300M embeddings)
-- **Online scoring:** 10-signal cosine similarity, dynamic weight shifting by rating count, mood filter with threshold fallback
+- **Online scoring:** 11-signal cosine similarity, dynamic weight shifting by rating count, mood filter with threshold fallback
 - **Academic evaluation:** 7 classifier comparison (KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier, 2× DummyClassifier), scaled vs unscaled, confusion matrix, 10-fold cross-validation, KNN hyperparameter tuning (k=1..20)
 - **Course compliance:** train_test_split with stratify, RobustScaler, ConfusionMatrixDisplay, classification_report, KFold cross-validation — all mandatory elements present
-- **Beyond course:** TruncatedSVD, pre-trained transformer, content-based scoring with 10 signals, dynamic weight shifting, Bayesian averaging
+- **Beyond course:** TruncatedSVD, pre-trained transformer, content-based scoring with 11 signals, dynamic weight shifting, Bayesian averaging
 
 **Files:** `ml/extraction/extract_features.py`, `ml/classification/keyword_mood_classifier.py`, `ml/classification/predict_moods.py`, `ml/extraction/quality_scores.py`, `ml/scoring/scoring.py`, `ml/scoring/user_profile.py`, `ml/scoring/mood_filter.py`, `ml/evaluation/ml_eval.py`
 
-**Estimated Score:** 3/3 — Complete ML pipeline from feature extraction through scoring to evaluation. Multiple techniques beyond course content (SVD, transformers, Bayesian averaging, 10-signal scoring).
+**Estimated Score:** 3/3 — Complete ML pipeline from feature extraction through scoring to evaluation. Multiple techniques beyond course content (SVD, transformers, Bayesian averaging, 11-signal scoring).
 
 ---
 

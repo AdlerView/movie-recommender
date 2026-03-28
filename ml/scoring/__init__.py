@@ -1,4 +1,4 @@
-"""Online scoring: user profile, 10-signal ranking, mood filter."""
+"""Online scoring: user profile, 11-signal ranking, mood filter."""
 from __future__ import annotations
 from ml.scoring.mood_filter import filter_by_mood
 from ml.scoring.scoring import score_candidates

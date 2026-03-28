@@ -1,10 +1,10 @@
-"""Personalized movie scoring with 10-signal cosine similarity.
+"""Personalized movie scoring with 11-signal cosine similarity.
 
 Scores candidate movies against a user profile using 10 weighted similarity
 signals. All computations are batch-vectorized with numpy for performance
 (~8ms for 300 candidates on a single CPU core).
 
-The 10 signals and their full-personalization weights (50+ ratings):
+The 11 signals and their full-personalization weights (50+ ratings):
     keyword_similarity   0.20  — cosine sim of keyword SVD vectors
     mood_match           0.20  — explicit mood selection or implicit mood profile
     genre_similarity     0.05  — cosine sim of genre multi-hot vectors
@@ -23,7 +23,7 @@ Data flow:
     UserProfile (from user_profile.py)
     + candidate movie IDs (from TMDB API discover response)
     + model arrays (lazy singleton from user_profile.py)
-        → 10 signal scores per candidate (numpy batch)
+        → 11 signal scores per candidate (numpy batch)
         → weighted sum using dynamic weights
         → sorted list of (movie_id, final_score) tuples
 """

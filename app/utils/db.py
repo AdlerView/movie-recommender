@@ -23,6 +23,10 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Final
+
+# Default streaming country code (avoids circular import from app.utils)
+_DEFAULT_COUNTRY_CODE: Final[str] = "CH"
 
 # Database path: project_root/data/ (three levels up: utils/ → app/ → root)
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
@@ -311,7 +315,7 @@ def load_subscriptions() -> set[int]:
     return {row["provider_id"] for row in rows}
 
 
-def save_subscriptions(provider_ids: list[int], country: str = "CH") -> None:
+def save_subscriptions(provider_ids: list[int], country: str = _DEFAULT_COUNTRY_CODE) -> None:
     """Replace all saved streaming subscriptions.
 
     Deletes existing entries and inserts the new selection. Uses a single
@@ -572,27 +576,6 @@ def load_stats_summary() -> dict:
     }
 
 
-def load_genre_distribution() -> list[tuple[str, int]]:
-    """Load genre counts across all rated movies.
-
-    Each movie can have multiple genres, so a single movie may contribute
-    to multiple genre counts. Only includes genres from rated movies.
-
-    Returns:
-        List of (genre_name, count) tuples, sorted by count descending.
-    """
-    with _connection() as conn:
-        rows = conn.execute(
-            """SELECT je.value->>'name' AS genre_name, COUNT(*) AS count
-               FROM user_ratings r
-               JOIN movie_details d ON r.movie_id = d.movie_id,
-                    json_each(d.genres) je
-               GROUP BY genre_name
-               ORDER BY count DESC"""
-        ).fetchall()
-    return [(row["genre_name"], row["count"]) for row in rows]
-
-
 def load_top_directors(limit: int = 5) -> list[dict]:
     """Load directors with the most rated movies, avg rating, and photo.
 
@@ -645,80 +628,6 @@ def load_user_vs_tmdb() -> list[tuple[float, int, str]]:
                WHERE d.vote_average IS NOT NULL"""
         ).fetchall()
     return [(row["vote_average"], row["rating"], row["title"]) for row in rows]
-
-
-def load_rating_distribution() -> list[int]:
-    """Load all user ratings for histogram visualization.
-
-    Returns:
-        List of rating values (0-100 in steps of 10).
-    """
-    with _connection() as conn:
-        rows = conn.execute("SELECT rating FROM user_ratings").fetchall()
-    return [row["rating"] for row in rows]
-
-
-def load_rating_history() -> list[tuple[str, int]]:
-    """Load user ratings in chronological order.
-
-    Returns each rating with its timestamp for a line chart showing
-    how the user's ratings evolve over time. Ratings are 0-100.
-
-    Returns:
-        List of (rated_at, rating) tuples, sorted by time ascending.
-    """
-    with _connection() as conn:
-        rows = conn.execute(
-            """SELECT r.rated_at, r.rating
-               FROM user_ratings r
-               WHERE r.rated_at IS NOT NULL
-               ORDER BY r.rated_at ASC"""
-        ).fetchall()
-    return [(row["rated_at"], row["rating"]) for row in rows]
-
-
-def load_language_distribution() -> list[tuple[str, int]]:
-    """Load movie counts grouped by original language.
-
-    Uses the original_language field from movie_details (ISO 639-1 codes).
-    Movies without a language are excluded.
-
-    Returns:
-        List of (language_code, count) tuples, sorted by count descending.
-    """
-    with _connection() as conn:
-        rows = conn.execute(
-            """SELECT d.original_language AS lang, COUNT(*) AS count
-               FROM user_ratings r
-               JOIN movie_details d ON r.movie_id = d.movie_id
-               WHERE d.original_language IS NOT NULL
-               GROUP BY d.original_language
-               ORDER BY count DESC"""
-        ).fetchall()
-    return [(row["lang"].upper(), row["count"]) for row in rows]
-
-
-def load_decade_distribution() -> list[tuple[str, int]]:
-    """Load movie counts grouped by release decade.
-
-    Groups rated movies into decades (2020s, 2010s, etc.) based on
-    the release_date field. Movies without a release date are excluded.
-
-    Returns:
-        List of (decade_label, count) tuples, sorted by decade descending.
-    """
-    with _connection() as conn:
-        rows = conn.execute(
-            """SELECT (CAST(substr(d.release_date, 1, 4) AS INTEGER) / 10) * 10
-                      AS decade,
-                      COUNT(*) AS count
-               FROM user_ratings r
-               JOIN movie_details d ON r.movie_id = d.movie_id
-               WHERE d.release_date IS NOT NULL AND length(d.release_date) >= 4
-               GROUP BY decade
-               ORDER BY decade DESC"""
-        ).fetchall()
-    return [(f"{row['decade']}s", row["count"]) for row in rows]
 
 
 def load_top_actors(limit: int = 5) -> list[dict]:
