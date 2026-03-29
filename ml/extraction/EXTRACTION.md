@@ -10,7 +10,7 @@ Offline feature extraction from `tmdb.sqlite` into `.npy` arrays. No ML models �
 data/input/tmdb.sqlite (7.7 GB, offline only)
     |
     |  ml/extraction/extract_features.py
-    |  ml/classification/predict_moods.py
+    |  ml/extraction/moods.py
     |  ml/extraction/quality_scores.py
     |  ml/extraction/build_index.py
     |
@@ -101,12 +101,12 @@ Verifies all 14 pipeline outputs exist and have consistent row counts.
 ```bash
 # Full pipeline (takes several hours for mood prediction)
 python3 ml/extraction/extract_features.py --db data/input/tmdb.sqlite --output data/output/
-python3 ml/classification/predict_moods.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/extraction/moods.py --db data/input/tmdb.sqlite --output data/output/
 python3 ml/extraction/quality_scores.py --db data/input/tmdb.sqlite --output data/output/
 python3 ml/extraction/build_index.py --output data/output/
 ```
 
-Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `predict_moods` → `build_index`.
+Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `moods` → `build_index`.
 Each stage is idempotent and can be re-run independently.
 
 ---

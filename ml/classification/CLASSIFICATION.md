@@ -1,10 +1,10 @@
 # CLASSIFICATION
 
-ML classification models: keyword-to-mood classifier (`keyword_mood_classifier.py`) and mood score prediction (`predict_moods.py`).
+ML classification models: keyword-to-mood classifier (`keyword_mood_classifier.py`) and mood score prediction (`ml/extraction/moods.py`).
 
 ---
 
-## Mood Score Prediction (predict_moods.py)
+## Mood Score Prediction (ml/extraction/moods.py)
 
 For each of the 1.17M movies, predicts 7 mood probabilities by combining 4 signals.
 
@@ -55,7 +55,7 @@ Pre-trained transformer applied to all movie overviews.
 - **Model:** `j-hartmann/emotion-english-distilroberta-base` (runs fully offline via `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`, model must be cached locally before pipeline run)
 - **Input:** `movies.overview` + `movies.tagline` (concatenated)
 - **Output:** 7 classes: `{anger, disgust, fear, joy, neutral, sadness, surprise}`
-- **Mapping to 7 moods:** Direct 7-to-7 mapping (see `EMOTION_TO_MOOD` in `predict_moods.py`)
+- **Mapping to 7 moods:** Direct 7-to-7 mapping (see `EMOTION_TO_MOOD` in `moods.py`)
 
 ~995K movies have non-empty overviews. The remaining ~179K get mood scores only from genre and keyword signals.
 
@@ -69,7 +69,7 @@ Same classifier applied to `movie_reviews.content`. Only 38,535 movies (3.3%) ha
 
 ### Signal Combination
 
-Dynamic weighting based on availability: reviews-heavy when available (0.50), overview-heavy when no reviews (0.50), genre+keyword fallback when no text. Weights always sum to 1.0. See `predict_moods.py:combine_signals()` for exact weights.
+Dynamic weighting based on availability: reviews-heavy when available (0.50), overview-heavy when no reviews (0.50), genre+keyword fallback when no text. Weights always sum to 1.0. See `moods.py:combine_signals()` for exact weights.
 
 **Output:** `data/output/mood_scores.npy` (1.17M x 7)
 

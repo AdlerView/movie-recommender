@@ -8,9 +8,9 @@ Pipeline source data. These files are consumed by the offline ML pipeline script
 
 | File | Size | Tracked | Consumed by |
 |---|---|---|---|
-| `tmdb.sqlite` | 7.7 GB | Gitignored | `extract_features.py`, `predict_moods.py`, `quality_scores.py` |
+| `tmdb.sqlite` | 7.7 GB | Gitignored | `extract_features.py`, `moods.py`, `quality_scores.py` |
 | `labeled_keywords.tsv` | 355 KB | Tracked | `keyword_mood_classifier.py` |
-| `genre_mood_map.json` | 1.3 KB | Tracked | `predict_moods.py` |
+| `genre_mood_map.json` | 1.3 KB | Tracked | `moods.py` |
 
 ---
 
@@ -170,7 +170,7 @@ CREATE TABLE movie_reviews (
 - **Total reviews:** ~95K across ~38,535 movies (3.3% of all movies)
 - **Average reviews per movie (where exists):** 2.5
 
-Used by: `predict_moods.py` → emotion classifier (distilroberta) → Signal 4 (review emotion)
+Used by: `moods.py` → emotion classifier (distilroberta) → Signal 4 (review emotion)
 
 ---
 
@@ -216,4 +216,4 @@ Only the **single-label subset (1,049)** is used for classifier training. See `m
 
 19 genre-to-mood rules mapping each TMDB genre to mood weights. Weights are independent (not normalized to 1.0) and reflect the emotional connotation of the genre itself. Full mapping and rationale: see `ml/classification/CLASSIFICATION.md` (Signal 1).
 
-Used by `predict_moods.py` as Signal 1. For multi-genre movies, mood scores are averaged across genres.
+Used by `moods.py` as Signal 1. For multi-genre movies, mood scores are averaged across genres.

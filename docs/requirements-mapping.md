@@ -43,7 +43,7 @@
 - Offline pipeline database: tmdb.sqlite (7.7 GB, 1.17M movies, 30 tables)
 - Precomputed `.npy` arrays (~3 GB) loaded at runtime
 
-**Files:** `src/utils/tmdb.py` (API client), `src/utils/db.py` (SQLite layer), `ml/scoring/user_profile.py` (array loading)
+**Files:** `src/utils/tmdb.py` (API client), `src/utils/db.py` (SQLite layer), `ml/scoring/arrays.py` (array loading)
 
 **Estimated Score:** 3/3 — Extensive API usage with caching, plus both online (user.sqlite) and offline (tmdb.sqlite) databases. JSON columns, WAL mode, and precomputed ML arrays go far beyond basic database usage.
 
@@ -101,7 +101,7 @@
 - **Course compliance:** train_test_split with stratify, RobustScaler, ConfusionMatrixDisplay, classification_report, KFold cross-validation — all mandatory elements present
 - **Beyond course:** TruncatedSVD, pre-trained transformer, content-based scoring with 11 signals, dynamic weight shifting, Bayesian averaging
 
-**Files:** `ml/extraction/extract_features.py`, `ml/classification/keyword_mood_classifier.py`, `ml/classification/predict_moods.py`, `ml/extraction/quality_scores.py`, `ml/scoring/scoring.py`, `ml/scoring/user_profile.py`, `ml/scoring/mood_filter.py`, `ml/evaluation/ml_eval.py`
+**Files:** `ml/extraction/extract_features.py`, `ml/classification/keyword_mood_classifier.py`, `ml/extraction/moods.py`, `ml/extraction/quality_scores.py`, `ml/scoring/scoring.py`, `ml/scoring/arrays.py`, `ml/scoring/profile.py`, `ml/scoring/cache.py`, `ml/scoring/mood_filter.py`, `ml/evaluation/ml_eval.py`
 
 **Estimated Score:** 3/3 — Complete ML pipeline from feature extraction through scoring to evaluation. Multiple techniques beyond course content (SVD, transformers, Bayesian averaging, 11-signal scoring).
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mood prediction pipeline (Stage 2): 4 signals combined per movie. See CLASSIFICATION.md."""
+"""Mood prediction pipeline (Stage 2): 4 signals combined per movie. See CLASSIFICATION.md and EXTRACTION.md."""
 from __future__ import annotations
 
 import argparse
@@ -17,6 +17,8 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+
+from ml.extraction import load_movie_ids
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,14 +43,6 @@ EMOTION_TO_MOOD = {
     "surprise": "surprised",
 }
 
-
-def load_movie_ids(conn: sqlite3.Connection) -> tuple[np.ndarray, dict[int, int]]:
-    """Load canonical movie ID ordering (shared across pipeline stages)."""
-    df = pd.read_sql_query("SELECT id FROM movies ORDER BY id", conn)
-    ids = df["id"].to_numpy()
-    id_to_row = {int(mid): i for i, mid in enumerate(ids)}
-    log.info("Loaded %d movie IDs", len(ids))
-    return ids, id_to_row
 
 
 def compute_genre_signal(

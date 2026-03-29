@@ -15,24 +15,14 @@ from scipy.sparse import csr_matrix
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfTransformer
 
+from ml.extraction import load_movie_ids
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%H:%M:%S",
 )
 log = logging.getLogger(__name__)
-
-
-def load_movie_ids(conn: sqlite3.Connection) -> np.ndarray:
-    """Load canonical movie ID ordering."""
-    df = pd.read_sql_query("SELECT id FROM movies ORDER BY id", conn)
-    movie_ids = df["id"].to_numpy()
-    log.info("Loaded %d movie IDs (min=%d, max=%d)", len(movie_ids), movie_ids.min(), movie_ids.max())
-    return movie_ids
-
-
-def build_id_mapping(ids: np.ndarray) -> dict[int, int]:
-    return {int(mid): i for i, mid in enumerate(ids)}
 
 
 def extract_keyword_svd(
@@ -363,8 +353,7 @@ def main() -> int:
 
     # --- Canonical movie ID ordering (shared by all features) ---
     log.info("=== Loading canonical movie ID ordering ===")
-    movie_ids = load_movie_ids(conn)
-    movie_row = build_id_mapping(movie_ids)
+    movie_ids, movie_row = load_movie_ids(conn)
     n_movies = len(movie_ids)
 
     # --- Feature 1: Keywords (TF-IDF → SVD) ---
