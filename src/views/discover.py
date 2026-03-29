@@ -23,8 +23,8 @@ from src.utils.tmdb import (
 )
 from ml.scoring import filter_by_mood, get_or_compute_profile, score_candidates
 
-# 7 Ekman mood categories (canonical source: ml.scoring.user_profile.MOODS)
-from ml.scoring.user_profile import MOODS as _MOODS
+# 7 Ekman mood categories (canonical source: ml.scoring.arrays.MOODS)
+from ml.scoring.arrays import MOODS as _MOODS
 # Genre pill order optimized for sidebar width (shorter names grouped together)
 _GENRE_ORDER = [
     "War", "Music", "Crime",

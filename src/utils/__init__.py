@@ -184,7 +184,7 @@ def render_rating_widget(
     </style>""")
 
     # Mood reaction pills (optional, multi-select)
-    from ml.scoring.user_profile import MOODS
+    from ml.scoring.arrays import MOODS
 
     st.caption("**How did this movie make you feel?** (optional)")
     selected_moods = st.pills(

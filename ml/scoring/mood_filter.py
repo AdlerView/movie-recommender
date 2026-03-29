@@ -6,7 +6,7 @@ from typing import Final
 
 import numpy as np
 
-from ml.scoring.user_profile import MOOD_IDX, get_model
+from ml.scoring.arrays import MOOD_IDX, get_model
 
 log = logging.getLogger(__name__)
 
