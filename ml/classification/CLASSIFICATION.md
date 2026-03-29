@@ -52,13 +52,10 @@ See [Keyword-to-Mood Classification](#overview) below for the full labeling pipe
 
 Pre-trained transformer applied to all movie overviews.
 
-- **Model:** `j-hartmann/emotion-english-distilroberta-base`
+- **Model:** `j-hartmann/emotion-english-distilroberta-base` (runs fully offline via `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`, model must be cached locally before pipeline run)
 - **Input:** `movies.overview` + `movies.tagline` (concatenated)
-- **Output:** `{anger, disgust, fear, joy, sadness, surprise}` (6 classes)
-- **Mapping to 7 moods:**
-  - `joy` → `happy`, `anger` → `angry`, `disgust` → `disgusted`
-  - `fear` → `afraid`, `sadness` → `sad`, `surprise` → `surprised`
-  - `interested` derived from low max-confidence (classifier uncertain = thought-provoking rather than emotionally extreme)
+- **Output:** 7 classes: `{anger, disgust, fear, joy, neutral, sadness, surprise}`
+- **Mapping to 7 moods:** Direct 7-to-7 mapping (see `EMOTION_TO_MOOD` in `predict_moods.py`)
 
 ~995K movies have non-empty overviews. The remaining ~179K get mood scores only from genre and keyword signals.
 
@@ -72,26 +69,7 @@ Same classifier applied to `movie_reviews.content`. Only 38,535 movies (3.3%) ha
 
 ### Signal Combination
 
-Dynamic weighting based on availability:
-
-```
-If reviews available:
-    0.50 * reviews_emotion
-  + 0.20 * overview_emotion
-  + 0.20 * genre_mood
-  + 0.10 * keyword_mood
-
-If no reviews (96.7% of movies):
-    0.50 * overview_emotion
-  + 0.30 * genre_mood
-  + 0.20 * keyword_mood
-
-If no overview either (~15%):
-    0.60 * genre_mood
-  + 0.40 * keyword_mood
-```
-
-Weights always normalize to 1.0. When a signal is unavailable, its weight redistributes to the remaining signals.
+Dynamic weighting based on availability: reviews-heavy when available (0.50), overview-heavy when no reviews (0.50), genre+keyword fallback when no text. Weights always sum to 1.0. See `predict_moods.py:combine_signals()` for exact weights.
 
 **Output:** `data/output/mood_scores.npy` (1.17M x 7)
 
@@ -149,6 +127,10 @@ remaining ~65K unlabeled keywords. See `keyword_mood_classifier.py`.
 Training uses single-label only for a methodologically clean 7-class
 problem. Alternatives considered: multi-label with one-vs-rest (more
 data but harder to evaluate with standard metrics).
+
+**Split strategy:** 80/10/10 (train/val/test) via two successive `train_test_split` calls with `stratify` and fixed seed (`random_state=13`). First split: 90% train+val, 10% test. Second split: of the 90%, 87.5% train and 12.5% val (= 10% of total). Follows Assignment 11 Task 1. The validation set serves as the "mock exam" — an overfitting detector (lecture 11 slide 34). The test set is used only once for the final report, never during training or model selection.
+
+**Curse of dimensionality:** KNN struggles in high-dimensional spaces (d > 4) because distance metrics lose discriminative power (lecture 11 slide 9). Our keyword embeddings are 768-dim, which means KNN is expected to underperform compared to linear models (LogisticRegression, SVC). KNN is included for the mandatory course comparison but expected to rank lower.
 
 ---
 

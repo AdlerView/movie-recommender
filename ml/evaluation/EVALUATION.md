@@ -58,62 +58,17 @@ From lectures 10/11, notebooks 10-0 through 11, and assignments 10-11:
 
 ---
 
-## sklearn Imports Reference
-
-```python
-from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.preprocessing import RobustScaler
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
-from sklearn.dummy import DummyClassifier
-from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    classification_report, ConfusionMatrixDisplay,
-)
-```
-
----
-
 ## Evaluation Workflow
 
 ---
 
 ### User Preference Classification
 
-- **Features (X):** For each (user, movie) pair, the 10 scoring components:
-  `[keyword_sim, mood_match, genre_sim, director_sim, actor_sim,
-   decade_sim, language_sim, runtime_sim, quality_score, contra_penalty]`
+- **Features (X):** 10 scoring components per (user, movie) pair: keyword_sim, mood_match, genre_sim, director_sim, actor_sim, decade_sim, language_sim, runtime_sim, quality_score, contra_penalty
 - **Labels (y):** Binary — `1` = liked (>= 60/100), `0` = disliked (< 60/100)
-- **Data source:** All entries in `user_ratings` table
+- **Data source:** `user_ratings` table
 
-```python
-# 1. Data preparation
-X, y = build_features_and_labels(user_ratings, model_arrays)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, stratify=y, random_state=42
-)
-
-# 2. Scaling
-scaler = RobustScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-# 3. Classifier comparison (DataFrame of results)
-estimators = {
-    "KNN": KNeighborsClassifier(n_neighbors=5),
-    "SVC": SVC(gamma="scale"),
-    "GaussianNB": GaussianNB(),
-    "LogisticRegression": LogisticRegression(max_iter=1000),
-    "MLPClassifier": MLPClassifier(hidden_layer_sizes=[64, 64]),
-    "DummyClassifier": DummyClassifier(strategy="most_frequent"),
-}
-
-# 4. Best model: confusion matrix + classification_report
-# 5. Cross-validation: KFold(n_splits=10) + cross_val_score
-```
+Implementation: `ml_eval.py` functions (`evaluate_classifiers`, `best_model_report`, `run_cross_validation`).
 
 ---
 
@@ -140,11 +95,7 @@ the result. No duplicated code — both call `ml_eval.py`.
 
 ## Shared Utility
 
-`ml_eval.py` contains all evaluation logic:
-- `evaluate_classifiers()` — run all classifiers, return metrics DataFrame
-- `best_model_report()` — confusion matrix + classification report for best model
-- `run_cross_validation()` — KFold cross-validation with mean ± std
-- `knn_hyperparameter_plot()` — accuracy vs k plot
+All evaluation logic in `ml_eval.py`, re-exported via `ml/evaluation/__init__.py`.
 
 ---
 

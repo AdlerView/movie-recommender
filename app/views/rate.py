@@ -1,19 +1,4 @@
-"""Rate page — Search and rate movies you've already seen.
-
-Find movies via TMDB text search or browse personalized recommendations,
-then rate them on a 0-100 scale (steps of 10) with optional mood reactions.
-Clicking a poster opens a detail dialog with rating slider and mood buttons.
-Pure action tab — rated movies are reviewed on the Statistics page instead.
-
-Browse grid uses the same TMDB discover/movie endpoint as Discover page
-(unified retrieval layer), re-ranked by ML scoring when a profile exists.
-
-Dependencies:
-    app.utils: shared constants, CSS injection, rating widget, cache helper
-    app.utils.db: rating and mood persistence
-    app.utils.tmdb: TMDB API client (discover, search, details)
-    ml.scoring: user profile computation, personalized scoring
-"""
+"""Rate page — search and rate movies. See VIEWS.md."""
 from __future__ import annotations
 
 import requests
@@ -52,16 +37,10 @@ st.session_state.setdefault("_watched_prev_query", "")
 
 
 def _select_movie_id(movie_id: int) -> None:
-    """Set the selected movie ID to trigger the detail dialog.
-
-    Args:
-        movie_id: TMDB movie ID to show details for.
-    """
     st.session_state._watched_selected_id = movie_id
 
 
 def _load_more() -> None:
-    """Load the next page of browse/search results."""
     st.session_state._watched_pages += 1
 
 
@@ -100,11 +79,7 @@ else:
     # Cold start: no ratings yet, show popular movies
     st.subheader("Discover movies")
 
-# --- Fetch movies with pagination ---
-# Two modes: search (text query → search/movie API) or browse (no query →
-# discover/movie API, same unified retrieval layer as Discover page).
-# Loads pages until we have enough movies to fill the grid. May need extra
-# pages because rated/dismissed/watchlisted movies are filtered out locally.
+# --- Fetch movies: search or browse — see VIEWS.md ---
 rated_ids = st.session_state.get("ratings", {})
 target_count = st.session_state._watched_pages * TMDB_PAGE_SIZE
 movies: list[dict] = []
@@ -151,10 +126,7 @@ try:
     # Trim to exact target count (may have fetched slightly more)
     movies = movies[:target_count]
 
-    # --- Personalized re-ranking (browse mode only, when profile exists) ---
-    # Uses the same 11-signal scoring as Discover page. No mood filter on Rate
-    # (mood pills are only on Discover). Falls back to API popularity order
-    # when no profile exists (cold start: 0 ratings).
+    # --- ML re-ranking (browse mode only) — see SCORING.md ---
     if not current_query and _profile is not None and movies:
         _scored = score_candidates(_profile, [m["id"] for m in movies])
         _id_to_score = {mid: score for mid, score in _scored}
@@ -222,7 +194,6 @@ if st.session_state._watched_selected_id is not None:
 
     @st.dialog(_details.get("title", "Rate movie"), width="small")
     def _show_rating_dialog() -> None:
-        """Rate dialog: minimal — just rating slider + moods."""
         current_rating = st.session_state.ratings.get(_mid)
         from app.utils import render_rating_widget
         new_rating, selected_moods, _slider_ready = render_rating_widget(

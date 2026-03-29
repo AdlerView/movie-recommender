@@ -1,20 +1,4 @@
-"""Settings page — Streaming subscriptions, country, and language preferences.
-
-Manages user preferences that affect Discover page filtering. All changes
-are auto-saved to SQLite immediately via on_change callbacks — no explicit
-Save/Reset buttons needed (except the factory reset at the bottom).
-
-Sections:
-    1. Streaming country: default region for provider availability
-    2. Streaming subscriptions: clickable provider logo grid with toggle
-    3. Preferred language: default original language filter
-    4. Reset to factory settings: clears all preferences
-
-Dependencies:
-    app.utils: DEFAULT_COUNTRY_NAME, DEFAULT_COUNTRY_CODE constants
-    app.utils.db: preference and subscription persistence
-    app.utils.tmdb: countries, languages, watch providers API
-"""
+"""Settings page — streaming country, subscriptions, language. See VIEWS.md."""
 from __future__ import annotations
 
 import requests
@@ -28,10 +12,7 @@ from app.utils.db import (
 )
 from app.utils.tmdb import get_countries, get_languages, get_watch_providers_list, poster_url
 
-# --- Deferred toast (shown after rerun following a save action) ---
-# Pattern: save action stores (message, icon) tuple in session state,
-# then calls st.rerun(). On the next run, this block pops and displays it.
-# st.toast() before st.rerun() would be lost because the rerun resets the page.
+# --- Deferred toast (st.toast before st.rerun is lost) ---
 if "_settings_toast" in st.session_state:
     _msg, _icon = st.session_state.pop("_settings_toast")
     st.toast(_msg, icon=_icon)
@@ -67,7 +48,6 @@ _country_idx = (
 
 
 def _on_country_change() -> None:
-    """Auto-save streaming country when changed."""
     _val = st.session_state.get("settings_country", DEFAULT_COUNTRY_NAME)
     save_preference("streaming_country", _val)
     # Reset provider init so grid reloads for the new country
@@ -117,16 +97,7 @@ if _providers:
     _selected_set: set[int] = st.session_state.get("_settings_selected_subs", set())
 
     def _toggle_provider(pid: int) -> None:
-        """Toggle a streaming provider subscription on/off and persist.
-
-        Called via on_click from each provider button. Toggles the provider
-        in session state AND immediately saves the full subscription set
-        to SQLite. Also updates the shared subscriptions set that Discover
-        reads when building API parameters.
-
-        Args:
-            pid: TMDB provider ID to toggle.
-        """
+        """Toggle provider and persist to SQLite."""
         s = st.session_state.get("_settings_selected_subs", set())
         if pid in s:
             s.discard(pid)  # Deselect: remove provider from set
@@ -206,7 +177,6 @@ _lang_idx = (
 
 
 def _on_language_change() -> None:
-    """Auto-save preferred language when changed."""
     _val = st.session_state.get("settings_language", "Any")
     if _val == "Any":
         delete_preference("preferred_language")
@@ -233,7 +203,6 @@ st.selectbox(
 
 
 def _reset_all() -> None:
-    """Reset all settings to factory defaults."""
     # Country → Switzerland
     save_preference("streaming_country", DEFAULT_COUNTRY_NAME)
     st.session_state["settings_country"] = DEFAULT_COUNTRY_NAME

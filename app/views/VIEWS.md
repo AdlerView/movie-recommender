@@ -12,7 +12,7 @@ Streamlit page modules: Discover, Rate, Watchlist, Statistics, Settings.
 
 **Exclusion policy (browse grids):** Rated + dismissed + watchlisted movies are excluded from both Discover and Rate browse grids. Search results on Rate keep rated movies (allows re-rating).
 
-**Dialog pattern:** Poster click sets `_*_selected_id` in session state. Dialog defined inline at trigger point (not via top-level `@st.dialog` decorator) so the movie title can be used as the dynamic dialog header. Action buttons inside dialogs use `if st.button(): ... st.rerun()` (not `on_click` callbacks — `@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun). No poster shown inside dialogs (redundant after poster click).
+**Dialog pattern:** Poster click sets `_*_selected_id` in session state. Dialog defined inline for dynamic title. Actions use `st.button()` + `st.rerun()`, not `on_click` (`@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun).
 
 **Shared detail renderers** in `app/utils/__init__.py`:
 - `render_discover_detail(details)` — two-column layout: left = runtime + release date, tagline, genre badges + TMDB rating (one line), director, overview, streaming logos. Right = top 5 cast photos (no names). Used by Discover only.
@@ -37,11 +37,13 @@ Sidebar + main page. Only page with a sidebar.
 | 4 | Runtime | Range slider 0-360 min | `with_runtime.gte/lte` |
 | 5 | User score | Range slider 0-10 | `vote_average.gte/lte` |
 | 6 | Min user votes | Slider 0-500, default 50 | `vote_count.gte` |
-| 7 | Certification | Dropdown (per country) | `certification_country` + `certification.lte` |
+| 7 | Certification | Pills (DE certifications, exact match) | `certification_country` + `certification` |
 | 8 | Keywords | Autocomplete + removable chips | `with_keywords` |
 | — | Reset all | Button (resets sidebar only, not mood/sort) | — |
 
 Language, streaming country, and providers are managed in Settings (applied automatically via DB preferences).
+
+**Certification country:** DE (Germany) is used instead of CH because it has the best TMDB coverage (19,655 classified films) and a well-differentiated 5-level scale (0, 6, 12, 16, 18). CH data is unreliable. The filter uses exact match (`certification=X`), not cumulative (`certification.lte=X`).
 
 **Main page:**
 
@@ -53,9 +55,9 @@ Language, streaming country, and providers are managed in Settings (applied auto
 | 4 | Load more button | Below grid |
 
 **Scoring pipeline (after fetch, before grid):**
-1. Mood filter — `filter_by_mood()` for all sort orders when mood pills active
-2. ML scoring — `score_candidates()` only for Personalized sort, when profile exists
-3. Graceful degradation — no model/no ratings → API popularity order
+1. Mood filter — all sort orders when mood pills active
+2. ML scoring — Personalized sort only, when profile exists
+3. No profile → API popularity order (graceful degradation)
 
 **Detail dialog** (`width="large"`, title = movie name):
 - Two-column: left = runtime+date, tagline, genre+rating, director, overview, streaming logo. Right = 5 cast photos.

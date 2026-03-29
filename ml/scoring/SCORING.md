@@ -3,9 +3,6 @@
 Personalized scoring system for the movie recommender. Defines how
 candidate movies are ranked after TMDB API filtering.
 
-**Created:** 2026-03-26
-**Updated:** 2026-03-27
-
 ---
 
 ## Overview
@@ -32,15 +29,8 @@ User clicks "Discover"
    Keep only movies where selected mood > threshold
    -> ~50-300 candidates
 
-   Threshold fallback (mood_filter.py):
-     threshold = 0.3
-     keep = [m for m in candidates
-             if mood_scores[m][selected_mood] > threshold]
-     for t in [0.2, 0.1, 0.0]:
-         if len(keep) >= 20: break
-         threshold = t
-         keep = [m for m in candidates
-                 if mood_scores[m][selected_mood] > threshold]
+   Threshold fallback: starts at 0.3, steps down to 0.2 → 0.1 → 0.0
+   if fewer than 20 candidates pass. See `mood_filter.py`.
 
    If no mood selected, no mood filtering occurs. The user's
    implicit mood from rating history still influences the
@@ -114,18 +104,9 @@ ever stating it.
 If the user selected a mood explicitly: average of the candidate's
 predicted mood scores for the selected moods.
 
-```python
-mood_match = mean(candidate_mood_scores[m] for m in selected_moods)
-```
-
 If no mood selected: dot product between the user's implicit mood
 vector (normalized frequency of mood tags from rating history) and
 the candidate's mood scores.
-
-```python
-user_implicit_mood = normalized_frequency(all_mood_tags_from_ratings)
-mood_match = dot(user_implicit_mood, candidate_mood_scores)
-```
 
 **Data source:** `mood_scores.npy` (1.17M x 7)
 
@@ -194,12 +175,9 @@ movie count.
 
 ### Runtime Similarity (0.02)
 
-```python
-runtime_similarity = 1.0 - abs(user_avg_runtime - candidate_runtime) / 360.0
-```
-
-User average runtime is computed from positively-rated movies only
-(rating > 50).
+1 minus absolute distance between user's average runtime preference
+and candidate runtime, both normalized to [0, 1]. User average
+computed from positively-rated movies only (rating > 50).
 
 **What it captures:** "User avoids 3-hour epics" or "User prefers
 longer films."
@@ -228,13 +206,8 @@ from ranking above well-established films.
 
 ### Contra Penalty (0.10)
 
-Negative cosine similarity between the contra vector and the
-candidate's keyword vector:
-
-```python
-contra_vector = avg(keyword_svd[m] for m in rated_movies if rating <= 30)
-contra_penalty = -cosine_sim(contra_vector, candidate_keyword_vector)
-```
+Negative cosine similarity between the contra vector (average keyword
+SVD of disliked movies) and the candidate's keyword vector.
 
 **What it captures:** demotes movies thematically similar to movies the
 user rated poorly. If a user gave 10/100 to romantic comedies, other
@@ -276,20 +249,18 @@ All rows sum to 1.00. The transition is smooth -- no hard cutoffs.
 
 Recomputed when input data changes. Cached in `user_profile_cache` with an MD5 fingerprint over ratings + mood reactions + dismissed set. Re-ratings, mood tag changes, and new dismissals all trigger recomputation.
 
-```python
-weights = [(rating - 50) / 50 for rating in user_ratings]
+**Rating weight formula:** `(rating - 50) / 50` maps the 0-100 scale to [-1.0, +1.0]. A rating of 100 = +1.0 (strong positive), 50 = 0.0 (neutral), 0 = -1.0 (strong negative). The weighted average thus captures both what the user likes and dislikes.
 
-user_profile = {
-    "keyword_vec":   weighted_avg(keyword_svd[rated_ids], weights),
-    "director_vec":  weighted_avg(director_svd[rated_ids], weights),
-    "actor_vec":     weighted_avg(actor_svd[rated_ids], weights),
-    "decade_vec":    weighted_avg(decade_vec[rated_ids], weights),
-    "language_vec":  weighted_avg(language_vec[rated_ids], weights),
-    "runtime_pref":  weighted_avg(runtime[rated_ids], positive_weights_only),
-    "implicit_mood": normalized_frequency(all_mood_tags),
-    "contra_vec":    avg(keyword_svd[ids_where_rating <= 30]),
-}
-```
+**Input signals:**
+
+| Signal | Source | Weight |
+|---|---|---|
+| Rated movies | `user_ratings` | `(rating - 50) / 50` per movie |
+| Watchlisted movies | `watchlist` (not yet rated) | +0.3 (equivalent to rating 65 — interested but unconfirmed) |
+| Dismissed movies | `dismissed` + ratings ≤ 30 | Contribute to contra vector (average of keyword SVD vectors) |
+| Mood reactions | `user_rating_moods` | Normalized frequency distribution (implicit mood vector) |
+
+**Runtime and popularity preferences** are computed from positively-rated movies only (rating > 50).
 
 ---
 

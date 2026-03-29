@@ -63,8 +63,7 @@ high-dimensional sparse features via SVD.
   variance: keywords 33.7%, directors 2.8%, actors 1.7%. Low
   director/actor values reflect extreme sparsity (most people appear
   in 1-2 films), not a poor component count.
-- Keywords use TF-IDF weighting before SVD (same math as
-  TfidfVectorizer in course Notebook 10-2)
+- Keywords use TF-IDF weighting before SVD
 - Directors and actors use binary onehot (present/absent) before SVD
 - SVD models saved as `.pkl` for transforming new movies later
 
@@ -76,19 +75,7 @@ high-dimensional sparse features via SVD.
 
 **Script:** `quality_scores.py`
 
-**Input:** `data/input/tmdb.sqlite` (`movies.vote_average`, `movies.vote_count`)
-
-Bayesian average to prevent movies with very few votes from ranking
-unfairly high:
-
-```
-m = median(all_vote_counts)       # ~14 for TMDB
-C = mean(all_vote_averages)       # ~6.0 for TMDB
-quality = (v * R + m * C) / (v + m)
-```
-
-Where `v` = vote_count, `R` = vote_average. A movie with 1 vote and
-10.0 average gets pulled toward 6.0. Normalized to [0, 1] range.
+Bayesian average quality score, normalized to [0, 1]. Formula and behavior: see SCORING.md (Quality Score section).
 
 **Output:** `data/output/quality_scores.npy` (1.17M x 1)
 
@@ -121,23 +108,6 @@ python3 ml/extraction/build_index.py --output data/output/
 
 Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `predict_moods` → `build_index`.
 Each stage is idempotent and can be re-run independently.
-
----
-
-## Files Status
-
-| File | Status | Content |
-|---|---|---|
-| `ml/extraction/extract_features.py` | DONE | Stage 1: tmdb.sqlite -> SVD/onehot -> .npy |
-| `ml/classification/predict_moods.py` | DONE | Stage 2: genre/keyword/emotion -> mood_scores.npy |
-| `ml/extraction/quality_scores.py` | DONE | Stage 3: Bayesian average -> quality_scores.npy |
-| `ml/extraction/build_index.py` | DONE | Stage 4: movie_id_index.json + verification |
-| `ml/classification/keyword_mood_classifier.py` | DONE | Keyword-to-mood: train classifier, infer 70K+ |
-| `ml/scoring/scoring.py` | DONE | Scoring formula, dynamic weights, cosine similarity |
-| `ml/scoring/mood_filter.py` | DONE | Local mood filter against mood_scores.npy |
-| `ml/scoring/user_profile.py` | DONE | User profile computation from ratings |
-| `ml/evaluation/ml_eval.py` | DONE | Shared ML evaluation logic |
-| `ml/evaluation/ml_evaluation.ipynb` | PENDING | Academic narrative notebook |
 
 ---
 

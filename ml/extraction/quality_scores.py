@@ -1,34 +1,8 @@
 #!/usr/bin/env python3
 """Quality score pipeline (Stage 3).
 
-Computes a Bayesian average quality score for each movie, correcting
-for vote count bias. Movies with very few votes are pulled toward the
-global average, preventing a film with 1 vote and 10.0 average from
-outranking a well-established film with 10,000 votes and 8.5 average.
-
-Formula (Bayesian average):
-    m = median(all vote_counts where > 0)   # ~14 for TMDB
-    C = mean(all vote_averages where > 0)   # ~6.0 for TMDB
-    quality(movie) = (v * R + m * C) / (v + m)
-
-    where v = vote_count, R = vote_average for the movie.
-
-    At v >> m: quality ≈ R (own average dominates)
-    At v << m: quality ≈ C (pulled to global average)
-    At v = 0:  quality = C (no information, assume average)
-
-Output is normalized to [0, 1] for use in the scoring formula.
-
-Beyond-course extension: Bayesian averaging is not taught in the
-course but solves a real data quality problem in TMDB vote data.
-
-Data flow:
-    data/input/tmdb.sqlite (movies.vote_average, movies.vote_count)
-        → Bayesian average per movie (numpy vectorized)
-        → normalize to [0, 1]
-        → data/output/quality_scores.npy (1.17M × 1, float32)
-
-Row ordering: SELECT id FROM movies ORDER BY id (same as Stage 1).
+Bayesian average quality scores, normalized to [0, 1].
+Formula, behavior, and rationale: see SCORING.md (Quality Score section).
 """
 from __future__ import annotations
 
@@ -50,11 +24,7 @@ log = logging.getLogger(__name__)
 
 
 def main() -> int:
-    """Run the quality score pipeline.
-
-    Returns:
-        Exit code (0 for success, 1 for error).
-    """
+    """Run quality score pipeline."""
     parser = argparse.ArgumentParser(
         description="Compute Bayesian average quality scores for all movies.",
     )

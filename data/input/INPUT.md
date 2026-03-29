@@ -214,32 +214,6 @@ Only the **single-label subset (1,049)** is used for classifier training. See `m
 
 ## genre_mood_map.json — Hand-Crafted Genre-to-Mood Rules
 
-Maps each of the 19 TMDB genres to mood weights. Weights are independent (not normalized to 1.0) and reflect the emotional connotation of the genre itself.
+19 genre-to-mood rules mapping each TMDB genre to mood weights. Weights are independent (not normalized to 1.0) and reflect the emotional connotation of the genre itself. Full mapping and rationale: see `ml/classification/CLASSIFICATION.md` (Signal 1).
 
-**Full mapping:**
-
-```json
-{
-  "Action":          {"interested": 0.5, "afraid": 0.3},
-  "Adventure":       {"happy": 0.4, "interested": 0.4, "surprised": 0.3},
-  "Animation":       {"happy": 0.5, "sad": 0.2, "interested": 0.2},
-  "Comedy":          {"happy": 0.8, "surprised": 0.2},
-  "Crime":           {"angry": 0.4, "interested": 0.4, "afraid": 0.2},
-  "Documentary":     {"interested": 0.6, "sad": 0.2, "angry": 0.1},
-  "Drama":           {"sad": 0.5, "interested": 0.4},
-  "Family":          {"happy": 0.5, "sad": 0.2},
-  "Fantasy":         {"interested": 0.5, "surprised": 0.3, "happy": 0.2},
-  "History":         {"interested": 0.6, "sad": 0.3, "angry": 0.1},
-  "Horror":          {"afraid": 0.7, "disgusted": 0.3},
-  "Music":           {"happy": 0.6, "interested": 0.3, "sad": 0.1},
-  "Mystery":         {"interested": 0.5, "surprised": 0.4, "afraid": 0.2},
-  "Romance":         {"happy": 0.6, "sad": 0.3},
-  "Science Fiction":  {"interested": 0.5, "surprised": 0.3, "afraid": 0.2},
-  "TV Movie":        {},
-  "Thriller":        {"afraid": 0.5, "interested": 0.4, "surprised": 0.2},
-  "War":             {"angry": 0.5, "sad": 0.5, "afraid": 0.2},
-  "Western":         {"interested": 0.4, "happy": 0.2, "angry": 0.2}
-}
-```
-
-Used by `predict_moods.py` as **Signal 1** (genre → mood). For multi-genre movies, mood scores are averaged across genres. See `ml/classification/CLASSIFICATION.md` for the rationale behind each mapping.
+Used by `predict_moods.py` as Signal 1. For multi-genre movies, mood scores are averaged across genres.

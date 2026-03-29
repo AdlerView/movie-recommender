@@ -1,35 +1,5 @@
 #!/usr/bin/env python3
-"""Keyword-to-mood classifier pipeline.
-
-Trains a supervised classifier on manually labeled TMDB keywords (single-label
-subset) and infers mood labels for all remaining ~70K unlabeled keywords.
-Produces data/output/keyword_mood_map.json for use by the mood prediction pipeline.
-
-Phase 1b: Build / Train / Select / Infer (productive pipeline).
-Phase 3 reuses the same workflow for academic evaluation (notebook, plots).
-
-Data flow:
-    data/input/labeled_keywords.tsv  (1,049 single-label)
-        -> sentence embeddings (EmbeddingGemma-300M, 768-dim)
-        -> 80/10/10 split (train/val/test, stratified, random_state=13)
-        -> scaled + unscaled classifier comparison (macro-F1)
-        -> best model reported on test set (classification_report, confusion matrix)
-        -> best model refitted on full single-label set
-        -> inference on 70K+ unlabeled keywords from data/input/tmdb.sqlite
-        -> data/output/keyword_mood_map.json
-
-Split strategy follows Assignment 11 Task 1: two successive
-train_test_split calls with stratify and fixed seed. The validation
-set serves as the "mock exam" (overfitting detector, lecture 11
-slide 34). The test set is only used once for the final report.
-
-Curse of dimensionality note (lecture 11 slide 9): KNN struggles in
-high-dimensional spaces (d > 4) because distance metrics lose
-discriminative power. Our embeddings are 768-dim, which means KNN
-is expected to underperform compared to linear models (LR, SVC) that
-handle high-d spaces better. We include KNN anyway for the mandatory
-course comparison, but expect it to rank lower.
-"""
+"""Keyword-to-mood classifier pipeline (Phase 1b). See CLASSIFICATION.md."""
 from __future__ import annotations
 
 import argparse
@@ -75,19 +45,7 @@ MOODS = ["Happy", "Interested", "Surprised", "Sad", "Disgusted", "Afraid", "Angr
 
 
 def load_labeled_keywords(tsv_path: Path) -> pd.DataFrame:
-    """Load and validate the labeled keyword TSV file.
-
-    Args:
-        tsv_path: Path to labeled_keywords.tsv.
-
-    Returns:
-        DataFrame with columns: keyword_id, keyword_name, movie_count,
-        assigned_moods, assignment_type, confidence, short_reason.
-
-    Raises:
-        FileNotFoundError: If TSV file does not exist.
-        ValueError: If expected columns are missing.
-    """
+    """Load and validate labeled keyword TSV. Schema: see INPUT.md."""
     if not tsv_path.exists():
         raise FileNotFoundError(f"Labeled TSV not found: {tsv_path}")
 
@@ -109,14 +67,7 @@ def load_labeled_keywords(tsv_path: Path) -> pd.DataFrame:
 
 
 def get_single_label_subset(df: pd.DataFrame) -> tuple[list[str], list[str]]:
-    """Extract single-label keywords for classifier training.
-
-    Args:
-        df: Full labeled keyword DataFrame.
-
-    Returns:
-        Tuple of (keyword_names, mood_labels) for the single-label subset.
-    """
+    """Extract single-label keywords for classifier training."""
     single = df[df["assignment_type"] == "single"].copy()
 
     keywords = single["keyword_name"].tolist()
@@ -141,16 +92,7 @@ def generate_embeddings(
     model_name: str = "google/embeddinggemma-300m",
     batch_size: int = 128,
 ) -> np.ndarray:
-    """Generate sentence embeddings for a list of texts.
-
-    Args:
-        texts: List of keyword strings to embed.
-        model_name: HuggingFace model name for sentence-transformers.
-        batch_size: Batch size for encoding.
-
-    Returns:
-        numpy array of shape (len(texts), embedding_dim).
-    """
+    """Generate sentence embeddings via SentenceTransformer."""
     from sentence_transformers import SentenceTransformer
 
     log.info("Loading embedding model: %s", model_name)
@@ -168,16 +110,7 @@ def generate_embeddings(
 
 
 def _evaluate(clf: object, x: np.ndarray, y: np.ndarray) -> dict:
-    """Compute classification metrics for a fitted classifier.
-
-    Args:
-        clf: Fitted sklearn classifier.
-        x: Feature matrix.
-        y: True labels (encoded).
-
-    Returns:
-        Dict with Accuracy, Precision, Recall, F1 (macro).
-    """
+    """Compute accuracy, precision, recall, F1 (macro) for a fitted classifier."""
     y_pred = clf.predict(x)
     return {
         "Accuracy": accuracy_score(y, y_pred),
@@ -196,24 +129,7 @@ def train_and_select(
     x_val_unscaled: np.ndarray,
     label_names: list[str],
 ) -> tuple[object, str, pd.DataFrame]:
-    """Train classifiers (scaled + unscaled) and select the best by macro-F1.
-
-    Follows Assignment 11 Task 3.1: evaluate on both training and validation
-    data, for both scaled and unscaled features. The comparison shows the
-    effect of scaling as an explicit learning outcome (lecture 10, slide 55).
-
-    Args:
-        x_train: Scaled training features.
-        x_val: Scaled validation features.
-        y_train: Training labels (encoded).
-        y_val: Validation labels (encoded).
-        x_train_unscaled: Unscaled training features.
-        x_val_unscaled: Unscaled validation features.
-        label_names: Class names for display.
-
-    Returns:
-        Tuple of (best_classifier, best_name, results_dataframe).
-    """
+    """Train classifiers (scaled + unscaled), select best by val F1. See CLASSIFICATION.md."""
     # Curse of dimensionality (lecture 11, slide 9): KNN is expected to
     # struggle with 768-dim embeddings because distance metrics lose
     # discriminative power in high-dimensional spaces. We include it for
@@ -308,20 +224,7 @@ def report_on_test_set(
     label_names: list[str],
     output_dir: Path,
 ) -> None:
-    """Report best classifier performance on the held-out test set.
-
-    Follows Assignment 11 Task 3.2: classification_report + confusion matrix
-    on the test set. The test set is only used here, never during training
-    or model selection.
-
-    Args:
-        clf: Fitted best classifier.
-        clf_name: Name of the classifier for display.
-        x_test: Scaled test features.
-        y_test: True test labels (encoded).
-        label_names: Class names for display.
-        output_dir: Directory to save confusion matrix plot.
-    """
+    """Classification report + confusion matrix on held-out test set."""
     y_pred = clf.predict(x_test)
 
     # classification_report (lecture 11 slide 20, assignment 10 task 1.4)
@@ -349,17 +252,7 @@ def report_on_test_set(
 
 
 def load_all_keywords_from_db(db_path: Path) -> pd.DataFrame:
-    """Load all keywords from the TMDB database.
-
-    Args:
-        db_path: Path to data/input/tmdb.sqlite.
-
-    Returns:
-        DataFrame with columns: keyword_id, keyword_name.
-
-    Raises:
-        FileNotFoundError: If database file does not exist.
-    """
+    """Load all keywords from tmdb.sqlite."""
     if not db_path.exists():
         raise FileNotFoundError(f"TMDB database not found: {db_path}")
 
@@ -378,21 +271,7 @@ def build_keyword_mood_map(
     unlabeled_probas: np.ndarray | None,
     label_encoder: LabelEncoder,
 ) -> dict:
-    """Build the final keyword-to-mood mapping.
-
-    Combines manual labels (single + multi) with classifier predictions
-    for unlabeled keywords. Keywords labeled as "none" are excluded.
-
-    Args:
-        labeled_df: Full labeled keyword DataFrame (5,000 rows).
-        unlabeled_keywords: Keyword names that were classified.
-        unlabeled_predictions: Predicted class indices for unlabeled.
-        unlabeled_probas: Prediction probabilities (or None).
-        label_encoder: Fitted LabelEncoder for class name lookup.
-
-    Returns:
-        Dict mapping keyword_name to mood score dict.
-    """
+    """Build keyword→mood mapping: manual labels (single+multi) + classifier predictions."""
     mood_map = {}
 
     # Single-label keywords: use manual label with score 1.0
@@ -431,11 +310,7 @@ def build_keyword_mood_map(
 
 
 def main() -> int:
-    """Run the keyword-to-mood classifier pipeline.
-
-    Returns:
-        Exit code (0 for success, 1 for error).
-    """
+    """Run the keyword-to-mood classifier pipeline."""
     parser = argparse.ArgumentParser(
         description="Train keyword-to-mood classifier and infer labels for 70K+ keywords.",
     )
@@ -494,10 +369,7 @@ def main() -> int:
     single_indices = single_mask[single_mask].index.tolist()
     x_single = all_labeled_embeddings[single_indices]
 
-    # --- Step 3: 80/10/10 split (train/val/test) ---
-    # Assignment 11 Task 1 pattern: two successive stratified splits.
-    # First split: 80% train+val, 20% test.
-    # Second split: of the 80%, take 87.5% train and 12.5% val (= 10% of total).
+    # --- Step 3: 80/10/10 split — see CLASSIFICATION.md ---
     log.info("=== Step 3: 80/10/10 train/val/test split ===")
     le = LabelEncoder()
     y_encoded = le.fit_transform(labels)

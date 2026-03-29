@@ -1,40 +1,5 @@
 #!/usr/bin/env python3
-"""Feature extraction pipeline (Stage 1).
-
-Transforms the TMDB SQLite database into compact numerical feature vectors
-for runtime scoring. Each movie gets one vector per feature dimension.
-Sparse relational data (movie has keyword X, director Y) is converted into
-dense vector spaces via TF-IDF weighting and SVD dimensionality reduction.
-
-Course foundation:
-    - TfidfTransformer: same math as TfidfVectorizer in Notebook 10-2
-      (Brexit tweets), applied to structured keyword IDs instead of raw text
-    - Feature scaling and selection: Notebooks 10-0, 11
-
-Beyond-course extensions:
-    - TruncatedSVD for dimensionality reduction (motivated by Curse of
-      Dimensionality, lecture 11 slides 8-10: 70K features → 200 features)
-    - Binary sparse matrices for director/actor co-occurrence
-    - One-hot encoding for categorical features (genres, decades, languages)
-
-SVD component count (default: 200):
-    Pragmatic default from LSA literature (100-300 typical for similarity
-    search). Not rigorously optimized — ideally tuned via elbow plot on
-    explained variance. Observed explained variance at 200 components:
-    keywords 33.7%, directors 2.8%, actors 1.7%. The low director/actor
-    values reflect extreme sparsity (most people appear in 1-2 films),
-    not a poor component count. A differentiated setting (e.g., keywords
-    200, directors 50, actors 50) could be explored but adds complexity
-    without clear scoring benefit. Configurable via --svd-components.
-
-Data flow:
-    data/input/tmdb.sqlite (1.17M movies, 30 tables)
-        → 7 .npy feature arrays in data/output/
-        → 3 .pkl SVD models in data/output/
-
-All arrays share the same row ordering: SELECT id FROM movies ORDER BY id.
-The movie_id ↔ row_index mapping is saved by Stage 4 (build_index.py).
-"""
+"""Feature extraction pipeline (Stage 1). See EXTRACTION.md."""
 from __future__ import annotations
 
 import argparse
@@ -59,17 +24,7 @@ log = logging.getLogger(__name__)
 
 
 def load_movie_ids(conn: sqlite3.Connection) -> np.ndarray:
-    """Load canonical movie ID ordering.
-
-    All feature arrays use this ordering: row i corresponds to movie_ids[i].
-    Deterministic via ORDER BY id.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-
-    Returns:
-        1D numpy array of movie IDs, sorted ascending.
-    """
+    """Load canonical movie ID ordering."""
     df = pd.read_sql_query("SELECT id FROM movies ORDER BY id", conn)
     movie_ids = df["id"].to_numpy()
     log.info("Loaded %d movie IDs (min=%d, max=%d)", len(movie_ids), movie_ids.min(), movie_ids.max())
@@ -77,14 +32,6 @@ def load_movie_ids(conn: sqlite3.Connection) -> np.ndarray:
 
 
 def build_id_mapping(ids: np.ndarray) -> dict[int, int]:
-    """Build a mapping from ID to row index.
-
-    Args:
-        ids: Sorted array of IDs.
-
-    Returns:
-        Dict mapping each ID to its position in the array.
-    """
     return {int(mid): i for i, mid in enumerate(ids)}
 
 
@@ -95,20 +42,7 @@ def extract_keyword_svd(
     n_components: int,
     output_dir: Path,
 ) -> None:
-    """Extract keyword features via TF-IDF and SVD.
-
-    Uses TfidfTransformer on a binary movie-keyword sparse matrix, then
-    reduces to n_components dimensions with TruncatedSVD. Same approach
-    as TfidfVectorizer in course Notebook 10-2, but on structured keyword
-    IDs instead of raw text tokens.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        n_components: Number of SVD dimensions.
-        output_dir: Directory for .npy and .pkl output.
-    """
+    """Keywords: TF-IDF + SVD. See EXTRACTION.md."""
     log.info("--- Keyword TF-IDF → SVD (%d components) ---", n_components)
 
     # Load movie-keyword pairs
@@ -157,23 +91,7 @@ def extract_person_svd(
     npy_filename: str,
     pkl_filename: str,
 ) -> None:
-    """Extract person (director/actor) features via binary sparse matrix and SVD.
-
-    No TF-IDF here — directors/actors are binary (movie has person or not).
-    IDF would over-weight rare persons, which is less meaningful for people
-    than for keywords.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        n_components: Number of SVD dimensions.
-        output_dir: Directory for .npy and .pkl output.
-        query: SQL query returning (movie_id, person_id) pairs.
-        name: Display name for logging (e.g., "Director", "Actor").
-        npy_filename: Output filename for vectors (e.g., "director_svd_vectors.npy").
-        pkl_filename: Output filename for SVD model (e.g., "director_svd.pkl").
-    """
+    """Person features: binary sparse + SVD. No TF-IDF — binary presence is the signal."""
     log.info("--- %s binary → SVD (%d components) ---", name, n_components)
 
     df = pd.read_sql_query(query, conn)
@@ -215,18 +133,7 @@ def extract_genre_vectors(
     n_movies: int,
     output_dir: Path,
 ) -> None:
-    """Extract genre multi-hot vectors.
-
-    Each film gets a 19-dim vector with 1.0 at the positions of its genres.
-    Multi-hot because films can have multiple genres (e.g., Action + Thriller).
-    No SVD needed — only 19 dimensions.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        output_dir: Directory for .npy output.
-    """
+    """Multi-hot genre vectors (19-dim)."""
     log.info("--- Genre multi-hot ---")
 
     # Load genre list (canonical column ordering)
@@ -259,17 +166,7 @@ def extract_decade_vectors(
     n_movies: int,
     output_dir: Path,
 ) -> None:
-    """Extract decade single-hot vectors.
-
-    15 bins: 1900s, 1910s, ..., 2020s, pre-1900, unknown.
-    Each film belongs to exactly one decade.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        output_dir: Directory for .npy output.
-    """
+    """Single-hot decade vectors (15 bins: 1900s-2020s + pre-1900 + unknown)."""
     log.info("--- Decade single-hot ---")
 
     # Decade bins: 1900-2020 (13 decades) + pre-1900 + unknown = 15
@@ -319,18 +216,7 @@ def extract_language_vectors(
     top_n: int,
     output_dir: Path,
 ) -> None:
-    """Extract language single-hot vectors for top-N languages.
-
-    Top-N languages by movie count, plus an "other" bin for rare languages.
-    Each film belongs to exactly one language.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        top_n: Number of top languages to include (rest → "other").
-        output_dir: Directory for .npy output.
-    """
+    """Single-hot language vectors (top-N + 'other' bin)."""
     log.info("--- Language top-%d single-hot ---", top_n)
 
     # Determine top-N languages by frequency
@@ -372,17 +258,7 @@ def extract_runtime(
     n_movies: int,
     output_dir: Path,
 ) -> None:
-    """Extract normalized runtime feature.
-
-    Normalizes runtime by dividing by 360 minutes (practical maximum).
-    NULL → 0.0 (neutral for cosine similarity).
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        output_dir: Directory for .npy output.
-    """
+    """Normalized runtime (/ 360, NULL → 0.0)."""
     log.info("--- Runtime normalized ---")
 
     df = pd.read_sql_query("SELECT id, runtime FROM movies ORDER BY id", conn)
@@ -410,25 +286,7 @@ def extract_popularity(
     n_movies: int,
     output_dir: Path,
 ) -> None:
-    """Extract log-transformed and normalized popularity feature.
-
-    TMDB popularity scores range from 0 to ~500 with extreme right skew
-    (mean ~0.3, max ~363). Log-transform reduces the skew so that the
-    difference between popularity 1 and 10 matters more than the difference
-    between 100 and 200. Min-max normalized to [0, 1] after log-transform.
-
-    Captures the mainstream-vs-niche axis: blockbusters cluster near 1.0,
-    indie films near 0.0. Used by scoring.py to match candidates to the
-    user's preference for popular vs. obscure films.
-
-    NULL or 0 popularity → log1p(0) = 0.0 (lowest popularity tier).
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        movie_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        output_dir: Directory for .npy output.
-    """
+    """Log-transformed and normalized popularity. Captures mainstream vs niche."""
     log.info("--- Popularity log-normalized ---")
 
     df = pd.read_sql_query("SELECT id, popularity FROM movies ORDER BY id", conn)
@@ -465,11 +323,7 @@ def extract_popularity(
 
 
 def main() -> int:
-    """Run the feature extraction pipeline.
-
-    Returns:
-        Exit code (0 for success, 1 for error).
-    """
+    """Run feature extraction pipeline."""
     parser = argparse.ArgumentParser(
         description="Extract feature vectors from TMDB database for scoring pipeline.",
     )

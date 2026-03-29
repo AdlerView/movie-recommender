@@ -12,8 +12,7 @@ Used endpoints and caching strategy documented below. Full TMDB API reference: [
 
 ### Authentication
 
-API key via query parameter, injected lazily inside `_get()` on each request
-(not at module import — avoids crash when `secrets.toml` is missing).
+API key via query parameter (`api_key`), injected per request.
 Rate limit: ~40 req/s, respect HTTP 429.
 
 ---
@@ -194,6 +193,8 @@ Already-rated movies excluded locally (no TMDB API parameter for this).
 
 Runtime SQLite (`data/user.sqlite`), WAL mode, all tables via `CREATE TABLE IF NOT EXISTS`.
 
+**Architecture:** Session state is the runtime source of truth (fast reads). The DB module handles load-on-start (hydrate session state from SQLite) and save-on-change (persist every user action immediately). Pages write to both session state and DB on every action. Movie details use JSON columns (genres, cast_members, crew_members, countries, keywords) to avoid join tables while supporting `json_each()` aggregation in Statistics queries.
+
 **Core tables:**
 
 ```sql
@@ -221,4 +222,4 @@ movie_details (
 )
 ```
 
-`save_movie_details(movie_id, details, keywords=)` saves everything in one INSERT OR REPLACE. Statistics queries use `json_each()` for genre/cast/crew aggregation. `get_ratings_without_details()` finds ratings needing backfill.
+Statistics queries use `json_each()` for genre/cast/crew aggregation.

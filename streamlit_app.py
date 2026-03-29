@@ -1,20 +1,4 @@
-"""Movie Recommender — Main entry point and Streamlit app configuration.
-
-This module is the single entry point for the Streamlit application. It runs
-on every page load / rerun and handles:
-
-1. Page configuration (title, icon, layout) — must be the first st.* call
-2. Database initialization (CREATE TABLE IF NOT EXISTS for all 8 tables)
-3. Session state hydration (load ratings, watchlist, dismissed, subscriptions
-   from SQLite into st.session_state on the first run of each session)
-4. Detail backfill (fetch TMDB details for ratings without cached metadata)
-5. CSS injection for right-aligned navigation tabs (Statistics, Settings)
-6. Multi-page navigation setup (5 pages via st.navigation with top position)
-
-Dependencies:
-    app.utils.db: database initialization and data loading functions
-    app.utils.tmdb: TMDB API client for detail backfill
-"""
+"""Main entry point — page config, DB init, session state hydration, navigation."""
 from __future__ import annotations
 
 import requests
@@ -38,7 +22,6 @@ st.set_page_config(
 )
 
 # --- Database initialization ---
-# Create tables on first run (no-op if they already exist)
 init_db()
 
 # --- Global session state ---
@@ -52,9 +35,7 @@ if "db_loaded" not in st.session_state:
     st.session_state.subscriptions = load_subscriptions() # {provider_id, ...}
     st.session_state.db_loaded = True
 
-# --- Backfill movie details ---
-# Fetch TMDB details for ratings that were saved before the movie_details
-# table existed. Runs once per session; skips on subsequent reruns.
+# --- Backfill: fetch TMDB details for ratings saved before movie_details table existed ---
 if "details_backfilled" not in st.session_state:
     missing_ids = get_ratings_without_details()
     if missing_ids:
@@ -85,7 +66,6 @@ st.html("""<style>
 </style>""")
 
 # --- Navigation ---
-# Top navigation: each tab has exactly one responsibility
 page = st.navigation(
     [
         st.Page("app/views/discover.py", title="Discover", icon=":material/explore:"),
@@ -97,5 +77,4 @@ page = st.navigation(
     position="top",
 )
 
-# Run the selected page
 page.run()

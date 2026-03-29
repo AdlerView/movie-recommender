@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""Build index pipeline (Stage 4).
-
-Generates the movie_id ↔ row_index mapping used at runtime to look up
-precomputed feature vectors by TMDB movie ID. Verifies that all pipeline
-output files exist and have consistent row counts.
-
-Data flow:
-    data/input/tmdb.sqlite (SELECT id FROM movies ORDER BY id)
-        → data/output/movie_id_index.json (bidirectional mapping)
-
-Row ordering: same as Stage 1-3 (canonical ORDER BY id).
-"""
+"""Build movie_id_index.json and verify pipeline outputs. See EXTRACTION.md."""
 from __future__ import annotations
 
 import argparse
@@ -45,11 +34,7 @@ EXPECTED_NPY = [
 
 
 def main() -> int:
-    """Build movie ID index and verify pipeline outputs.
-
-    Returns:
-        Exit code (0 for success, 1 for error).
-    """
+    """Build movie ID index and verify outputs."""
     parser = argparse.ArgumentParser(
         description="Build movie_id_index.json and verify pipeline outputs.",
     )

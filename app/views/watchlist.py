@@ -1,16 +1,4 @@
-"""Watchlist page — Poster grid of saved movies with detail dialog.
-
-Displays movies the user has added from the Discover page as a Netflix-style
-poster grid. Clicking a poster opens a dialog with TMDB rating, streaming
-providers, and actions (remove from watchlist, mark as watched with rating
-slider 0-100 and mood reactions).
-
-Dependencies:
-    app.utils: shared constants, CSS injection, detail renderer, rating widget,
-        cache helper
-    app.utils.db: watchlist and rating persistence
-    app.utils.tmdb: TMDB API client (movie details, poster URLs)
-"""
+"""Watchlist page — poster grid, detail dialog, rate or remove. See VIEWS.md."""
 from __future__ import annotations
 
 import requests
@@ -47,11 +35,6 @@ if not watchlist:
 
 
 def _select_movie(movie_id: int) -> None:
-    """Set the selected movie ID to trigger the detail dialog.
-
-    Args:
-        movie_id: TMDB movie ID to show details for.
-    """
     st.session_state._watchlist_selected = movie_id
 
 
@@ -105,7 +88,6 @@ if st.session_state._watchlist_selected is not None:
 
     @st.dialog(_details.get("title", "Movie details"), width="large")
     def _show_watchlist_dialog() -> None:
-        """Watchlist dialog: runtime + providers, trailer, watch now, actions."""
         from app.utils import render_watchlist_detail
         render_watchlist_detail(_details)
 

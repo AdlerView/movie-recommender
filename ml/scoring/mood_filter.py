@@ -1,25 +1,4 @@
-"""Local mood filter against precomputed mood scores.
-
-Filters TMDB API candidates by mood using the precomputed mood_scores.npy
-array (1.17M movies x 7 moods). This is the only filter that runs locally
-— all other discovery filters are handled by the TMDB API.
-
-The filter applies a threshold with stepwise fallback to prevent empty
-results for rare moods like "Disgusted":
-    1. Keep candidates where selected mood score > 0.3
-    2. If fewer than 20 remain, lower to 0.2
-    3. If still fewer than 20, lower to 0.1
-    4. If still fewer than 20, lower to 0.0 (= no mood filter)
-
-When multiple moods are selected, the average across selected moods is
-used as the filter criterion.
-
-Data flow:
-    candidate movie IDs (from TMDB API discover response)
-    + selected moods (from Discover page mood pills)
-    + mood_scores.npy (via get_model() singleton)
-        → filtered list of movie IDs that match the mood criteria
-"""
+"""Mood filter against precomputed mood_scores.npy. Threshold fallback: see SCORING.md."""
 from __future__ import annotations
 
 import logging
@@ -42,26 +21,7 @@ def filter_by_mood(
     selected_moods: list[str],
     min_results: int = _MIN_RESULTS,
 ) -> list[int]:
-    """Filter candidate movies by mood scores with threshold fallback.
-
-    Looks up precomputed mood scores for each candidate and keeps only
-    those above the threshold for the selected moods. If too few results
-    remain, the threshold is lowered stepwise until at least min_results
-    candidates pass or the threshold reaches 0.
-
-    When multiple moods are selected, the average of the selected mood
-    scores is used as the filter criterion.
-
-    Args:
-        candidate_ids: Movie IDs from the TMDB API discover response.
-        selected_moods: Mood names selected by the user
-            (e.g., ["Happy", "Afraid"]). Must be non-empty.
-        min_results: Minimum number of results before fallback triggers.
-
-    Returns:
-        Filtered list of movie IDs, preserving the original order.
-        Returns the full candidate list if no valid moods are selected.
-    """
+    """Filter candidates by mood with threshold fallback (0.3 → 0.2 → 0.1 → 0.0). See SCORING.md."""
     if not selected_moods or not candidate_ids:
         return candidate_ids
 

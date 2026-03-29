@@ -1,15 +1,4 @@
-"""Statistics page — Personal movie taste insights.
-
-Engaging dashboard showing genre preferences, mood profile, rating behavior
-analysis, favorite directors/actors with photos, and a sortable ratings table.
-
-All data from local SQLite — zero API calls. Charts built with Altair.
-
-Dependencies:
-    app.utils: render_person_ranking (shared director/actor card renderer)
-    app.utils.db: all statistics queries (genre, mood, ratings, directors, actors)
-    app.utils.tmdb: poster_url for thumbnails (no API calls — uses cached data)
-"""
+"""Statistics page — charts, rankings, ratings table. All from SQLite. See VIEWS.md."""
 from __future__ import annotations
 
 import altair as alt
@@ -26,7 +15,6 @@ from app.utils.db import (
     load_user_vs_tmdb,
 )
 
-# --- Load aggregated stats from SQLite (single query with JOIN) ---
 stats = load_stats_summary()
 
 # --- Empty state: show a hint when the user hasn't done anything yet ---
@@ -56,7 +44,6 @@ with st.container(horizontal=True):
 # GENRE PREFERENCES — horizontal bar chart, colored by avg user rating
 # ============================================================
 
-# load_genre_ratings() returns (genre_name, count, avg_rating) via json_each()
 genre_data = load_genre_ratings()
 
 if genre_data:
@@ -85,7 +72,6 @@ if genre_data:
 # MOOD PROFILE — horizontal bar chart with emoji labels
 # ============================================================
 
-# load_mood_distribution() counts mood tags from user_rating_moods table
 mood_data = load_mood_distribution()
 
 if mood_data:
@@ -120,7 +106,6 @@ if mood_data:
 # RATING BEHAVIOR — scatter plot: user rating vs TMDB rating
 # ============================================================
 
-# load_user_vs_tmdb() returns (tmdb_rating 0-10, user_rating 0-100, title)
 user_vs_tmdb = load_user_vs_tmdb()
 
 if user_vs_tmdb:
@@ -197,7 +182,6 @@ if directors or actors:
 # RATINGS — sortable table with all rated movies
 # ============================================================
 
-# load_rated_movies_table() joins user_ratings with movie_details
 rated_rows = load_rated_movies_table()
 
 if rated_rows:

@@ -1,22 +1,4 @@
-"""Discover page — Find new movies with sidebar filters and poster grid.
-
-Sidebar layout with 8 filter controls (genre, year, runtime, rating,
-min votes, certification, keywords) plus Settings-managed preferences
-(language, streaming country, providers). Main page shows mood pills,
-sort dropdown, and a clickable poster grid (5 columns).
-
-Live filtering: grid updates on every filter/mood/sort change.
-
-This is the only page with a sidebar. Filters are collapsible via
-Streamlit's native sidebar toggle. Detail dialog on poster click shows
-movie info with "Add to watchlist" and "Not interested" actions.
-
-Dependencies:
-    app.utils: shared constants, CSS injection, detail renderers, cache helper
-    app.utils.db: preferences, dismissed, watchlist persistence
-    app.utils.tmdb: TMDB API client (discover, genres, certifications, keywords)
-    ml.scoring: mood filter, user profile, personalized scoring
-"""
+"""Discover page — sidebar filters, mood pills, poster grid, ML scoring. See VIEWS.md."""
 from __future__ import annotations
 
 import requests
@@ -130,9 +112,7 @@ with st.sidebar:
     )
 
     # --- Age rating pills (DE certifications, exact match) ---
-    # Using DE because it has the best TMDB coverage (19,655 classified films)
-    # and a well-differentiated 5-level scale. CH data is unreliable.
-    # Uses `certification=X` (exact) not `certification.lte=X` (cumulative).
+    # Why DE, not CH: see VIEWS.md
     _cert_country = "DE"
     _cert_options = ["Any", "0", "6", "12", "16", "18"]
     selected_cert = st.pills(
@@ -182,24 +162,15 @@ with st.sidebar:
 
     # --- Reset all button ---
     def _reset_sidebar():
-        """Reset all sidebar filter states to defaults.
-
-        Sets explicit default values instead of popping keys, because
-        Streamlit widgets recreate with stale values if the key is
-        missing but the widget still renders.
-        """
-        # Pills widgets: set to empty list for multi-select
+        """Reset all sidebar filters to defaults."""
+        # setdefault won't work — widgets recreate with stale values if key is missing
         st.session_state["discover_genre"] = []
-        # Sliders: set to full range (= no filter)
         st.session_state["discover_year"] = (1900, 2026)
         st.session_state["discover_runtime"] = (0, 360)
         st.session_state["discover_rating"] = (0.0, 10.0)
         st.session_state["discover_min_votes"] = 50
-        # Text input: clear
         st.session_state["discover_keyword_query"] = ""
-        # Selectbox: set to first option (= "Any")
         st.session_state["discover_certification"] = "Any"
-        # Keywords list and pagination
         st.session_state["_discover_keywords"] = []
         st.session_state["_discover_pages"] = 1
 
@@ -236,11 +207,7 @@ selected_moods = st.pills(
 # ============================================================
 
 def _build_discover_params() -> list[tuple[str, str]]:
-    """Build TMDB discover/movie API parameters from current filter state.
-
-    Returns:
-        List of (key, value) tuples for the API call.
-    """
+    """Build TMDB discover params from current filter state."""
     params: list[tuple[str, str]] = []
 
     # Sort mapping
@@ -320,28 +287,20 @@ def _build_discover_params() -> list[tuple[str, str]]:
 # FETCH MOVIES — Retrieval layer (TMDB API) + Ranking layer (ML)
 # ============================================================
 
-# Build exclusion sets from session state to hide already-seen movies.
-# This is the shared exclusion policy: rated + dismissed + watchlisted
-# movies are removed from both Discover and Rate browse grids.
+# Exclusion policy: rated + dismissed + watchlisted — see VIEWS.md
 _dismissed = st.session_state.dismissed
 _watchlisted_ids = {m["id"] for m in st.session_state.watchlist}
 _rated_ids = st.session_state.ratings
 
-# Convert filter state into TMDB API query parameters
 _params = tuple(_build_discover_params())
-# Target count: how many movies to load (pages × 20 per page)
 _target_count = st.session_state._discover_pages * TMDB_PAGE_SIZE
 movies: list[dict] = []
 _has_more = True  # Whether TMDB has more pages available
 
 try:
-    # Fetch loop: load pages until we have enough unseen movies or exhaust TMDB.
-    # We may need extra pages because filtered-out movies (rated/dismissed)
-    # reduce the effective count per page.
     _page = 0
     while len(movies) < _target_count and _has_more and _page < 10:
         _page += 1
-        # GET /discover/movie with all filter parameters
         response = discover_movies_filtered(_params, page=_page)
         _page_movies = response.get("results", [])
 
@@ -349,8 +308,6 @@ try:
             _has_more = False
             break
 
-        # Per-page filtering: remove poster-less (visual requirement),
-        # cross-page duplicates, and already-seen movies
         _seen_ids = {m["id"] for m in movies}
         _page_movies = [
             m for m in _page_movies
@@ -369,22 +326,15 @@ try:
     # Trim to exact target count (may have fetched slightly more)
     movies = movies[:_target_count]
 
-    # --- Mood filter (local, applies to ALL sort orders) ---
-    # This is the only filter that runs locally — all other filters are
-    # handled by the TMDB API. Uses precomputed mood_scores.npy (1.17M × 7).
-    # Threshold with stepwise fallback (0.3 → 0.2 → 0.1 → 0.0) to prevent
-    # empty results for rare moods like "Disgusted".
+    # --- Mood filter (local) — see SCORING.md ---
     if selected_moods and movies:
         _filtered_ids = set(filter_by_mood(
             [m["id"] for m in movies], list(selected_moods),
         ))
         movies = [m for m in movies if m["id"] in _filtered_ids]
 
-    # --- Personalized ranking (only for "Personalized" sort) ---
-    # Computes 11-signal cosine similarity between user profile and each
-    # candidate, then re-sorts by final score (descending). Other sort
-    # options (Popularity, Rating, Release date) use TMDB's API sort order.
-    # Graceful degradation: no model files → no profile → API order used.
+    # --- ML re-ranking (Personalized sort only) — see SCORING.md ---
+    # Graceful degradation: no model/no ratings → API popularity order
     if sort_option == "Personalized" and movies:
         _profile = get_or_compute_profile(ratings=st.session_state.ratings)
         if _profile is not None:
@@ -421,12 +371,10 @@ inject_poster_grid_css("discover_grid")
 
 
 def _select_movie(movie_id: int) -> None:
-    """Set the selected movie ID to trigger the detail dialog."""
     st.session_state._discover_selected_id = movie_id
 
 
 def _load_more() -> None:
-    """Load the next page of results."""
     st.session_state._discover_pages += 1
 
 

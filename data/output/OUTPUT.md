@@ -10,15 +10,7 @@ Loaded once as a lazy singleton by `ml/scoring/user_profile.py:_load_model_array
 
 ## Pipeline Phases
 
-| Phase | Script | Outputs | Runtime |
-|---|---|---|---|
-| 1a: Feature extraction | `ml/extraction/extract_features.py` | 7 `.npy` arrays + 3 `.pkl` SVD models | ~3 min |
-| 1b: Keyword classifier | `ml/classification/keyword_mood_classifier.py` | `keyword_mood_map.json` + 2 eval artifacts | ~3 min |
-| 2: Mood prediction | `ml/classification/predict_moods.py` | `mood_scores.npy` | ~4h 18min |
-| 3: Quality scores | `ml/extraction/quality_scores.py` | `quality_scores.npy` | <1s |
-| 4: Build index | `ml/extraction/build_index.py` | `movie_id_index.json` + verification | <1s |
-
-Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `predict_moods` → `build_index`
+Pipeline overview and run order: see EXTRACTION.md.
 
 ---
 
@@ -133,14 +125,7 @@ Per-movie mood probabilities computed from 4 combined signals. Each value repres
 | **Value range** | [0.0, ~0.85] per cell (not normalized to sum=1.0) |
 | **Coverage** | 94.6% of movies (1.11M / 1.17M have at least one score > 0) |
 
-**4 signals combined with dynamic weights:**
-
-| Signal | Source | Weight (has reviews) | Weight (no reviews) | Weight (no overview) |
-|---|---|---|---|---|
-| Review emotion | distilroberta on `movie_reviews.content` | 0.50 | — | — |
-| Overview emotion | distilroberta on `movies.overview + tagline` | 0.20 | 0.50 | — |
-| Genre mapping | `genre_mood_map.json` (19 rules) | 0.20 | 0.30 | 0.60 |
-| Keyword mapping | `keyword_mood_map.json` (68K entries) | 0.10 | 0.20 | 0.40 |
+Signal weights: see CLASSIFICATION.md (Signal Combination).
 
 **Example mood profiles:**
 
@@ -156,22 +141,13 @@ Consumed by `mood_filter.py` (threshold filter on Discover page) and `scoring.py
 
 ## Quality Scores (Phase 3) — Tracked
 
-Bayesian average correcting for vote count bias.
+Bayesian average correcting for vote count bias. Formula: see SCORING.md (Quality Score).
 
 | Property | Value |
 |---|---|
 | **Shape** | 1,174,069 x 1 |
 | **Size** | 4.7 MB |
 | **Value range** | [0.0, 1.0] (normalized) |
-
-**Formula:**
-
-```
-m = median(all vote_counts where > 0)  ≈ 14
-C = mean(all vote_averages where > 0)  ≈ 5.90
-quality(movie) = (v * R + m * C) / (v + m)
-normalized = (quality - min) / (max - min)
-```
 
 **Behavior by vote count:**
 
@@ -259,22 +235,7 @@ Produced by `keyword_mood_classifier.py` during the 7-classifier comparison.
 
 ## Runtime Loading
 
-`user_profile.py:_load_model_arrays()` loads all 9 `.npy` arrays + `movie_id_index.json` into a `_ModelArrays` dataclass. Lazy singleton pattern — first call loads ~3 GB, subsequent calls return the cached instance.
-
-```python
-_ModelArrays(
-    movie_id_index,        # dict[str, int] — 1.17M entries
-    keyword_svd,           # (1174069, 200) — cosine sim for keyword preferences
-    director_svd,          # (1174069, 200) — cosine sim for director preferences
-    actor_svd,             # (1174069, 200) — cosine sim for actor preferences
-    genre_vectors,         # (1174069, 19)  — cosine sim for genre preferences
-    decade_vectors,        # (1174069, 15)  — cosine sim for decade preferences
-    language_vectors,      # (1174069, 20)  — cosine sim for language preferences
-    runtime_normalized,    # (1174069, 1)   — |user_pref - candidate| distance
-    mood_scores,           # (1174069, 7)   — mood filter + mood match signal
-    quality_scores,        # (1174069, 1)   — Bayesian quality baseline signal
-)
-```
+Loaded by `user_profile.py:_load_model_arrays()` as lazy singleton (~3 GB into RAM, first call only).
 
 ---
 

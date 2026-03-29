@@ -1,38 +1,5 @@
 #!/usr/bin/env python3
-"""Mood score prediction pipeline (Stage 2).
-
-Predicts 7 mood probabilities for each movie by combining 4 signals:
-1. Genre → mood mapping (19 manual rules from genre_mood_map.json)
-2. Keyword → mood mapping (~70K entries from keyword_mood_map.json)
-3. Emotion classifier on overview/tagline text (distilroberta)
-4. Emotion classifier on reviews (3.3% of movies)
-
-Dynamic weighting based on signal availability:
-    reviews available: 0.50*reviews + 0.20*overview + 0.20*genre + 0.10*keywords
-    no reviews:        0.50*overview + 0.30*genre + 0.20*keywords
-    no overview:       0.60*genre + 0.40*keywords
-
-The 7 moods follow the Ekman model (branded as TMDB Vibes):
-    happy, interested, surprised, sad, disgusted, afraid, angry
-
-The emotion classifier (j-hartmann/emotion-english-distilroberta-base)
-outputs 7 classes: anger, disgust, fear, joy, neutral, sadness,
-surprise. Direct 7-to-7 mapping: neutral → interested (factual,
-informational text = thought-provoking content).
-
-Beyond-course extension: pre-trained transformer for emotion
-classification is not taught in the course (mentioned on lecture 10
-slide 40 but never used practically).
-
-Data flow:
-    data/input/tmdb.sqlite (movies.overview, movies.tagline, movie_reviews)
-    data/input/genre_mood_map.json (19 rules)
-    data/output/keyword_mood_map.json (~70K entries)
-        → 4 signal arrays combined with dynamic weights
-        → data/output/mood_scores.npy (1.17M × 7, float32)
-
-Row ordering: SELECT id FROM movies ORDER BY id (same as Stage 1).
-"""
+"""Mood prediction pipeline (Stage 2): 4 signals combined per movie. See CLASSIFICATION.md."""
 from __future__ import annotations
 
 import argparse
@@ -43,7 +10,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-# Disable all HuggingFace network requests (model is cached locally)
+# Fully offline — see CLASSIFICATION.md (Signal 3)
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
@@ -62,9 +29,8 @@ log = logging.getLogger(__name__)
 MOODS = ["happy", "interested", "surprised", "sad", "disgusted", "afraid", "angry"]
 MOOD_IDX = {m: i for i, m in enumerate(MOODS)}
 
-# Mapping from emotion classifier labels (7 classes) to our 7 moods.
-# j-hartmann/emotion-english-distilroberta-base predicts Ekman's 6
-# basic emotions plus neutral. Direct 7-to-7 mapping, no heuristics.
+# Emotion classifier → our 7 moods (direct 7-to-7 mapping).
+# neutral → interested: factual/informational text = thought-provoking content
 EMOTION_TO_MOOD = {
     "joy": "happy",
     "neutral": "interested",
@@ -77,14 +43,7 @@ EMOTION_TO_MOOD = {
 
 
 def load_movie_ids(conn: sqlite3.Connection) -> tuple[np.ndarray, dict[int, int]]:
-    """Load canonical movie ID ordering (same as Stage 1).
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-
-    Returns:
-        Tuple of (movie_ids array, id_to_row mapping).
-    """
+    """Load canonical movie ID ordering (shared across pipeline stages)."""
     df = pd.read_sql_query("SELECT id FROM movies ORDER BY id", conn)
     ids = df["id"].to_numpy()
     id_to_row = {int(mid): i for i, mid in enumerate(ids)}
@@ -98,17 +57,7 @@ def compute_genre_signal(
     n_movies: int,
     genre_map: dict,
 ) -> np.ndarray:
-    """Signal 1: genre→mood scores averaged across each movie's genres.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        id_to_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        genre_map: Dict from genre name to mood weight dict.
-
-    Returns:
-        Array of shape (n_movies, 7).
-    """
+    """Signal 1: genre→mood scores. Mapping: see CLASSIFICATION.md."""
     log.info("--- Signal 1: Genre → Mood ---")
 
     # Load genre names for ID lookup
@@ -152,17 +101,7 @@ def compute_keyword_signal(
     n_movies: int,
     keyword_map: dict,
 ) -> np.ndarray:
-    """Signal 2: keyword→mood scores averaged across each movie's keywords.
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        id_to_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        keyword_map: Dict from keyword name to mood weight dict.
-
-    Returns:
-        Array of shape (n_movies, 7).
-    """
+    """Signal 2: keyword→mood scores from keyword_mood_map.json."""
     log.info("--- Signal 2: Keyword → Mood ---")
 
     mk_df = pd.read_sql_query(
@@ -205,22 +144,7 @@ def compute_emotion_signal(
     batch_size: int,
     source: str,
 ) -> np.ndarray:
-    """Compute emotion signal from text using a pre-trained classifier.
-
-    Uses j-hartmann/emotion-english-distilroberta-base (7 classes:
-    anger, disgust, fear, joy, neutral, sadness, surprise). Direct
-    7-to-7 mapping to our moods (neutral → interested).
-
-    Args:
-        conn: SQLite connection to tmdb.sqlite.
-        id_to_row: Mapping from movie_id to row index.
-        n_movies: Total number of movies.
-        batch_size: Batch size for classifier inference.
-        source: Either "overview" or "reviews".
-
-    Returns:
-        Array of shape (n_movies, 7).
-    """
+    """Emotion classifier on text (overview or reviews). See CLASSIFICATION.md."""
     from transformers import pipeline as hf_pipeline
 
     log.info("--- Signal: Emotion classifier on %s ---", source)
@@ -309,23 +233,7 @@ def combine_signals(
     reviews: np.ndarray,
     n_movies: int,
 ) -> np.ndarray:
-    """Combine 4 mood signals with dynamic weighting.
-
-    Weights depend on which signals are available for each movie:
-        reviews available: 0.50*reviews + 0.20*overview + 0.20*genre + 0.10*keywords
-        no reviews:        0.50*overview + 0.30*genre + 0.20*keywords
-        no overview:       0.60*genre + 0.40*keywords
-
-    Args:
-        genre: Genre signal (n_movies, 7).
-        keyword: Keyword signal (n_movies, 7).
-        overview: Overview emotion signal (n_movies, 7).
-        reviews: Review emotion signal (n_movies, 7).
-        n_movies: Total number of movies.
-
-    Returns:
-        Combined mood scores (n_movies, 7), float32.
-    """
+    """Combine 4 signals with dynamic weights (see CLASSIFICATION.md)."""
     log.info("--- Combining 4 signals ---")
 
     has_reviews = reviews.sum(axis=1) > 0
@@ -366,11 +274,7 @@ def combine_signals(
 
 
 def main() -> int:
-    """Run the mood prediction pipeline.
-
-    Returns:
-        Exit code (0 for success, 1 for error).
-    """
+    """Run mood prediction pipeline."""
     parser = argparse.ArgumentParser(
         description="Predict mood scores for all movies from 4 signals.",
     )

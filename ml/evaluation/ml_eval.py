@@ -1,23 +1,4 @@
-"""Shared ML evaluation utility for the movie recommender.
-
-Generic evaluation functions used by both the Statistics page (compact,
-video-friendly) and the Jupyter notebook (academic, narrative). Works
-on arbitrary (X, y) data — not tied to a specific classification task.
-
-Two classification problems use these functions:
-1. Keyword-to-mood: multi-class (7 moods), from Phase 1b
-2. User preference: binary (liked/disliked), from Phase 2
-
-Course foundation (all mandatory elements present):
-    - train_test_split with stratify (Assignment 11 Task 1)
-    - RobustScaler fit on train only (Assignment 11 Task 2)
-    - 5+ classifier comparison as DataFrame (Assignment 11 Task 3.1)
-    - Scaled vs unscaled comparison (Assignment 11 Task 3.1)
-    - classification_report + ConfusionMatrixDisplay (Assignment 11 Task 3.2)
-    - KFold cross-validation with mean +/- std (Notebook 10-1)
-    - KNN hyperparameter tuning k=1..20 (Notebook 10-1)
-    - DummyClassifier baselines (Notebook 10-2)
-"""
+"""Shared ML evaluation: classifier comparison, cross-validation, KNN tuning. See EVALUATION.md."""
 from __future__ import annotations
 
 import matplotlib
@@ -45,14 +26,7 @@ import matplotlib.pyplot as plt
 
 
 def get_classifiers() -> dict[str, object]:
-    """Return the standard set of classifiers for comparison.
-
-    Includes 5 real classifiers + 2 DummyClassifier baselines.
-    class_weight="balanced" where supported (handles class imbalance).
-
-    Returns:
-        Dict mapping classifier name to unfitted sklearn estimator.
-    """
+    """Standard classifier set: 5 classifiers + 2 baselines. See EVALUATION.md."""
     return {
         "KNN (k=5)": KNeighborsClassifier(n_neighbors=5),
         "SVC": SVC(gamma="scale", class_weight="balanced", probability=True),
@@ -77,22 +51,7 @@ def evaluate_classifiers(
     y_val: np.ndarray,
     scaled: bool = True,
 ) -> pd.DataFrame:
-    """Train 5+ classifiers and evaluate on train + validation data.
-
-    Follows Assignment 11 Task 3.1: evaluate on training AND validation
-    data using accuracy, precision, recall, and F1 (macro).
-
-    Args:
-        x_train: Training features (scaled or unscaled).
-        x_val: Validation features (scaled or unscaled).
-        y_train: Training labels.
-        y_val: Validation labels.
-        scaled: Whether the input data is scaled (for labeling in DataFrame).
-
-    Returns:
-        DataFrame with columns: Classifier, Scaling, Train Acc, Train F1,
-        Val Acc, Val Prec, Val Rec, Val F1. Sorted by Val F1 descending.
-    """
+    """Train and evaluate all classifiers, return metrics DataFrame sorted by Val F1."""
     classifiers = get_classifiers()
     results = []
 
@@ -131,20 +90,7 @@ def best_model_report(
     y_test: np.ndarray,
     label_names: list[str],
 ) -> tuple[str, plt.Figure]:
-    """Generate classification report and confusion matrix for best model.
-
-    Follows Assignment 11 Task 3.2: report performance on held-out test set.
-    The test set is only used here, never during training or model selection.
-
-    Args:
-        clf: Fitted best classifier.
-        x_test: Scaled test features.
-        y_test: True test labels (encoded).
-        label_names: Class names for display.
-
-    Returns:
-        Tuple of (classification_report string, confusion matrix figure).
-    """
+    """Classification report + confusion matrix on held-out test set."""
     y_pred = clf.predict(x_test)
 
     # classification_report (lecture 11 slide 20, assignment 10 task 1.4)
@@ -170,20 +116,7 @@ def run_cross_validation(
     y: np.ndarray,
     n_splits: int = 10,
 ) -> np.ndarray:
-    """Run K-Fold cross-validation and return scores.
-
-    Follows Notebook 10-1: KFold with shuffle, report mean +/- std accuracy.
-
-    Args:
-        clf: Unfitted sklearn estimator (will be cloned internally by
-            cross_val_score).
-        x: Full feature matrix (all data, not just train).
-        y: Full label vector.
-        n_splits: Number of folds (default: 10).
-
-    Returns:
-        Array of accuracy scores per fold.
-    """
+    """K-Fold cross-validation, returns per-fold accuracy scores."""
     kfold = KFold(n_splits=n_splits, shuffle=True, random_state=42)
     scores = cross_val_score(clf, x, y, cv=kfold, scoring="accuracy")
     return scores
@@ -196,21 +129,7 @@ def knn_hyperparameter_plot(
     y_val: np.ndarray,
     k_range: range | None = None,
 ) -> plt.Figure:
-    """Plot KNN accuracy vs k for hyperparameter tuning.
-
-    Follows Notebook 10-1: vary k from 1 to 20, plot accuracy on
-    train and validation sets to detect overfitting.
-
-    Args:
-        x_train: Scaled training features.
-        x_val: Scaled validation features.
-        y_train: Training labels.
-        y_val: Validation labels.
-        k_range: Range of k values to test (default: 1..20).
-
-    Returns:
-        Matplotlib figure with train and validation accuracy curves.
-    """
+    """Plot KNN accuracy vs k (1..20) for train and validation sets."""
     if k_range is None:
         k_range = range(1, 21)
 

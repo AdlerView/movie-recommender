@@ -1,17 +1,4 @@
-"""Utility modules for the movie recommender app.
-
-Shared UI helpers and constants used across multiple pages to avoid code
-duplication. All page-level modules (discover, rate, watchlist, statistics,
-settings) import from here rather than defining their own copies.
-
-Exports:
-    Constants: GRID_COLS, TMDB_PAGE_SIZE, DEFAULT_COUNTRY_NAME, DEFAULT_COUNTRY_CODE,
-        RATING_COLORS, MOOD_COLORS
-    Functions: rating_color, inject_poster_grid_css,
-        render_rating_widget, render_discover_detail, render_watchlist_detail,
-        render_movie_detail_bottom, find_best_trailer, fetch_and_cache_details,
-        render_person_ranking
-"""
+"""Shared UI helpers and constants. Renderer details: see VIEWS.md."""
 from __future__ import annotations
 
 import sqlite3
@@ -59,18 +46,7 @@ MOOD_COLORS: Final[dict[str, str]] = {
 
 
 def rating_color(value: int | float, scale: int = 100) -> str:
-    """Return the color for a numeric rating value.
-
-    Uses the 5-level RATING_COLORS scale. Works for both 0-100 (user ratings)
-    and 0-10 (TMDB ratings) by normalizing via the scale parameter.
-
-    Args:
-        value: The rating value.
-        scale: Maximum of the scale (100 for user ratings, 10 for TMDB).
-
-    Returns:
-        Hex color string.
-    """
+    """Return hex color for a rating value (5-level scale, normalized via scale param)."""
     normalized = (value / scale) * 100 if scale != 100 else value
     for threshold, color in RATING_COLORS:
         if normalized <= threshold:
@@ -79,17 +55,7 @@ def rating_color(value: int | float, scale: int = 100) -> str:
 
 
 def inject_poster_grid_css(container_key: str, gap: str | None = None) -> None:
-    """Inject CSS for a clickable grid with invisible button overlays.
-
-    Scoped to the given container key to avoid affecting other elements.
-    Uses st.html() so the style block doesn't take up layout space.
-    Used by Discover, Rate, Watchlist (poster grids) and Settings (provider grid).
-
-    Args:
-        container_key: The key passed to st.container() wrapping the grid.
-        gap: Optional custom gap between columns (e.g., "0.35rem" for compact
-            provider grid). If None, uses Streamlit's default column gap.
-    """
+    """Inject CSS for clickable poster grid with invisible button overlays."""
     # Optional gap override for compact grids (e.g., Settings provider logos)
     gap_css = (
         f".st-key-{container_key} [data-testid=\"stHorizontalBlock\"] "
@@ -131,21 +97,7 @@ def render_rating_widget(
     key_prefix: str,
     current_rating: int | None = None,
 ) -> tuple[int, list[str], bool]:
-    """Render the shared rating slider + mood pills widget.
-
-    Displays a 0-100 slider with color-coded track, dot tick marks, dynamic
-    sentiment label, and 7 Ekman mood reaction pills. Handles the touch
-    guard (prevents accidental 0-ratings).
-
-    Args:
-        movie_id: TMDB movie ID (used for unique widget keys).
-        key_prefix: Prefix for session state keys (e.g., "rate", "wl").
-        current_rating: Pre-fill value for re-rating. None for first rating.
-
-    Returns:
-        Tuple of (rating, selected_moods, slider_ready).
-        slider_ready is False until the user moves the slider.
-    """
+    """Rating slider + mood pills. Returns (rating, selected_moods, slider_ready)."""
     # Track whether slider was moved — prevents accidental 0-ratings
     _touch_key = f"_{key_prefix}_touched_{movie_id}"
     st.session_state.setdefault(_touch_key, current_rating is not None)
@@ -251,18 +203,7 @@ def render_rating_widget(
 
 
 def fetch_and_cache_details(movie_id: int, details: dict) -> None:
-    """Fetch keywords and cache movie details + keywords in SQLite.
-
-    Shared by all pages that perform actions on movies (rate, watchlist add,
-    dismiss). Fetches keywords from TMDB and saves both details and keywords
-    to the movie_details table for use by Statistics and ML scoring.
-
-    Silently ignores network or database errors — caching is best-effort.
-
-    Args:
-        movie_id: TMDB movie ID.
-        details: Full TMDB movie details dict (already fetched for the dialog).
-    """
+    """Fetch keywords and cache details + keywords to SQLite (best-effort)."""
     from app.utils.db import save_movie_details
 
     # Fetch keywords separately (not included in append_to_response)
@@ -281,15 +222,7 @@ def render_person_ranking(
     persons: list[dict],
     label: str,
 ) -> None:
-    """Render a ranked list of directors or actors with photos and stats.
-
-    Displays profile photos in columns with name, movie count, and average
-    rating. Used by the Statistics page for both directors and actors.
-
-    Args:
-        persons: List of dicts with keys: name, movies, avg_rating, profile_path.
-        label: Section label (e.g., "directors", "actors") for singular/plural.
-    """
+    """Render ranked persons with photos, movie count, avg rating."""
     if not persons:
         return
     cols = st.columns(len(persons))
@@ -310,15 +243,7 @@ def render_person_ranking(
 
 
 def _resolve_country_code() -> str:
-    """Resolve the user's streaming country preference to an ISO 3166-1 code.
-
-    Reads the streaming_country preference from SQLite and resolves it to
-    an ISO 3166-1 two-letter code via the TMDB countries API.
-
-    Returns:
-        Two-letter country code (e.g. "CH", "DE", "US").
-        Defaults to DEFAULT_COUNTRY_CODE if preference is missing or API fails.
-    """
+    """Resolve streaming country preference to ISO 3166-1 code."""
     pref_name = load_preference("streaming_country", DEFAULT_COUNTRY_NAME)
     try:
         countries = get_countries()
@@ -333,18 +258,7 @@ def _resolve_country_code() -> str:
 
 
 def _format_release_date(details: dict, country_code: str) -> str | None:
-    """Extract and format the release date for a specific country.
-
-    Prefers the country-specific theatrical release (type 3) from the
-    release_dates endpoint. Falls back to the global release_date field.
-
-    Args:
-        details: Full TMDB movie details dict.
-        country_code: ISO 3166-1 country code.
-
-    Returns:
-        Formatted date string (e.g. "November 5, 2014") or None.
-    """
+    """Format release date: country-specific type 3 (theatrical) → type 4 (digital) → global fallback."""
     # Try country-specific release dates first
     release_dates_data = details.get("release_dates", {}).get("results", [])
     for country_entry in release_dates_data:
@@ -383,16 +297,7 @@ def _format_release_date(details: dict, country_code: str) -> str | None:
 
 
 def find_best_trailer(details: dict) -> dict | None:
-    """Find the best trailer from the videos results.
-
-    Prefers official YouTube trailers, sorted by publish date (newest first).
-
-    Args:
-        details: Full TMDB movie details dict.
-
-    Returns:
-        Video dict with "key", "site", "name" etc., or None.
-    """
+    """Find best YouTube trailer (official first, newest first)."""
     videos = details.get("videos", {}).get("results", [])
     # Filter for YouTube trailers only
     trailers = [
@@ -410,21 +315,13 @@ def find_best_trailer(details: dict) -> dict | None:
 
 
 def render_discover_detail(details: dict) -> None:
-    """Render the Discover detail dialog content (above action buttons).
-
-    Two-column layout: metadata on the left, cast photos on the right.
-    Compact vertical spacing with genre + rating on one line.
-
-    Args:
-        details: Full TMDB movie details dict from get_movie_details().
-    """
+    """Render Discover detail: metadata left, cast photos right. See VIEWS.md."""
     country_code = _resolve_country_code()
 
     col_info, col_cast = st.columns([3, 2])
 
     # === Left column: metadata ===
     with col_info:
-        # Runtime + release date directly under movie name
         meta_parts: list[str] = []
         runtime = details.get("runtime")
         if runtime:
@@ -442,8 +339,7 @@ def render_discover_detail(details: dict) -> None:
         tagline = details.get("tagline")
         if tagline:
             st.caption(f"*{tagline}*")
-        # Genre badges + TMDB rating badge on one line (no "Genre" header)
-        # Badge color mapped from 5-level scale (Streamlit only has 3 badge colors)
+        # Genre + TMDB rating badges on one line
         genres = details.get("genres", [])
         tmdb_rating = details.get("vote_average")
         genre_str = " ".join(f":gray-badge[{g['name']}]" for g in genres)
@@ -492,14 +388,7 @@ def render_discover_detail(details: dict) -> None:
 
 
 def render_watchlist_detail(details: dict) -> None:
-    """Render the Watchlist detail dialog content (above action buttons).
-
-    Compact practical layout: runtime + streaming providers on one line,
-    followed by trailer. No genre, rating, director, or overview.
-
-    Args:
-        details: Full TMDB movie details dict from get_movie_details().
-    """
+    """Render Watchlist detail: providers, runtime, trailer, Watch Now. See VIEWS.md."""
     country_code = _resolve_country_code()
 
     # Runtime + streaming logos on one row
@@ -547,17 +436,7 @@ def render_movie_detail_bottom(
     show_cast: bool = True,
     show_reviews: bool = True,
 ) -> None:
-    """Render the lower half of the movie detail dialog.
-
-    Displays trailer, cast, and reviews — called after page-specific
-    action buttons. Sections are conditionally shown via parameters.
-
-    Args:
-        details: Full TMDB movie details dict from get_movie_details().
-        show_trailer: Whether to show the YouTube trailer embed.
-        show_cast: Whether to show the top 5 billed cast.
-        show_reviews: Whether to show TMDB user reviews.
-    """
+    """Render trailer, cast, reviews below action buttons."""
     # === Trailer section: YouTube embed ===
     if show_trailer:
         trailer = find_best_trailer(details)
