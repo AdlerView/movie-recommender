@@ -11,7 +11,7 @@ from typing import Final
 
 import numpy as np
 
-from app.utils.db import load_dismissed, load_mood_reactions, load_ratings
+from src.utils.db import load_dismissed, load_mood_reactions, load_ratings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -218,7 +218,7 @@ def compute_user_profile(
             contra_row_indices.append(row)
 
     # Watchlisted movies as weak positive signal — see SCORING.md
-    from app.utils.db import load_watchlist
+    from src.utils.db import load_watchlist
     _watchlist = load_watchlist()
     _watchlist_weight = 0.3
     for movie in _watchlist:
@@ -298,7 +298,7 @@ def compute_user_profile(
 
 def save_profile_to_cache(profile: UserProfile) -> None:
     """Serialize and save profile to SQLite cache."""
-    from app.utils.db import save_profile_cache
+    from src.utils.db import save_profile_cache
 
     blob = pickle.dumps(profile)
     save_profile_cache("user_profile", blob)
@@ -307,7 +307,7 @@ def save_profile_to_cache(profile: UserProfile) -> None:
 
 def load_profile_from_cache() -> UserProfile | None:
     """Load cached profile, or None if missing/corrupt."""
-    from app.utils.db import load_profile_cache
+    from src.utils.db import load_profile_cache
 
     blob = load_profile_cache("user_profile")
     if blob is None:

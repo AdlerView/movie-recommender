@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from app.utils.db import (
+from src.utils.db import (
     get_ratings_without_details,
     init_db,
     load_dismissed,
@@ -12,7 +12,7 @@ from app.utils.db import (
     load_watchlist,
     save_movie_details,
 )
-from app.utils.tmdb import get_movie_details
+from src.utils.tmdb import get_movie_details
 
 # Page config must be the first Streamlit command
 st.set_page_config(
@@ -68,11 +68,11 @@ st.html("""<style>
 # --- Navigation ---
 page = st.navigation(
     [
-        st.Page("app/views/discover.py", title="Discover", icon=":material/explore:"),
-        st.Page("app/views/rate.py", title="Rate", icon=":material/star:"),
-        st.Page("app/views/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
-        st.Page("app/views/statistics.py", title="Statistics", icon=":material/bar_chart:"),
-        st.Page("app/views/settings.py", title="Settings", icon=":material/settings:"),
+        st.Page("src/views/discover.py", title="Discover", icon=":material/explore:"),
+        st.Page("src/views/rate.py", title="Rate", icon=":material/star:"),
+        st.Page("src/views/watchlist.py", title="Watchlist", icon=":material/bookmark:"),
+        st.Page("src/views/statistics.py", title="Statistics", icon=":material/bar_chart:"),
+        st.Page("src/views/settings.py", title="Settings", icon=":material/settings:"),
     ],
     position="top",
 )

@@ -4,8 +4,8 @@ from __future__ import annotations
 import altair as alt
 import pandas as pd
 import streamlit as st
-from app.utils import MOOD_COLORS, render_person_ranking
-from app.utils.db import (
+from src.utils import MOOD_COLORS, render_person_ranking
+from src.utils.db import (
     load_genre_ratings,
     load_mood_distribution,
     load_rated_movies_table,

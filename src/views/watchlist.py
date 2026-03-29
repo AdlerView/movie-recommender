@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from app.utils import GRID_COLS, fetch_and_cache_details
-from app.utils.db import (
+from src.utils import GRID_COLS, fetch_and_cache_details
+from src.utils.db import (
     remove_from_watchlist,
     save_mood_reactions,
     save_rating,
 )
-from app.utils.tmdb import get_movie_details, poster_url
+from src.utils.tmdb import get_movie_details, poster_url
 
 # --- Deferred toast ---
 if "_watchlist_toast" in st.session_state:
@@ -30,7 +30,7 @@ if not watchlist:
     # "Discover more" button as actionable next step (same styling as Load more
     # on Discover/Rate: full container width, no icon)
     if st.button("Discover more", width="stretch", type="primary"):
-        st.switch_page("app/views/discover.py")
+        st.switch_page("src/views/discover.py")
     st.stop()
 
 
@@ -42,7 +42,7 @@ def _select_movie(movie_id: int) -> None:
 
 
 # --- Clickable poster grid CSS (shared helper) ---
-from app.utils import inject_poster_grid_css
+from src.utils import inject_poster_grid_css
 inject_poster_grid_css("watchlist_grid")
 
 # --- Poster grid ---
@@ -74,7 +74,7 @@ with st.container(key="watchlist_grid"):
 # Uses st.switch_page for environment-agnostic navigation (works on localhost
 # and production domains without hardcoding URLs)
 if st.button("Discover more", width="stretch", type="primary"):
-    st.switch_page("app/views/discover.py")
+    st.switch_page("src/views/discover.py")
 
 # --- Trigger dialog after grid renders (dialog must be called in main flow) ---
 # Dialog defined inline so the movie title can be used as the dialog header.
@@ -88,7 +88,7 @@ if st.session_state._watchlist_selected is not None:
 
     @st.dialog(_details.get("title", "Movie details"), width="large")
     def _show_watchlist_dialog() -> None:
-        from app.utils import render_watchlist_detail
+        from src.utils import render_watchlist_detail
         render_watchlist_detail(_details)
 
         # Action buttons
@@ -103,7 +103,7 @@ if st.session_state._watchlist_selected is not None:
                 # Treat removal as a mild negative signal — add to dismissed
                 # so the movie won't reappear on Discover/Rate and contributes
                 # to the contra vector in the ML scoring profile.
-                from app.utils.db import save_dismissed
+                from src.utils.db import save_dismissed
                 st.session_state.dismissed.add(_mid)
                 save_dismissed(_mid)
                 st.session_state._watchlist_selected = None
@@ -119,7 +119,7 @@ if st.session_state._watchlist_selected is not None:
         # Rating widget (shown after "Mark as watched" click)
         if st.session_state.get("_watchlist_show_rating"):
             st.subheader("Rate this movie")
-            from app.utils import render_rating_widget
+            from src.utils import render_rating_widget
             new_rating, selected_moods, _slider_ready = render_rating_widget(
                 _mid, key_prefix="wl",
             )

@@ -133,8 +133,8 @@ Full course-compliant ML evaluation workflow (see `ml/evaluation/ml_evaluation.i
 
 ```
 movie-recommender/
-├── streamlit_app.py           Entry point (config, DB init, navigation)
-├── app/
+├── app.py                     Entry point (config, DB init, navigation)
+├── src/
 │   ├── views/                 5 page modules (discover, rate, watchlist, statistics, settings)
 │   └── utils/                 DB persistence (db.py) + TMDB API client (tmdb.py)
 ├── ml/
@@ -219,7 +219,7 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 # Edit .streamlit/secrets.toml with the shared TMDB API key
 
 # Run the app
-streamlit run streamlit_app.py
+streamlit run app.py
 ```
 
 ---
@@ -231,7 +231,7 @@ Public URL: **https://hsg.adlerscope.com** (Cloudflare Tunnel)
 ```bash
 # Start Streamlit
 conda activate ./.conda
-streamlit run streamlit_app.py
+streamlit run app.py
 
 # Start tunnel (separate terminal)
 cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender

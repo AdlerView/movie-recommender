@@ -8,8 +8,8 @@ from typing import Final
 import requests
 import streamlit as st
 
-from app.utils.db import load_preference
-from app.utils.tmdb import get_countries, get_movie_keywords, poster_url
+from src.utils.db import load_preference
+from src.utils.tmdb import get_countries, get_movie_keywords, poster_url
 
 # ---------------------------------------------------------------------------
 # Shared constants (used by discover.py, rate.py, watchlist.py)
@@ -204,7 +204,7 @@ def render_rating_widget(
 
 def fetch_and_cache_details(movie_id: int, details: dict) -> None:
     """Fetch keywords and cache details + keywords to SQLite (best-effort)."""
-    from app.utils.db import save_movie_details
+    from src.utils.db import save_movie_details
 
     # Fetch keywords separately (not included in append_to_response)
     try:

@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Final
 
-# Default streaming country code (avoids circular import from app.utils)
+# Default streaming country code (avoids circular import from src.utils)
 _DEFAULT_COUNTRY_CODE: Final[str] = "CH"
 
 # Database path: project_root/data/ (three levels up: utils/ → app/ → root)

@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from app.utils import GRID_COLS, TMDB_PAGE_SIZE, fetch_and_cache_details
-from app.utils.db import (
+from src.utils import GRID_COLS, TMDB_PAGE_SIZE, fetch_and_cache_details
+from src.utils.db import (
     save_mood_reactions,
     save_rating,
 )
-from app.utils.tmdb import (
+from src.utils.tmdb import (
     discover_movies_filtered,
     get_movie_details,
     poster_url,
@@ -152,7 +152,7 @@ if not movies:
     st.stop()
 
 # --- Poster grid (Netflix-style: clickable poster images) ---
-from app.utils import inject_poster_grid_css
+from src.utils import inject_poster_grid_css
 inject_poster_grid_css("poster_grid")
 
 with st.container(key="poster_grid"):
@@ -195,7 +195,7 @@ if st.session_state._watched_selected_id is not None:
     @st.dialog(_details.get("title", "Rate movie"), width="small")
     def _show_rating_dialog() -> None:
         current_rating = st.session_state.ratings.get(_mid)
-        from app.utils import render_rating_widget
+        from src.utils import render_rating_widget
         new_rating, selected_moods, _slider_ready = render_rating_widget(
             _mid, key_prefix="rate", current_rating=current_rating,
         )

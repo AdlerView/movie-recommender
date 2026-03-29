@@ -43,7 +43,7 @@
 - Offline pipeline database: tmdb.sqlite (7.7 GB, 1.17M movies, 30 tables)
 - Precomputed `.npy` arrays (~3 GB) loaded at runtime
 
-**Files:** `app/utils/tmdb.py` (API client), `app/utils/db.py` (SQLite layer), `ml/scoring/user_profile.py` (array loading)
+**Files:** `src/utils/tmdb.py` (API client), `src/utils/db.py` (SQLite layer), `ml/scoring/user_profile.py` (array loading)
 
 **Estimated Score:** 3/3 — Extensive API usage with caching, plus both online (user.sqlite) and offline (tmdb.sqlite) databases. JSON columns, WAL mode, and precomputed ML arrays go far beyond basic database usage.
 
@@ -63,7 +63,7 @@
 - Top 5 directors + actors: profile photos with movie count and avg rating
 - Sortable rated movies table with progress bar columns
 
-**Files:** `app/views/statistics.py`
+**Files:** `src/views/statistics.py`
 
 **Estimated Score:** 3/3 — Multiple chart types (bar, scatter with regression, KPIs), all serving the user's goal of understanding their taste profile. Altair for interactive charts exceeds basic matplotlib usage taught in course.
 
@@ -82,7 +82,7 @@
 - **Settings:** Country selection, provider subscription toggles, language preference
 - All interactions persist to SQLite and affect personalization
 
-**Files:** `app/views/discover.py`, `app/views/rate.py`, `app/views/watchlist.py`, `app/views/settings.py`
+**Files:** `src/views/discover.py`, `src/views/rate.py`, `src/views/watchlist.py`, `src/views/settings.py`
 
 **Estimated Score:** 3/3 — Rich multi-page interaction model with immediate persistence, personalization feedback loop, and graceful degradation. Far beyond a single-page form.
 

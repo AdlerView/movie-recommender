@@ -3,17 +3,17 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from app.utils import (
+from src.utils import (
     GRID_COLS,
     TMDB_PAGE_SIZE,
     fetch_and_cache_details,
 )
-from app.utils.db import (
+from src.utils.db import (
     load_preference,
     save_dismissed,
     save_to_watchlist,
 )
-from app.utils.tmdb import (
+from src.utils.tmdb import (
     discover_movies_filtered,
     get_genre_map,
     get_languages,
@@ -276,7 +276,7 @@ def _build_discover_params() -> list[tuple[str, str]]:
     if _subs:
         params.append(("with_watch_providers", "|".join(str(pid) for pid in _subs)))
         # Streaming country from Settings preference (resolved via shared helper)
-        from app.utils import _resolve_country_code
+        from src.utils import _resolve_country_code
         params.append(("watch_region", _resolve_country_code()))
         params.append(("with_watch_monetization_types", "flatrate"))
 
@@ -366,7 +366,7 @@ except requests.ConnectionError:
 # ============================================================
 
 # Poster grid CSS (shared helper, scoped to container key)
-from app.utils import inject_poster_grid_css
+from src.utils import inject_poster_grid_css
 inject_poster_grid_css("discover_grid")
 
 
@@ -448,7 +448,7 @@ if st.session_state._discover_selected_id is not None:
     @st.dialog(_details.get("title", "Movie details"), width="large")
     def _show_discover_dialog() -> None:
         """Discover detail dialog: metadata, trailer, actions, reviews."""
-        from app.utils import (
+        from src.utils import (
             find_best_trailer,
             render_discover_detail,
             render_movie_detail_bottom,
