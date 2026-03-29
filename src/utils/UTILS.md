@@ -1,6 +1,14 @@
 # UTILS
 
-App utilities: SQLite persistence (`db.py`) and TMDB API client (`tmdb.py`).
+App utilities with layered architecture:
+
+- `constants.py` — app-wide constants (grid layout, country defaults, color scales, genre order)
+- `db.py` — SQLite persistence (CRUD for ratings, watchlist, moods, subscriptions, preferences)
+- `tmdb.py` — TMDB API v3 client (9 endpoints, cached via `@st.cache_data`)
+- `helpers.py` — data helpers without Streamlit dependency (rating_color, find_best_trailer, resolve_country_code, format_release_date, fetch_and_cache_details)
+- `ui.py` — Streamlit renderers (poster grid CSS, rating widget, detail dialogs, person ranking)
+
+Import flow: `constants` → `db` / `tmdb` → `helpers` → `ui`. No circular dependencies. All symbols re-exported via `__init__.py`.
 
 Used endpoints and caching strategy documented below. Full TMDB API reference: [developer.themoviedb.org](https://developer.themoviedb.org/reference/)
 

@@ -137,11 +137,11 @@ movie-recommender/
 ├── app.py                     Entry point (config, DB init, navigation)
 ├── src/
 │   ├── views/                 5 page modules (discover, rate, watchlist, statistics, settings)
-│   └── utils/                 DB persistence (db.py) + TMDB API client (tmdb.py)
+│   └── utils/                 Constants, DB, TMDB API, data helpers, UI renderers
 ├── ml/
-│   ├── extraction/            Offline: feature vectors from tmdb.sqlite → .npy arrays
-│   ├── classification/        Offline: keyword-to-mood classifier + mood score prediction
-│   ├── scoring/               Online: user profile, 11-signal scoring, mood filter
+│   ├── extraction/            Offline pipeline: features, moods, quality, index, verify
+│   ├── classification/        Offline: keyword-to-mood classifier
+│   ├── scoring/               Online: arrays, profile, cache, scoring, mood filter
 │   └── evaluation/            ML evaluation functions + Jupyter notebook
 ├── data/
 │   ├── input/                 Pipeline sources (tmdb.sqlite, labeled keywords, genre-mood map)

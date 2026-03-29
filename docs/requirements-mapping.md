@@ -114,13 +114,13 @@
 **Status:** ✅ Implemented
 
 **Evidence:**
-- Every `.py` file has a module-level docstring explaining purpose, dependencies, and data flow
-- Every function has a Google-style docstring with Args, Returns, Raises sections
-- Inline comments on non-trivial logic (filter conditions, ML formulas, CSS targeting)
+- Every `.py` file has a module-level docstring with `see X.md` references to canonical documentation
+- Public functions have concise one-liner docstrings; trivial CRUD functions rely on self-documenting names
+- Inline comments on non-trivial logic (filter conditions, ML formulas, CSS workarounds)
 - Extensive Markdown documentation: 16 `.md` files covering architecture, data flow, API reference, ML pipeline
-- Course references in docstrings (e.g., "same math as TfidfVectorizer in Notebook 10-2")
+- DRY documentation: information lives in exactly one place (either .md or .py, not both)
 
-**Files:** All 17 `.py` files, all 16 `.md` files
+**Files:** 29 `.py` files, 16 `.md` files
 
 **Estimated Score:** 3/3 — Comprehensive documentation at every level (module, function, inline). Google-style docstrings throughout. Course connections explicitly noted.
 
