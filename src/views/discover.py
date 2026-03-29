@@ -4,6 +4,7 @@ from __future__ import annotations
 import requests
 import streamlit as st
 from src.utils import (
+    GENRE_ORDER,
     GRID_COLS,
     TMDB_PAGE_SIZE,
     fetch_and_cache_details,
@@ -25,16 +26,6 @@ from ml.scoring import filter_by_mood, get_or_compute_profile, score_candidates
 
 # 7 Ekman mood categories (canonical source: ml.scoring.arrays.MOODS)
 from ml.scoring.arrays import MOODS as _MOODS
-# Genre pill order optimized for sidebar width (shorter names grouped together)
-_GENRE_ORDER = [
-    "War", "Music", "Crime",
-    "Drama", "Horror", "Family",
-    "Action", "Comedy", "History",
-    "Western", "Mystery", "Fantasy",
-    "Romance", "Thriller", "Adventure",
-    "Animation", "TV Movie", "Documentary",
-    "Science Fiction",
-]
 
 # --- State initialization ---
 st.session_state.setdefault("_discover_pages", 1)
@@ -54,7 +45,7 @@ except requests.RequestException:
     st.stop()
 
 # Sort genre names by the width-optimized order defined above
-_genre_names_ordered = [g for g in _GENRE_ORDER if g in genre_map.values()]
+_genre_names_ordered = [g for g in GENRE_ORDER if g in genre_map.values()]
 # Reverse lookup: genre name → genre ID
 _genre_name_to_id = {name: gid for gid, name in genre_map.items()}
 
@@ -276,8 +267,8 @@ def _build_discover_params() -> list[tuple[str, str]]:
     if _subs:
         params.append(("with_watch_providers", "|".join(str(pid) for pid in _subs)))
         # Streaming country from Settings preference (resolved via shared helper)
-        from src.utils import _resolve_country_code
-        params.append(("watch_region", _resolve_country_code()))
+        from src.utils import resolve_country_code
+        params.append(("watch_region", resolve_country_code()))
         params.append(("with_watch_monetization_types", "flatrate"))
 
     return params

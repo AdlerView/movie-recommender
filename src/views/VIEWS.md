@@ -14,12 +14,12 @@ Streamlit page modules: Discover, Rate, Watchlist, Statistics, Settings.
 
 **Dialog pattern:** Poster click sets `_*_selected_id` in session state. Dialog defined inline for dynamic title. Actions use `st.button()` + `st.rerun()`, not `on_click` (`@st.dialog` inherits from `@st.fragment`, `on_click` only triggers fragment rerun).
 
-**Shared detail renderers** in `src/utils/__init__.py`:
+**Shared detail renderers** in `src/utils/ui.py`:
 - `render_discover_detail(details)` — two-column layout: left = runtime + release date, tagline, genre badges + TMDB rating (one line), director, overview, streaming logos. Right = top 5 cast photos (no names). Used by Discover only.
 - `render_watchlist_detail(details)` — compact: streaming logos, runtime, trailer embed (no header), Watch Now link. Used by Watchlist only.
 - `render_movie_detail_bottom(details, show_trailer=, show_cast=, show_reviews=)` — trailer embed, cast row (top 5, photos only), user reviews (up to 3, each in `st.expander`). Used by Discover (reviews only, cast+trailer rendered elsewhere).
 
-**Poster grid CSS:** `inject_poster_grid_css(container_key)` from `src/utils/__init__.py` — invisible button overlay on poster images for click interaction. Used by Discover, Rate, Watchlist.
+**Poster grid CSS:** `inject_poster_grid_css(container_key)` from `src/utils/ui.py` — invisible button overlay on poster images for click interaction. Used by Discover, Rate, Watchlist.
 
 ---
 

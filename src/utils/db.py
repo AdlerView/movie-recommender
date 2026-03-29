@@ -5,10 +5,7 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Final
-
-# Default streaming country code (avoids circular import from src.utils)
-_DEFAULT_COUNTRY_CODE: Final[str] = "CH"
+from src.utils.constants import DEFAULT_COUNTRY_CODE
 
 # Database path: project_root/data/ (three levels up: utils/ → app/ → root)
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
@@ -218,7 +215,7 @@ def load_subscriptions() -> set[int]:
     return {row["provider_id"] for row in rows}
 
 
-def save_subscriptions(provider_ids: list[int], country: str = _DEFAULT_COUNTRY_CODE) -> None:
+def save_subscriptions(provider_ids: list[int], country: str = DEFAULT_COUNTRY_CODE) -> None:
     """Replace all subscriptions atomically."""
     with _connection() as conn:
         conn.execute("DELETE FROM user_subscriptions")

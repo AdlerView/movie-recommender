@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from src.utils import GRID_COLS, TMDB_PAGE_SIZE, fetch_and_cache_details
+from src.utils import GRID_COLS, RATE_DISCOVER_PARAMS, TMDB_PAGE_SIZE, fetch_and_cache_details
 from src.utils.db import (
     save_mood_reactions,
     save_rating,
@@ -16,11 +16,6 @@ from src.utils.tmdb import (
 )
 from ml.scoring import get_or_compute_profile, score_candidates
 
-# Default discover params for the browse grid (same endpoint as Discover page)
-_RATE_DISCOVER_PARAMS: tuple[tuple[str, str], ...] = (
-    ("sort_by", "popularity.desc"),
-    ("vote_count.gte", "50"),
-)
 
 # --- Deferred toast ---
 # Shown after rerun following a save (st.toast before st.rerun is lost)
@@ -96,7 +91,7 @@ try:
         else:
             # Browse mode: GET /discover/movie with popularity sort
             # Same endpoint as Discover page (unified retrieval layer)
-            response = discover_movies_filtered(_RATE_DISCOVER_PARAMS, page=p)
+            response = discover_movies_filtered(RATE_DISCOVER_PARAMS, page=p)
             page_movies = response.get("results", [])
         if not page_movies:
             has_more = False
