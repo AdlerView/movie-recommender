@@ -60,7 +60,7 @@ def _load_model_arrays(output_dir: Path = _DEFAULT_OUTPUT_DIR) -> _ModelArrays:
     if not index_path.exists():
         raise FileNotFoundError(
             f"movie_id_index.json not found in {output_dir}. "
-            "Run the pipeline first (ml/extraction/build_index.py)."
+            "Run the pipeline first (ml/extraction/index.py)."
         )
 
     with open(index_path) as f:

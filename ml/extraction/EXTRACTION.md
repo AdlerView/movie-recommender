@@ -12,7 +12,8 @@ data/input/tmdb.sqlite (7.7 GB, offline only)
     |  ml/extraction/extract_features.py
     |  ml/extraction/moods.py
     |  ml/extraction/quality_scores.py
-    |  ml/extraction/build_index.py
+    |  ml/extraction/index.py
+    |  ml/extraction/verify.py
     |
     v
 data/output/ (~3 GB, shipped to production)
@@ -81,18 +82,19 @@ Bayesian average quality score, normalized to [0, 1]. Formula and behavior: see 
 
 ---
 
-## Stage 4: Build Index
+## Stage 4a: Build Index
 
-**Script:** `build_index.py`
+**Script:** `index.py`
 
-Saves the final mappings:
+Saves `data/output/movie_id_index.json` — bidirectional mapping between `movie_id` (TMDB integer ID) and row index (position in `.npy` arrays). Required to look up vectors for movies returned by the TMDB API.
 
-- `data/output/movie_id_index.json` — bidirectional mapping between
-  `movie_id` (TMDB integer ID) and row index (position in `.npy`
-  arrays). Required to look up vectors for movies returned by the
-  TMDB API.
+---
 
-Verifies all 14 pipeline outputs exist and have consistent row counts.
+## Stage 4b: Verify Pipeline
+
+**Script:** `verify.py`
+
+Verifies all 14 pipeline outputs exist and have consistent row counts against movie_id_index.json. No database access needed.
 
 ---
 
@@ -103,10 +105,11 @@ Verifies all 14 pipeline outputs exist and have consistent row counts.
 python3 ml/extraction/extract_features.py --db data/input/tmdb.sqlite --output data/output/
 python3 ml/extraction/moods.py --db data/input/tmdb.sqlite --output data/output/
 python3 ml/extraction/quality_scores.py --db data/input/tmdb.sqlite --output data/output/
-python3 ml/extraction/build_index.py --output data/output/
+python3 ml/extraction/index.py --db data/input/tmdb.sqlite --output data/output/
+python3 ml/extraction/verify.py --output data/output/
 ```
 
-Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `moods` → `build_index`.
+Run order: `extract_features` + `quality_scores` (parallel) → `keyword_mood_classifier` → `moods` → `index` → `verify`.
 Each stage is idempotent and can be re-run independently.
 
 ---

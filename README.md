@@ -93,7 +93,8 @@ The offline pipeline processes a 7.7 GB TMDB database (1.17M movies, 30 tables) 
 | 1b. Keyword classifier | `ml/classification/keyword_mood_classifier.py` | `keyword_mood_map.json` (68,462 keywords → 7 moods) + confusion matrix + results CSV | ~3 min |
 | 2. Mood prediction | `ml/extraction/moods.py` | `mood_scores.npy` (1.17M × 7), 4 signals: genre, keyword, overview emotion, review emotion | ~4h 18min |
 | 3. Quality scores | `ml/extraction/quality_scores.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
-| 4. Build index | `ml/extraction/build_index.py` | `movie_id_index.json` (bidirectional ID↔row mapping) + verification | <1s |
+| 4a. Build index | `ml/extraction/index.py` | `movie_id_index.json` (bidirectional ID↔row mapping) | <1s |
+| 4b. Verify | `ml/extraction/verify.py` | Checks all outputs for existence + row-count consistency | <1s |
 
 ### ML Pipeline — Online Scoring (10 Signals)
 

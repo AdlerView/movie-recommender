@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Build movie_id_index.json and verify pipeline outputs. See EXTRACTION.md."""
+"""Verify all pipeline outputs exist and have consistent row counts. See EXTRACTION.md."""
 from __future__ import annotations
 
 import argparse
 import json
 import logging
-import sqlite3
 import sys
 from pathlib import Path
 
@@ -18,7 +17,6 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# Expected .npy files from pipeline Stages 1-3
 EXPECTED_NPY = [
     "keyword_svd_vectors.npy",
     "director_svd_vectors.npy",
@@ -34,13 +32,9 @@ EXPECTED_NPY = [
 
 
 def main() -> int:
-    """Build movie ID index and verify outputs."""
+    """Verify pipeline outputs against movie_id_index.json."""
     parser = argparse.ArgumentParser(
-        description="Build movie_id_index.json and verify pipeline outputs.",
-    )
-    parser.add_argument(
-        "--db", type=Path, default=Path("data/input/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
+        description="Verify pipeline output files for existence and row-count consistency.",
     )
     parser.add_argument(
         "--output", type=Path, default=Path("data/output"),
@@ -48,30 +42,17 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if not args.db.exists():
-        log.error("Database not found: %s", args.db)
+    # Load movie_id_index.json as row-count reference
+    index_path = args.output / "movie_id_index.json"
+    if not index_path.exists():
+        log.error("movie_id_index.json not found — run index.py first")
         return 1
 
-    # --- Build movie_id_index.json ---
-    log.info("=== Building movie ID index ===")
-    conn = sqlite3.connect(args.db)
-    cursor = conn.execute("SELECT id FROM movies ORDER BY id")
-    movie_ids = [row[0] for row in cursor]
-    conn.close()
-
-    # Bidirectional mapping: movie_id (str) → row_index (int)
-    index = {str(mid): i for i, mid in enumerate(movie_ids)}
+    with open(index_path) as f:
+        index = json.load(f)
     n_movies = len(index)
-    log.info("Movie IDs: %d (min=%s, max=%s)", n_movies, movie_ids[0], movie_ids[-1])
+    log.info("Reference: movie_id_index.json (%d movies)", n_movies)
 
-    index_path = args.output / "movie_id_index.json"
-    with open(index_path, "w") as f:
-        json.dump(index, f, separators=(",", ":"))
-
-    size_mb = index_path.stat().st_size / (1024 * 1024)
-    log.info("Saved %s (%.1f MB)", index_path, size_mb)
-
-    # --- Verify pipeline outputs ---
     log.info("=== Verifying pipeline outputs ===")
     all_ok = True
 
@@ -89,7 +70,7 @@ def main() -> int:
             all_ok = False
         log.info("  %-30s %s  rows=%d  %.1f MB", fname, status, rows, size)
 
-    # Check JSON maps (keyword_mood_map in output, genre_mood_map in input)
+    # Check JSON maps
     for fname, fdir in [
         ("keyword_mood_map.json", args.output),
         ("genre_mood_map.json", args.output.parent / "input"),
