@@ -43,7 +43,7 @@
 - Offline pipeline database: tmdb.sqlite (7.7 GB, 1.17M movies, 30 tables)
 - Precomputed `.npy` arrays (~3 GB) loaded at runtime
 
-**Files:** `src/utils/tmdb.py` (API client), `src/utils/db.py` (SQLite layer), `ml/scoring/arrays.py` (array loading)
+**Files:** `src/tmdb.py` (API client), `src/db.py` (SQLite layer), `ml/scoring/arrays.py` (array loading)
 
 **Estimated Score:** 3/3 — Extensive API usage with caching, plus both online (user.sqlite) and offline (tmdb.sqlite) databases. JSON columns, WAL mode, and precomputed ML arrays go far beyond basic database usage.
 
