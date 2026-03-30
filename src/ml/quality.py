@@ -1,56 +1,19 @@
-#!/usr/bin/env python3
-"""Quality score pipeline (Stage 3).
-
-Bayesian average quality scores, normalized to [0, 1].
-Formula, behavior, and rationale: see SCORING.md (Quality Score section).
-"""
+"""Quality score pipeline (Stage 3). See SCORING.md (Quality Score section)."""
 from __future__ import annotations
 
-import argparse
 import logging
 import sqlite3
-import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
 
 
-def main() -> int:
-    """Run quality score pipeline."""
-    parser = argparse.ArgumentParser(
-        description="Compute Bayesian average quality scores for all movies.",
-    )
-    parser.add_argument(
-        "--db",
-        type=Path,
-        default=Path("data/source/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=Path("data/models"),
-        help="Output directory for quality_scores.npy (default: data/models/)",
-    )
-    args = parser.parse_args()
-
-    if not args.db.exists():
-        log.error("Database not found: %s", args.db)
-        return 1
-
-    args.output.mkdir(parents=True, exist_ok=True)
-
-    # --- Load vote data ---
-    log.info("=== Loading vote data from %s ===", args.db)
-    conn = sqlite3.connect(args.db)
+def run(db_path: Path, output_dir: Path) -> None:
+    """Compute Bayesian average quality scores for all movies."""
+    conn = sqlite3.connect(db_path)
     df = pd.read_sql_query(
         "SELECT id, vote_average, vote_count FROM movies ORDER BY id",
         conn,
@@ -84,7 +47,7 @@ def main() -> int:
     log.info("Normalized: shape=%s, range=[%.4f, %.4f]", quality_normalized.shape, quality_normalized.min(), quality_normalized.max())
 
     # --- Save ---
-    out_path = args.output / "quality_scores.npy"
+    out_path = output_dir / "quality_scores.npy"
     np.save(out_path, quality_normalized)
     size_mb = out_path.stat().st_size / (1024 * 1024)
     log.info("Saved %s (%.1f MB)", out_path, size_mb)
@@ -106,8 +69,3 @@ def main() -> int:
                 title, int(vote_cnt[row]), vote_avg[row], float(quality_normalized[row, 0]),
             )
 
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

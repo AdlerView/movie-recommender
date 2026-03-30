@@ -30,7 +30,7 @@ User clicks "Discover"
    -> ~50-300 candidates
 
    Threshold fallback: starts at 0.3, steps down to 0.2 → 0.1 → 0.0
-   if fewer than 20 candidates pass. See `mood_filter.py`.
+   if fewer than 20 candidates pass. See `mood.py`.
 
    If no mood selected, no mood filtering occurs. The user's
    implicit mood from rating history still influences the

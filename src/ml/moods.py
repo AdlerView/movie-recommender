@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
 """Mood prediction pipeline (Stage 2): 4 signals combined per movie. See PIPELINE.md."""
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import os
 import sqlite3
-import sys
 from pathlib import Path
 
 # Fully offline — see PIPELINE.md (Signal 3)
@@ -21,11 +18,6 @@ from tqdm import tqdm
 from src.constants import MOODS
 from src.ml.features import load_movie_ids
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
 
 # Mood column names for .npy arrays and keyword_mood_map.json (lowercase)
@@ -268,57 +260,26 @@ def combine_signals(
     return combined.astype(np.float32)
 
 
-def main() -> int:
+def run(
+    db_path: Path,
+    output_dir: Path,
+    genre_map_path: Path = Path("data/source/genre_mood_map.json"),
+    keyword_map_path: Path = Path("data/models/keyword_mood_map.json"),
+    batch_size: int = 64,
+    skip_emotion: bool = False,
+) -> None:
     """Run mood prediction pipeline."""
-    parser = argparse.ArgumentParser(
-        description="Predict mood scores for all movies from 4 signals.",
-    )
-    parser.add_argument(
-        "--db", type=Path, default=Path("data/source/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
-    )
-    parser.add_argument(
-        "--output", type=Path, default=Path("data/models"),
-        help="Output directory for mood_scores.npy (default: data/models/)",
-    )
-    parser.add_argument(
-        "--genre-map", type=Path, default=Path("data/source/genre_mood_map.json"),
-        help="Path to genre mood map JSON (default: data/source/genre_mood_map.json)",
-    )
-    parser.add_argument(
-        "--keyword-map", type=Path, default=Path("data/models/keyword_mood_map.json"),
-        help="Path to keyword mood map JSON (default: data/models/keyword_mood_map.json)",
-    )
-    parser.add_argument(
-        "--batch-size", type=int, default=64,
-        help="Batch size for emotion classifier (default: 64)",
-    )
-    parser.add_argument(
-        "--skip-emotion", action="store_true",
-        help="Skip emotion classifier (use only genre + keyword signals)",
-    )
-    args = parser.parse_args()
-
-    # Validate inputs
-    for path, name in [(args.db, "database"), (args.genre_map, "genre map"), (args.keyword_map, "keyword map")]:
-        if not path.exists():
-            log.error("%s not found: %s", name.capitalize(), path)
-            return 1
-
-    args.output.mkdir(parents=True, exist_ok=True)
-
-    # Load mood maps
     log.info("=== Loading mood maps ===")
-    with open(args.genre_map) as f:
+    with open(genre_map_path) as f:
         genre_map = json.load(f)
     log.info("Genre map: %d entries", len(genre_map))
 
-    with open(args.keyword_map) as f:
+    with open(keyword_map_path) as f:
         keyword_map = json.load(f)
     log.info("Keyword map: %d entries", len(keyword_map))
 
     # Load movie IDs
-    conn = sqlite3.connect(args.db)
+    conn = sqlite3.connect(db_path)
     movie_ids, id_to_row = load_movie_ids(conn)
     n_movies = len(movie_ids)
 
@@ -329,16 +290,16 @@ def main() -> int:
     keyword_signal = compute_keyword_signal(conn, id_to_row, n_movies, keyword_map)
 
     # --- Signals 3+4: Emotion classifier ---
-    if args.skip_emotion:
+    if skip_emotion:
         log.info("=== Skipping emotion classifier (--skip-emotion) ===")
         overview_signal = np.zeros((n_movies, 7), dtype=np.float32)
         review_signal = np.zeros((n_movies, 7), dtype=np.float32)
     else:
         log.info("=== Signal 3: Emotion on overviews ===")
-        overview_signal = compute_emotion_signal(conn, id_to_row, n_movies, args.batch_size, "overview")
+        overview_signal = compute_emotion_signal(conn, id_to_row, n_movies, batch_size, "overview")
 
         log.info("=== Signal 4: Emotion on reviews ===")
-        review_signal = compute_emotion_signal(conn, id_to_row, n_movies, args.batch_size, "reviews")
+        review_signal = compute_emotion_signal(conn, id_to_row, n_movies, batch_size, "reviews")
 
     conn.close()
 
@@ -346,7 +307,7 @@ def main() -> int:
     mood_scores = combine_signals(genre_signal, keyword_signal, overview_signal, review_signal, n_movies)
 
     # --- Save ---
-    out_path = args.output / "mood_scores.npy"
+    out_path = output_dir / "mood_scores.npy"
     np.save(out_path, mood_scores)
     size_mb = out_path.stat().st_size / (1024 * 1024)
     log.info("Saved %s: shape=%s, %.1f MB", out_path, mood_scores.shape, size_mb)
@@ -378,8 +339,3 @@ def main() -> int:
         max_val = mood_scores[:, i].max()
         log.info("  %-12s mean=%.4f  max=%.4f", mood, mean_val, max_val)
 
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

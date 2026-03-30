@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
 """Feature extraction pipeline (Stage 1). See PIPELINE.md."""
 from __future__ import annotations
 
-import argparse
 import logging
 import pickle
 import sqlite3
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -15,11 +12,6 @@ from scipy.sparse import csr_matrix
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfTransformer
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
 
 
@@ -319,44 +311,14 @@ def extract_popularity(
     log.info("Saved popularity_normalized.npy")
 
 
-def main() -> int:
+def run(
+    db_path: Path,
+    output_dir: Path,
+    svd_components: int = 200,
+    top_languages: int = 20,
+) -> None:
     """Run feature extraction pipeline."""
-    parser = argparse.ArgumentParser(
-        description="Extract feature vectors from TMDB database for scoring pipeline.",
-    )
-    parser.add_argument(
-        "--db",
-        type=Path,
-        default=Path("data/source/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=Path("data/models"),
-        help="Output directory for .npy and .pkl files (default: data/models/)",
-    )
-    parser.add_argument(
-        "--svd-components",
-        type=int,
-        default=200,
-        help="Number of SVD dimensions (default: 200)",
-    )
-    parser.add_argument(
-        "--top-languages",
-        type=int,
-        default=20,
-        help="Number of top languages for onehot (default: 20)",
-    )
-    args = parser.parse_args()
-
-    if not args.db.exists():
-        log.error("Database not found: %s", args.db)
-        return 1
-
-    args.output.mkdir(parents=True, exist_ok=True)
-
-    conn = sqlite3.connect(args.db)
+    conn = sqlite3.connect(db_path)
 
     # --- Canonical movie ID ordering (shared by all features) ---
     log.info("=== Loading canonical movie ID ordering ===")
@@ -365,12 +327,12 @@ def main() -> int:
 
     # --- Feature 1: Keywords (TF-IDF → SVD) ---
     log.info("=== Feature 1/8: Keywords ===")
-    extract_keyword_svd(conn, movie_row, n_movies, args.svd_components, args.output)
+    extract_keyword_svd(conn, movie_row, n_movies, svd_components, output_dir)
 
     # --- Feature 2: Directors (binary → SVD) ---
     log.info("=== Feature 2/8: Directors ===")
     extract_person_svd(
-        conn, movie_row, n_movies, args.svd_components, args.output,
+        conn, movie_row, n_movies, svd_components, output_dir,
         query="SELECT movie_id, person_id FROM movie_crew WHERE job = 'Director'",
         name="Director",
         npy_filename="director_svd_vectors.npy",
@@ -380,7 +342,7 @@ def main() -> int:
     # --- Feature 3: Actors (binary → SVD, top-5 cast only) ---
     log.info("=== Feature 3/8: Actors ===")
     extract_person_svd(
-        conn, movie_row, n_movies, args.svd_components, args.output,
+        conn, movie_row, n_movies, svd_components, output_dir,
         query="SELECT movie_id, person_id FROM movie_cast WHERE cast_order < 5",
         name="Actor",
         npy_filename="actor_svd_vectors.npy",
@@ -389,23 +351,23 @@ def main() -> int:
 
     # --- Feature 4: Genres (multi-hot) ---
     log.info("=== Feature 4/8: Genres ===")
-    extract_genre_vectors(conn, movie_row, n_movies, args.output)
+    extract_genre_vectors(conn, movie_row, n_movies, output_dir)
 
     # --- Feature 5: Decades (single-hot) ---
     log.info("=== Feature 5/8: Decades ===")
-    extract_decade_vectors(conn, movie_row, n_movies, args.output)
+    extract_decade_vectors(conn, movie_row, n_movies, output_dir)
 
     # --- Feature 6: Languages (top-N single-hot) ---
     log.info("=== Feature 6/8: Languages ===")
-    extract_language_vectors(conn, movie_row, n_movies, args.top_languages, args.output)
+    extract_language_vectors(conn, movie_row, n_movies, top_languages, output_dir)
 
     # --- Feature 7: Runtime (normalized) ---
     log.info("=== Feature 7/8: Runtime ===")
-    extract_runtime(conn, movie_row, n_movies, args.output)
+    extract_runtime(conn, movie_row, n_movies, output_dir)
 
     # --- Feature 8: Popularity (log-normalized) ---
     log.info("=== Feature 8/8: Popularity ===")
-    extract_popularity(conn, movie_row, n_movies, args.output)
+    extract_popularity(conn, movie_row, n_movies, output_dir)
 
     conn.close()
 
@@ -417,7 +379,7 @@ def main() -> int:
         "runtime_normalized.npy", "popularity_normalized.npy",
     ]
     for fname in expected_files:
-        fpath = args.output / fname
+        fpath = output_dir / fname
         if fpath.exists():
             arr = np.load(fpath)
             size_mb = fpath.stat().st_size / (1024 * 1024)
@@ -427,12 +389,7 @@ def main() -> int:
 
     pkl_files = ["keyword_svd.pkl", "director_svd.pkl", "actor_svd.pkl"]
     for fname in pkl_files:
-        fpath = args.output / fname
+        fpath = output_dir / fname
         status = "OK" if fpath.exists() else "MISSING"
         log.info("  %-30s %s", fname, status)
 
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

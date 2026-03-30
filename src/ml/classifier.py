@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
 """Keyword-to-mood classifier pipeline (Phase 1b). See PIPELINE.md."""
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import sqlite3
-import sys
 from pathlib import Path
 
 import matplotlib
@@ -33,11 +30,6 @@ from sklearn.svm import SVC
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
 
 from src.constants import MOODS
@@ -308,59 +300,25 @@ def build_keyword_mood_map(
     return mood_map
 
 
-def main() -> int:
+def run(
+    tsv_path: Path = Path("data/source/labeled_keywords.tsv"),
+    db_path: Path = Path("data/source/tmdb.sqlite"),
+    output_path: Path = Path("data/models/keyword_mood_map.json"),
+    eval_dir: Path = Path("docs"),
+    model_name: str = "google/embeddinggemma-300m",
+    batch_size: int = 128,
+) -> None:
     """Run the keyword-to-mood classifier pipeline."""
-    parser = argparse.ArgumentParser(
-        description="Train keyword-to-mood classifier and infer labels for 70K+ keywords.",
-    )
-    parser.add_argument(
-        "--tsv",
-        type=Path,
-        default=Path("data/source/labeled_keywords.tsv"),
-        help="Path to labeled keyword TSV (default: data/source/labeled_keywords.tsv)",
-    )
-    parser.add_argument(
-        "--db",
-        type=Path,
-        default=Path("data/source/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=Path("data/models/keyword_mood_map.json"),
-        help="Output path for keyword mood map JSON (default: data/models/keyword_mood_map.json)",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="google/embeddinggemma-300m",
-        help="Sentence-transformers model name (default: google/embeddinggemma-300m)",
-    )
-    parser.add_argument(
-        "--eval-dir",
-        type=Path,
-        default=Path("docs"),
-        help="Directory for evaluation outputs (default: docs/)",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=128,
-        help="Batch size for embedding generation (default: 128)",
-    )
-    args = parser.parse_args()
-
     # --- Step 1: Load and validate labeled data ---
     log.info("=== Step 1: Load labeled keywords ===")
-    labeled_df = load_labeled_keywords(args.tsv)
+    labeled_df = load_labeled_keywords(tsv_path)
     keywords, labels = get_single_label_subset(labeled_df)
 
     # --- Step 2: Generate embeddings for labeled keywords ---
     log.info("=== Step 2: Generate embeddings for labeled keywords ===")
     all_labeled_keywords = labeled_df["keyword_name"].tolist()
     all_labeled_embeddings = generate_embeddings(
-        all_labeled_keywords, model_name=args.model, batch_size=args.batch_size,
+        all_labeled_keywords, model_name=model_name, batch_size=batch_size,
     )
 
     # Extract single-label embeddings by index
@@ -399,10 +357,10 @@ def main() -> int:
 
     # --- Step 6: Report on test set (used only once) ---
     log.info("=== Step 6: Report best classifier on test set ===")
-    args.eval_dir.mkdir(parents=True, exist_ok=True)
+    eval_dir.mkdir(parents=True, exist_ok=True)
     report_on_test_set(
         best_clf, best_name, x_test_scaled, y_test,
-        le.classes_.tolist(), args.eval_dir,
+        le.classes_.tolist(), eval_dir,
     )
 
     # --- Step 7: Refit best model on full single-label set ---
@@ -413,7 +371,7 @@ def main() -> int:
 
     # --- Step 8: Load all keywords from tmdb.sqlite ---
     log.info("=== Step 8: Load keywords from tmdb.sqlite ===")
-    all_keywords_df = load_all_keywords_from_db(args.db)
+    all_keywords_df = load_all_keywords_from_db(db_path)
 
     # Identify unlabeled keywords (not in the 5,000 labeled set)
     labeled_names = set(labeled_df["keyword_name"].tolist())
@@ -425,7 +383,7 @@ def main() -> int:
     log.info("=== Step 9: Generate embeddings for unlabeled keywords ===")
     unlabeled_keywords = unlabeled_df["keyword_name"].tolist()
     unlabeled_embeddings = generate_embeddings(
-        unlabeled_keywords, model_name=args.model, batch_size=args.batch_size,
+        unlabeled_keywords, model_name=model_name, batch_size=batch_size,
     )
 
     # --- Step 10: Infer moods and export ---
@@ -446,15 +404,15 @@ def main() -> int:
     )
 
     # --- Step 11: Save output ---
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    with open(args.output, "w") as f:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
         json.dump(mood_map, f, ensure_ascii=False, indent=None, separators=(",", ":"))
 
-    file_size_mb = args.output.stat().st_size / (1024 * 1024)
-    log.info("Saved %d keyword mood entries to %s (%.1f MB)", len(mood_map), args.output, file_size_mb)
+    file_size_mb = output_path.stat().st_size / (1024 * 1024)
+    log.info("Saved %d keyword mood entries to %s (%.1f MB)", len(mood_map), output_path, file_size_mb)
 
     # Save results DataFrame for Phase 3 reuse
-    results_path = args.eval_dir / "keyword_classifier_results.csv"
+    results_path = eval_dir / "keyword_classifier_results.csv"
     results_df.to_csv(results_path, index=False)
     log.info("Classifier comparison saved to %s", results_path)
 
@@ -466,8 +424,3 @@ def main() -> int:
     log.info("Total in mood map:      %d", len(mood_map))
     log.info("Best classifier:        %s", best_name)
 
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

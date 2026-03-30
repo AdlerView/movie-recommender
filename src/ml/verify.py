@@ -1,20 +1,12 @@
-#!/usr/bin/env python3
 """Verify all pipeline outputs exist and have consistent row counts. See PIPELINE.md."""
 from __future__ import annotations
 
-import argparse
 import json
 import logging
-import sys
 from pathlib import Path
 
 import numpy as np
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
 
 EXPECTED_NPY = [
@@ -31,22 +23,12 @@ EXPECTED_NPY = [
 ]
 
 
-def main() -> int:
-    """Verify pipeline outputs against movie_id_index.json."""
-    parser = argparse.ArgumentParser(
-        description="Verify pipeline output files for existence and row-count consistency.",
-    )
-    parser.add_argument(
-        "--output", type=Path, default=Path("data/models"),
-        help="Output directory (default: data/models/)",
-    )
-    args = parser.parse_args()
-
-    # Load movie_id_index.json as row-count reference
-    index_path = args.output / "movie_id_index.json"
+def run(output_dir: Path) -> bool:
+    """Verify pipeline outputs. Returns True if all OK."""
+    index_path = output_dir / "movie_id_index.json"
     if not index_path.exists():
-        log.error("movie_id_index.json not found — run index.py first")
-        return 1
+        log.error("movie_id_index.json not found — run index first")
+        return False
 
     with open(index_path) as f:
         index = json.load(f)
@@ -57,7 +39,7 @@ def main() -> int:
     all_ok = True
 
     for fname in EXPECTED_NPY:
-        fpath = args.output / fname
+        fpath = output_dir / fname
         if not fpath.exists():
             log.warning("  MISSING: %s", fname)
             all_ok = False
@@ -70,10 +52,9 @@ def main() -> int:
             all_ok = False
         log.info("  %-30s %s  rows=%d  %.1f MB", fname, status, rows, size)
 
-    # Check JSON maps
     for fname, fdir in [
-        ("keyword_mood_map.json", args.output),
-        ("genre_mood_map.json", args.output.parent / "source"),
+        ("keyword_mood_map.json", output_dir),
+        ("genre_mood_map.json", output_dir.parent / "source"),
     ]:
         fpath = fdir / fname
         if fpath.exists():
@@ -84,9 +65,8 @@ def main() -> int:
             log.warning("  MISSING: %s", fname)
             all_ok = False
 
-    # Check SVD models
     for fname in ["keyword_svd.pkl", "director_svd.pkl", "actor_svd.pkl"]:
-        fpath = args.output / fname
+        fpath = output_dir / fname
         status = "OK" if fpath.exists() else "MISSING"
         if not fpath.exists():
             all_ok = False
@@ -97,8 +77,4 @@ def main() -> int:
     else:
         log.warning("=== Some outputs missing or inconsistent ===")
 
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    return all_ok
