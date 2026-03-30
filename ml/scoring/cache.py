@@ -6,7 +6,7 @@ import pickle
 
 from ml.scoring.arrays import is_model_available
 from ml.scoring.profile import UserProfile, _compute_fingerprint, compute_user_profile
-from src.utils.db import load_dismissed, load_mood_reactions, load_ratings
+from src.db import load_dismissed, load_mood_reactions, load_ratings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 def save_profile_to_cache(profile: UserProfile) -> None:
     """Serialize and save profile to SQLite cache."""
-    from src.utils.db import save_profile_cache
+    from src.db import save_profile_cache
 
     blob = pickle.dumps(profile)
     save_profile_cache("user_profile", blob)
@@ -27,7 +27,7 @@ def save_profile_to_cache(profile: UserProfile) -> None:
 
 def load_profile_from_cache() -> UserProfile | None:
     """Load cached profile, or None if missing/corrupt."""
-    from src.utils.db import load_profile_cache
+    from src.db import load_profile_cache
 
     blob = load_profile_cache("user_profile")
     if blob is None:

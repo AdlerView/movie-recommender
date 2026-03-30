@@ -6,13 +6,13 @@ from datetime import datetime
 
 import requests
 
-from src.utils.constants import (
+from src.constants import (
     DEFAULT_COUNTRY_CODE,
     DEFAULT_COUNTRY_NAME,
     RATING_COLORS,
 )
-from src.utils.db import load_preference
-from src.utils.tmdb import get_countries, get_movie_keywords, poster_url  # noqa: F401 (re-used by ui.py)
+from src.db import load_preference
+from src.tmdb import get_countries, get_movie_keywords, poster_url  # noqa: F401 (re-used by components.py)
 
 
 def rating_color(value: int | float, scale: int = 100) -> str:
@@ -95,7 +95,7 @@ def resolve_country_code() -> str:
 
 def fetch_and_cache_details(movie_id: int, details: dict) -> None:
     """Fetch keywords and cache details + keywords to SQLite (best-effort)."""
-    from src.utils.db import save_movie_details
+    from src.db import save_movie_details
 
     try:
         keywords = get_movie_keywords(movie_id)

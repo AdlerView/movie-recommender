@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from src.utils import GRID_COLS, fetch_and_cache_details
-from src.utils.db import (
+from src.constants import GRID_COLS
+from src.helpers import fetch_and_cache_details
+from src.db import (
     remove_from_watchlist,
     save_mood_reactions,
     save_rating,
 )
-from src.utils.tmdb import get_movie_details, poster_url
+from src.tmdb import get_movie_details, poster_url
 
 # --- Deferred toast ---
 if "_watchlist_toast" in st.session_state:
@@ -42,7 +43,7 @@ def _select_movie(movie_id: int) -> None:
 
 
 # --- Clickable poster grid CSS (shared helper) ---
-from src.utils import inject_poster_grid_css
+from src.components import inject_poster_grid_css
 inject_poster_grid_css("watchlist_grid")
 
 # --- Poster grid ---
@@ -88,7 +89,7 @@ if st.session_state._watchlist_selected is not None:
 
     @st.dialog(_details.get("title", "Movie details"), width="large")
     def _show_watchlist_dialog() -> None:
-        from src.utils import render_watchlist_detail
+        from src.components import render_watchlist_detail
         render_watchlist_detail(_details)
 
         # Action buttons
@@ -103,7 +104,7 @@ if st.session_state._watchlist_selected is not None:
                 # Treat removal as a mild negative signal — add to dismissed
                 # so the movie won't reappear on Discover/Rate and contributes
                 # to the contra vector in the ML scoring profile.
-                from src.utils.db import save_dismissed
+                from src.db import save_dismissed
                 st.session_state.dismissed.add(_mid)
                 save_dismissed(_mid)
                 st.session_state._watchlist_selected = None
@@ -119,7 +120,7 @@ if st.session_state._watchlist_selected is not None:
         # Rating widget (shown after "Mark as watched" click)
         if st.session_state.get("_watchlist_show_rating"):
             st.subheader("Rate this movie")
-            from src.utils import render_rating_widget
+            from src.components import render_rating_widget
             new_rating, selected_moods, _slider_ready = render_rating_widget(
                 _mid, key_prefix="wl",
             )

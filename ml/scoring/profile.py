@@ -13,7 +13,7 @@ from ml.scoring.arrays import (
     POSITIVE_THRESHOLD,
     get_model,
 )
-from src.utils.db import load_dismissed, load_mood_reactions, load_ratings
+from src.db import load_dismissed, load_mood_reactions, load_ratings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -119,7 +119,7 @@ def compute_user_profile(
             contra_row_indices.append(row)
 
     # Watchlisted movies as weak positive signal — see SCORING.md
-    from src.utils.db import load_watchlist
+    from src.db import load_watchlist
     _watchlist = load_watchlist()
     _watchlist_weight = 0.3
     for movie in _watchlist:

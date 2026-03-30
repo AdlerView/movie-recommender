@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from src.utils import DEFAULT_COUNTRY_CODE, DEFAULT_COUNTRY_NAME
-from src.utils.db import (
+from src.constants import DEFAULT_COUNTRY_CODE, DEFAULT_COUNTRY_NAME
+from src.db import (
     delete_preference,
     load_preference,
     save_preference,
     save_subscriptions,
 )
-from src.utils.tmdb import get_countries, get_languages, get_watch_providers_list, poster_url
+from src.tmdb import get_countries, get_languages, get_watch_providers_list, poster_url
 
 # --- Deferred toast (st.toast before st.rerun is lost) ---
 if "_settings_toast" in st.session_state:
@@ -110,7 +110,7 @@ if _providers:
         st.session_state.subscriptions = set(s)
 
     # Clickable grid CSS (shared helper with compact gap for provider logos)
-    from src.utils import inject_poster_grid_css
+    from src.components import inject_poster_grid_css
     inject_poster_grid_css("provider_grid", gap="0.35rem")
 
     # Provider logo grid (6 columns)

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import requests
 import streamlit as st
-from src.utils.db import (
+from src.db import (
     get_ratings_without_details,
     init_db,
     load_dismissed,
@@ -12,7 +12,7 @@ from src.utils.db import (
     load_watchlist,
     save_movie_details,
 )
-from src.utils.tmdb import get_movie_details
+from src.tmdb import get_movie_details
 
 # Page config must be the first Streamlit command
 st.set_page_config(

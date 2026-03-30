@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.utils.helpers import (
-    fetch_and_cache_details,  # noqa: F401 (re-exported via __init__)
+from src.helpers import (
+    fetch_and_cache_details,  # noqa: F401 (re-used by views)
     find_best_trailer,
     format_release_date,
     rating_color,
     resolve_country_code,
 )
-from src.utils.tmdb import poster_url
+from src.tmdb import poster_url
 
 
 def inject_poster_grid_css(container_key: str, gap: str | None = None) -> None:

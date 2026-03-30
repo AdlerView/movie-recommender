@@ -1,14 +1,14 @@
-"""SQLite persistence layer. Schema and architecture: see UTILS.md."""
+"""SQLite persistence layer. Schema and architecture: see DATA.md."""
 from __future__ import annotations
 
 import json
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from src.utils.constants import DEFAULT_COUNTRY_CODE
+from src.constants import DEFAULT_COUNTRY_CODE
 
-# Database path: project_root/data/ (three levels up: utils/ → app/ → root)
-_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+# Database path: project_root/data/ (two levels up: src/ → root)
+_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_PATH = _DATA_DIR / "user.sqlite"
 
 
