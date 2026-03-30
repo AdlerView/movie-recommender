@@ -53,8 +53,8 @@ def load_profile_from_cache() -> UserProfile | None:
         if isinstance(profile, UserProfile):
             log.info("User profile loaded from cache (%d ratings)", profile.rating_count)
             return profile
-    except (pickle.UnpicklingError, AttributeError, TypeError):
-        log.warning("Corrupt profile cache, will recompute")
+    except (pickle.UnpicklingError, AttributeError, TypeError, ModuleNotFoundError):
+        log.warning("Stale or corrupt profile cache, will recompute")
 
     return None
 
