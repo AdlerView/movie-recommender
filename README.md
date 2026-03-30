@@ -82,6 +82,8 @@ movie-recommender/
 ├── app.py                     Entry point (config, DB init, navigation)
 ├── evaluation.ipynb           ML evaluation notebook (academic deliverable)
 ├── contribution.md            Team contribution matrix (Req 7)
+├── contribution.png           Visual contribution matrix (generated from .md)
+├── video/                     4-minute demo video (Req 8)
 ├── src/
 │   ├── constants.py           App-wide constants (moods, colors, thresholds)
 │   ├── db.py                  SQLite persistence layer
