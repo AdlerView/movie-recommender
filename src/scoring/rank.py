@@ -6,8 +6,9 @@ from typing import Final
 
 import numpy as np
 
-from ml.scoring.arrays import MOOD_IDX, MOODS, get_model
-from ml.scoring.profile import UserProfile
+from src.constants import MOOD_IDX
+from src.scoring.loader import get_model
+from src.scoring.profile import UserProfile
 
 log = logging.getLogger(__name__)
 
@@ -24,12 +25,6 @@ _WEIGHT_TABLE: Final[dict[str, np.ndarray]] = {
     "mid":   np.array([0.10, 0.18, 0.12, 0.07, 0.06, 0.04, 0.02, 0.02, 0.07, 0.22, 0.10], dtype=np.float32),
     "full":  np.array([0.12, 0.18, 0.15, 0.07, 0.07, 0.03, 0.03, 0.03, 0.08, 0.10, 0.14], dtype=np.float32),
 }
-
-# Signal names in the same order as the weight columns (11 signals)
-SIGNAL_NAMES: Final[list[str]] = [
-    "keyword", "mood", "genre", "director", "actor", "decade",
-    "language", "runtime", "popularity", "quality", "contra",
-]
 
 
 def get_weights(rating_count: int) -> np.ndarray:

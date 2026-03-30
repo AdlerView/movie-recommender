@@ -139,7 +139,7 @@ def render_rating_widget(
         }}
     </style>""")
 
-    from ml.scoring.arrays import MOODS
+    from src.constants import MOODS
 
     st.caption("**How did this movie make you feel?** (optional)")
     selected_moods = st.pills(

@@ -9,22 +9,7 @@ from typing import Final
 
 import numpy as np
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
-
-# 7 canonical mood categories in fixed order (must match mood_scores.npy columns)
-MOODS: Final[list[str]] = [
-    "Happy", "Interested", "Surprised", "Sad", "Disgusted", "Afraid", "Angry",
-]
-MOOD_IDX: Final[dict[str, int]] = {m: i for i, m in enumerate(MOODS)}
-
-# Rating thresholds (from SCORING.md)
-CONTRA_THRESHOLD: Final[int] = 30  # ratings 0-30 contribute to contra vector
-POSITIVE_THRESHOLD: Final[int] = 50  # ratings > 50 used for runtime preference
 
 # Default output directory for pipeline arrays
 _DEFAULT_OUTPUT_DIR: Final[Path] = Path("data/output")
@@ -36,7 +21,7 @@ _DEFAULT_OUTPUT_DIR: Final[Path] = Path("data/output")
 
 @dataclass
 class _ModelArrays:
-    """Lazy singleton for precomputed arrays. File specs: see OUTPUT.md."""
+    """Lazy singleton for precomputed arrays. File specs: see MODELS.md."""
 
     movie_id_index: dict[str, int] = field(default_factory=dict)
     keyword_svd: np.ndarray = field(default_factory=lambda: np.empty(0))
@@ -60,7 +45,7 @@ def _load_model_arrays(output_dir: Path = _DEFAULT_OUTPUT_DIR) -> _ModelArrays:
     if not index_path.exists():
         raise FileNotFoundError(
             f"movie_id_index.json not found in {output_dir}. "
-            "Run the pipeline first (ml/extraction/index.py)."
+            "Run the pipeline first (src/ml/index.py)."
         )
 
     with open(index_path) as f:

@@ -15,7 +15,7 @@ from src.tmdb import (
     poster_url,
     search_movies,
 )
-from ml.scoring import get_or_compute_profile, score_candidates
+from src.scoring import get_or_compute_profile, score_candidates
 
 
 # --- Deferred toast ---

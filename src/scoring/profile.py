@@ -6,20 +6,15 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ml.scoring.arrays import (
+from src.constants import (
     CONTRA_THRESHOLD,
     MOOD_IDX,
     MOODS,
     POSITIVE_THRESHOLD,
-    get_model,
 )
+from src.scoring.loader import get_model
 from src.db import load_dismissed, load_mood_reactions, load_ratings
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
 
 
@@ -177,6 +172,8 @@ def compute_user_profile(
         len(contra_row_indices), total_tags,
     )
 
+    # Import here to avoid circular dependency (cache imports profile)
+    from src.scoring.cache import compute_fingerprint
     return UserProfile(
         keyword_vec=keyword_vec,
         genre_vec=genre_vec,
@@ -189,26 +186,5 @@ def compute_user_profile(
         implicit_mood=implicit_mood,
         contra_vec=contra_vec,
         rating_count=len(ratings),
-        fingerprint=_compute_fingerprint(ratings, mood_reactions, dismissed),
+        fingerprint=compute_fingerprint(ratings, mood_reactions, dismissed),
     )
-
-
-def _compute_fingerprint(
-    ratings: dict[int, int],
-    mood_reactions: dict[int, list[str]],
-    dismissed: set[int],
-) -> str:
-    """MD5 hash of ratings + moods + dismissed for cache invalidation."""
-    import hashlib
-
-    h = hashlib.md5(usedforsecurity=False)
-    # Sorted ratings: captures both count and values
-    for mid, rating in sorted(ratings.items()):
-        h.update(f"{mid}:{rating}".encode())
-    # Sorted mood reactions
-    for mid, moods in sorted(mood_reactions.items()):
-        h.update(f"{mid}:{','.join(sorted(moods))}".encode())
-    # Sorted dismissed
-    for mid in sorted(dismissed):
-        h.update(f"d:{mid}".encode())
-    return h.hexdigest()

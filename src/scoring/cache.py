@@ -1,19 +1,34 @@
 """SQLite cache for serialized user profiles. See SCORING.md."""
 from __future__ import annotations
 
+import hashlib
 import logging
 import pickle
 
-from ml.scoring.arrays import is_model_available
-from ml.scoring.profile import UserProfile, _compute_fingerprint, compute_user_profile
+from src.scoring.loader import is_model_available
+from src.scoring.profile import UserProfile, compute_user_profile
 from src.db import load_dismissed, load_mood_reactions, load_ratings
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-)
 log = logging.getLogger(__name__)
+
+
+def compute_fingerprint(
+    ratings: dict[int, int],
+    mood_reactions: dict[int, list[str]],
+    dismissed: set[int],
+) -> str:
+    """MD5 hash of ratings + moods + dismissed for cache invalidation."""
+    h = hashlib.md5(usedforsecurity=False)
+    # Sorted ratings: captures both count and values
+    for mid, rating in sorted(ratings.items()):
+        h.update(f"{mid}:{rating}".encode())
+    # Sorted mood reactions
+    for mid, moods in sorted(mood_reactions.items()):
+        h.update(f"{mid}:{','.join(sorted(moods))}".encode())
+    # Sorted dismissed
+    for mid in sorted(dismissed):
+        h.update(f"d:{mid}".encode())
+    return h.hexdigest()
 
 
 def save_profile_to_cache(profile: UserProfile) -> None:
@@ -65,7 +80,7 @@ def get_or_compute_profile(
         return None
 
     # Check cache validity via fingerprint (captures rating values, moods, dismissals)
-    current_fp = _compute_fingerprint(ratings, mood_reactions, dismissed)
+    current_fp = compute_fingerprint(ratings, mood_reactions, dismissed)
     if not force_recompute:
         cached = load_profile_from_cache()
         if cached is not None and cached.fingerprint == current_fp:

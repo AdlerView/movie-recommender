@@ -47,3 +47,13 @@ RATE_DISCOVER_PARAMS: Final[tuple[tuple[str, str], ...]] = (
     ("sort_by", "popularity.desc"),
     ("vote_count.gte", "50"),
 )
+
+# 7 canonical mood categories in fixed order (must match mood_scores.npy columns)
+MOODS: Final[list[str]] = [
+    "Happy", "Interested", "Surprised", "Sad", "Disgusted", "Afraid", "Angry",
+]
+MOOD_IDX: Final[dict[str, int]] = {m: i for i, m in enumerate(MOODS)}
+
+# Rating thresholds for profile computation (see SCORING.md)
+CONTRA_THRESHOLD: Final[int] = 30  # ratings 0-30 contribute to contra vector
+POSITIVE_THRESHOLD: Final[int] = 50  # ratings > 50 used for runtime preference

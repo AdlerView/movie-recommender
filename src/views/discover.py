@@ -18,10 +18,8 @@ from src.tmdb import (
     poster_url,
     search_keywords,
 )
-from ml.scoring import filter_by_mood, get_or_compute_profile, score_candidates
-
-# 7 Ekman mood categories (canonical source: ml.scoring.arrays.MOODS)
-from ml.scoring.arrays import MOODS as _MOODS
+from src.scoring import filter_by_mood, get_or_compute_profile, score_candidates
+from src.constants import MOODS as _MOODS
 
 # --- State initialization ---
 st.session_state.setdefault("_discover_pages", 1)
