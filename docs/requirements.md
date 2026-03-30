@@ -1,7 +1,21 @@
 # Requirements Mapping
 
 > Maps each of the 8 course requirements to specific implementation artifacts.
-> Source: [group-project.pdf](group-project.pdf), slide 4 "Anforderungen und Benotung".
+
+## Status Overview
+
+| #   | Requirement            | Status                                                                                   |
+|-----|------------------------|------------------------------------------------------------------------------------------|
+| 1   | Problem clearly stated | ✅ defined (README + concept.md)                                                         |
+| 2   | Data via API/database  | ✅ TMDB API (9 endpoints) + SQLite (8 tables) + offline DB (1.17M movies)                |
+| 3   | Data visualization     | ✅ 4 KPIs, 4 Altair charts, top 5 rankings, sortable table                               |
+| 4   | User interaction       | ✅ 8 filters, mood pills, ratings, watchlist, settings — 5 pages                         |
+| 5   | Machine learning       | ✅ TF-IDF/SVD pipeline, 11-signal scoring, 7 classifiers, evaluation notebook            |
+| 6   | Code documentation     | ✅ Concise docstrings, architecture .md files, DRY (one source of truth per topic)       |
+| 7   | Contribution matrix    | ⚠️ structure ready, needs team input                                                     |
+| 8   | 4-min video + demo     | ❌ not started                                                                           |
+
+---
 
 ## Scoring Scale
 
@@ -133,11 +147,11 @@
 **Status:** ⚠️ In Progress
 
 **Evidence:**
-- `docs/contribution.md` exists with the matrix structure and legend
+- `contribution.md` exists with the matrix structure and legend
 - Currently only @AdlerView has contributions filled in
 - Other team members' contributions need to be documented before submission
 
-**Files:** `docs/contribution.md`
+**Files:** `contribution.md`
 
 **Estimated Score:** 1/3 (if submitted as-is) → 2-3/3 (if completed with all team members)
 
