@@ -79,89 +79,89 @@ Full course-compliant evaluation in `evaluation.ipynb`: 7 classifiers (KNN, SVC,
 
 ```
 movie-recommender/
-├── app.py                        Entry point
-├── evaluation.ipynb              ML evaluation notebook
-├── contribution.md               Team contribution matrix
-├── contribution.png              Visual contribution matrix (to be generated)
+├── app.py	# entry point
+├── evaluation.ipynb	# ML evaluation notebook
+├── contribution.md	# team contribution matrix
+├── contribution.png	# visual contribution matrix (to be generated)
 ├── requirements.txt
 ├── README.md
 │
-├── video/                        4-minute demo video (Req 8)
+├── video/	# 4-minute demo video (Req 8)
 │
 ├── src/
-│   ├── constants.py              App-wide constants (moods, colors, thresholds)
-│   ├── db.py                     SQLite persistence layer
-│   ├── tmdb.py                   TMDB API v3 client
-│   ├── helpers.py                Data helpers (no Streamlit)
-│   ├── components.py             Reusable Streamlit UI renderers
-│   ├── DATA.md                   Documentation for db.py + tmdb.py
+│   ├── constants.py	# app-wide constants (moods, colors, thresholds)
+│   ├── db.py	# SQLite persistence layer
+│   ├── tmdb.py	# TMDB API v3 client
+│   ├── helpers.py	# data helpers (no Streamlit)
+│   ├── components.py	# reusable Streamlit UI renderers
+│   ├── DATA.md
 │   │
 │   ├── views/
-│   │   ├── discover.py           Discover page (filters, mood pills, poster grid)
-│   │   ├── rate.py               Rate page (search, browse, rating slider)
-│   │   ├── watchlist.py          Watchlist page (saved movies, streaming info)
-│   │   ├── statistics.py         Statistics page (charts, rankings, ratings table)
-│   │   ├── settings.py           Settings page (country, subscriptions, language)
+│   │   ├── discover.py	# discover page (filters, mood pills, poster grid)
+│   │   ├── rate.py	# rate page (search, browse, rating slider)
+│   │   ├── watchlist.py	# watchlist page (saved movies, streaming info)
+│   │   ├── statistics.py	# statistics page (charts, rankings, ratings table)
+│   │   ├── settings.py	# settings page (country, subscriptions, language)
 │   │   └── VIEWS.md
 │   │
 │   ├── scoring/
-│   │   ├── loader.py             Lazy singleton: load .npy arrays
-│   │   ├── profile.py            User profile computation
-│   │   ├── cache.py              Profile SQLite cache
-│   │   ├── rank.py               11-signal candidate scoring
-│   │   ├── mood.py               Mood threshold filter
+│   │   ├── loader.py	# lazy singleton: load .npy arrays
+│   │   ├── profile.py	# user profile computation
+│   │   ├── cache.py	# profile SQLite cache
+│   │   ├── rank.py	# 11-signal candidate scoring
+│   │   ├── mood.py	# mood threshold filter
 │   │   └── SCORING.md
 │   │
 │   └── ml/
-│       ├── run.py                Pipeline runner (single entry point)
-│       ├── features.py           Stage 1: TF-IDF, SVD, onehot vectors
-│       ├── classifier.py         Stage 1b: keyword-to-mood classifier
-│       ├── moods.py              Stage 2: 4-signal mood prediction
-│       ├── quality.py            Stage 3: Bayesian quality scores
-│       ├── index.py              Stage 4a: movie ID index
-│       ├── verify.py             Stage 4b: pipeline output verification
+│       ├── run.py	# pipeline runner (single entry point)
+│       ├── features.py	# stage 1: TF-IDF, SVD, onehot vectors
+│       ├── classifier.py	# stage 1b: keyword-to-mood classifier
+│       ├── moods.py	# stage 2: 4-signal mood prediction
+│       ├── quality.py	# stage 3: Bayesian quality scores
+│       ├── index.py	# stage 4a: movie ID index
+│       ├── verify.py	# stage 4b: pipeline output verification
 │       └── PIPELINE.md
 │
 ├── data/
 │   ├── source/
-│   │   ├── tmdb.sqlite           7.7 GB offline database (gitignored)
-│   │   ├── labeled_keywords.tsv  Training data (5K labeled keywords)
-│   │   ├── genre_mood_map.json   19 genre-to-mood rules
+│   │   ├── tmdb.sqlite	# 7.7 GB offline database (gitignored)
+│   │   ├── labeled_keywords.tsv	# training data (5K labeled keywords)
+│   │   ├── genre_mood_map.json	# 19 genre-to-mood rules
 │   │   └── SOURCE.md
 │   ├── models/
-│   │   ├── *_svd_vectors.npy     SVD feature arrays (3× 939 MB, gitignored)
-│   │   ├── *.pkl                 Fitted SVD models (gitignored)
-│   │   ├── genre_vectors.npy     Genre multi-hot (89 MB)
-│   │   ├── decade_vectors.npy    Decade one-hot (70 MB)
-│   │   ├── language_vectors.npy  Language one-hot (94 MB)
+│   │   ├── *_svd_vectors.npy	# SVD feature arrays (3× 939 MB, gitignored)
+│   │   ├── *.pkl	# fitted SVD models (gitignored)
+│   │   ├── genre_vectors.npy	# genre multi-hot (89 MB)
+│   │   ├── decade_vectors.npy	# decade one-hot (70 MB)
+│   │   ├── language_vectors.npy	# language one-hot (94 MB)
 │   │   ├── runtime_normalized.npy
 │   │   ├── popularity_normalized.npy
-│   │   ├── mood_scores.npy       1.17M × 7 mood probabilities (33 MB)
-│   │   ├── quality_scores.npy    Bayesian averages (4.7 MB)
-│   │   ├── movie_id_index.json   ID ↔ row mapping (19 MB)
-│   │   ├── keyword_mood_map.json 68K keyword-to-mood entries (3.1 MB)
+│   │   ├── mood_scores.npy	# 1.17M × 7 mood probabilities (33 MB)
+│   │   ├── quality_scores.npy	# Bayesian averages (4.7 MB)
+│   │   ├── movie_id_index.json	# ID ↔ row mapping (19 MB)
+│   │   ├── keyword_mood_map.json	# 68K keyword-to-mood entries (3.1 MB)
 │   │   └── MODELS.md
-│   └── user.sqlite               User data (created at runtime, gitignored)
+│   └── user.sqlite	# user data (created at runtime, gitignored)
 │
 ├── docs/
-│   ├── concept.md                Original project concept
-│   ├── wireframes.md             UI flow diagram + comparison
-│   ├── requirements.md           Course requirements mapping
-│   ├── classifier_results.csv    Classifier comparison results
+│   ├── concept.md	# original project concept
+│   ├── wireframes.md	# UI flow diagram + comparison
+│   ├── requirements.md	# course requirements mapping
+│   ├── classifier_results.csv	# classifier comparison results
 │   ├── TODO.md
 │   └── images/
-│       ├── landing_page.png      App screenshot
-│       ├── confusion_matrix.png  Classifier evaluation
+│       ├── landing_page.png	# app screenshot
+│       ├── confusion_matrix.png	# classifier evaluation
 │       ├── prototype-original.jpg
 │       └── wireframe-pages.png
 │
 ├── static/
-│   ├── Poppins-*.ttf             6 font weight variants
-│   └── OFL.txt                   Open Font License
+│   ├── Poppins-*.ttf	# 6 font weight variants
+│   └── OFL.txt	# Open Font License
 │
 └── .streamlit/
-    ├── config.toml               Theme configuration
-    └── secrets.toml              API keys (gitignored)
+    ├── config.toml	# theme configuration
+    └── secrets.toml	# API keys (gitignored)
 ```
 
 ---
