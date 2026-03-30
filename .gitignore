@@ -71,11 +71,11 @@ Thumbs.db
 .streamlit/secrets.toml
 
 # Data — large files (fast to regenerate from ML pipeline scripts)
-data/input/tmdb.sqlite
-data/input/tmdb.sqlite-shm
-data/input/tmdb.sqlite-wal
+data/source/tmdb.sqlite
+data/source/tmdb.sqlite-shm
+data/source/tmdb.sqlite-wal
 data/user.sqlite
 data/user.sqlite-shm
 data/user.sqlite-wal
-data/output/*_svd_vectors.npy
-data/output/*.pkl
+data/models/*_svd_vectors.npy
+data/models/*.pkl
