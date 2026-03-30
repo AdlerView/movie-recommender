@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keyword-to-mood classifier pipeline (Phase 1b). See CLASSIFICATION.md."""
+"""Keyword-to-mood classifier pipeline (Phase 1b). See PIPELINE.md."""
 from __future__ import annotations
 
 import argparse
@@ -40,8 +40,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# 7 canonical mood categories (Ekman model)
-MOODS = ["Happy", "Interested", "Surprised", "Sad", "Disgusted", "Afraid", "Angry"]
+from src.constants import MOODS
 
 
 def load_labeled_keywords(tsv_path: Path) -> pd.DataFrame:

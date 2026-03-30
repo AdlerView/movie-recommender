@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify all pipeline outputs exist and have consistent row counts. See EXTRACTION.md."""
+"""Verify all pipeline outputs exist and have consistent row counts. See PIPELINE.md."""
 from __future__ import annotations
 
 import argparse

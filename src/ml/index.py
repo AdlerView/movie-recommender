@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build movie_id_index.json from tmdb.sqlite. See EXTRACTION.md."""
+"""Build movie_id_index.json from tmdb.sqlite. See PIPELINE.md."""
 from __future__ import annotations
 
 import argparse

@@ -1,20 +1,103 @@
-# CLASSIFICATION
+# PIPELINE
 
-ML classification models: keyword-to-mood classifier (`keyword_mood_classifier.py`) and mood score prediction (`ml/extraction/moods.py`).
+Offline ML pipeline: feature extraction, mood prediction, keyword classification, quality scores. All scripts in `src/ml/`, all source data in `data/source/`, all outputs in `data/models/`.
 
 ---
 
-## Mood Score Prediction (ml/extraction/moods.py)
+## Pipeline Architecture
+
+```
+data/source/tmdb.sqlite (7.7 GB, offline only)
+    |
+    |  src/ml/features.py
+    |  src/ml/moods.py
+    |  src/ml/quality.py
+    |  src/ml/index.py
+    |  src/ml/verify.py
+    |  src/ml/classifier.py
+    |
+    v
+data/models/ (~3 GB, shipped to production)
+    keyword_svd_vectors.npy     1.17M x 200   float32
+    director_svd_vectors.npy    1.17M x 200   float32
+    actor_svd_vectors.npy       1.17M x 200   float32
+    genre_vectors.npy           1.17M x 19    float32
+    decade_vectors.npy          1.17M x 15    float32
+    language_vectors.npy        1.17M x 20    float32
+    runtime_normalized.npy      1.17M x 1     float32
+    mood_scores.npy             1.17M x 7     float32
+    quality_scores.npy          1.17M x 1     float32
+    movie_id_index.json         1.17M entries
+    keyword_mood_map.json       ~70K entries
+    keyword_svd.pkl
+    director_svd.pkl
+    actor_svd.pkl
+```
+
+The 7.7 GB database is never queried at runtime. Only the model files
+are loaded into memory for scoring.
+
+---
+
+## Stage 1: Feature Extraction
+
+**Script:** `features.py`
+
+**Input:** `data/source/tmdb.sqlite`
+
+Extracts feature matrices from the TMDB database and reduces
+high-dimensional sparse features via SVD.
+
+| Feature | Raw Dimensions | Reduced | DB Source |
+|---|---|---|---|
+| Keyword TF-IDF | 1.17M x 70,779 | 1.17M x 200 (SVD) | `movie_keywords` + `keywords` |
+| Genre onehot | 1.17M x 19 | No reduction | `movie_genres` + `genres` |
+| Director onehot | 1.17M x ~170K | 1.17M x 200 (SVD) | `movie_crew` WHERE `job = 'Director'` |
+| Actor onehot | 1.17M x ~4M | 1.17M x 200 (SVD) | `movie_cast` WHERE `cast_order < 5` |
+| Decade onehot | 1.17M x 15 | No reduction | `movies.release_date` -> decade bins (1900s-2020s) |
+| Language onehot | 1.17M x 20 | No reduction | `movies.original_language` top-20 by count |
+| Runtime normalized | 1.17M x 1 | No reduction | `movies.runtime / 360.0` |
+
+**SVD details:**
+
+- TruncatedSVD with 200 components (pragmatic default from LSA
+  literature, configurable via `--svd-components`). Observed explained
+  variance: keywords 33.7%, directors 2.8%, actors 1.7%. Low
+  director/actor values reflect extreme sparsity (most people appear
+  in 1-2 films), not a poor component count.
+- Keywords use TF-IDF weighting before SVD
+- Directors and actors use binary onehot (present/absent) before SVD
+- SVD models saved as `.pkl` for transforming new movies later
+
+**Output:** 7 `.npy` arrays + 3 `.pkl` SVD models + `movie_id_index.json`
+
+---
+
+## Stage 1b: Keyword-to-Mood Classifier
+
+**Script:** `classifier.py`
+
+**Input:** `data/source/labeled_keywords.tsv` + `data/source/tmdb.sqlite`
+
+**Output:** `data/models/keyword_mood_map.json` (~70K entries) + confusion matrix + results CSV
+
+See [Keyword-to-Mood Classification](#keyword-to-mood-classification) below.
+
+---
+
+## Stage 2: Mood Prediction
+
+**Script:** `moods.py`
+
+**Input:** `data/source/tmdb.sqlite` + `data/source/genre_mood_map.json` + `data/models/keyword_mood_map.json`
 
 For each of the 1.17M movies, predicts 7 mood probabilities by combining 4 signals.
-
-**Input:** `data/input/tmdb.sqlite` + `data/input/genre_mood_map.json` + `data/output/keyword_mood_map.json`
 
 ---
 
 ### Signal 1: Genre → Mood Mapping
 
-19 manual rules mapping each genre to mood weights (independent scores, not normalized to 1.0). Canonical source: `data/input/genre_mood_map.json`.
+19 manual rules mapping each genre to mood weights (independent scores, not normalized to 1.0). Canonical source: `data/source/genre_mood_map.json`.
 
 ```
 Action          -> {interested: 0.5, afraid: 0.3}
@@ -44,7 +127,7 @@ For multi-genre movies, mood scores are averaged across genres.
 
 ### Signal 2: Keyword → Mood Mapping (Supervised Pipeline)
 
-See [Keyword-to-Mood Classification](#overview) below for the full labeling pipeline and classifier details. Output: `data/output/keyword_mood_map.json` (~70K entries).
+See [Keyword-to-Mood Classification](#keyword-to-mood-classification) below for the full labeling pipeline and classifier details. Output: `data/models/keyword_mood_map.json` (~70K entries).
 
 ---
 
@@ -71,7 +154,75 @@ Same classifier applied to `movie_reviews.content`. Only 38,535 movies (3.3%) ha
 
 Dynamic weighting based on availability: reviews-heavy when available (0.50), overview-heavy when no reviews (0.50), genre+keyword fallback when no text. Weights always sum to 1.0. See `moods.py:combine_signals()` for exact weights.
 
-**Output:** `data/output/mood_scores.npy` (1.17M x 7)
+**Output:** `data/models/mood_scores.npy` (1.17M x 7)
+
+---
+
+## Stage 3: Quality Scores
+
+**Script:** `quality.py`
+
+Bayesian average quality score, normalized to [0, 1]. Formula and behavior: see SCORING.md (Quality Score section).
+
+**Output:** `data/models/quality_scores.npy` (1.17M x 1)
+
+---
+
+## Stage 4a: Build Index
+
+**Script:** `index.py`
+
+Saves `data/models/movie_id_index.json` — bidirectional mapping between `movie_id` (TMDB integer ID) and row index (position in `.npy` arrays). Required to look up vectors for movies returned by the TMDB API.
+
+---
+
+## Stage 4b: Verify Pipeline
+
+**Script:** `verify.py`
+
+Verifies all 14 pipeline outputs exist and have consistent row counts against movie_id_index.json. No database access needed.
+
+---
+
+## Running the Pipeline
+
+```bash
+# Full pipeline (takes several hours for mood prediction)
+python3 src/ml/features.py --db data/source/tmdb.sqlite --output data/models/
+python3 src/ml/classifier.py --tsv data/source/labeled_keywords.tsv --db data/source/tmdb.sqlite --output data/models/keyword_mood_map.json
+python3 src/ml/moods.py --db data/source/tmdb.sqlite --output data/models/
+python3 src/ml/quality.py --db data/source/tmdb.sqlite --output data/models/
+python3 src/ml/index.py --db data/source/tmdb.sqlite --output data/models/
+python3 src/ml/verify.py --output data/models/
+```
+
+Run order: `features` + `quality` (parallel) → `classifier` → `moods` → `index` → `verify`.
+Each stage is idempotent and can be re-run independently.
+
+---
+
+## Dependencies
+
+| Package | Purpose |
+|---|---|
+| `numpy` | Array operations, `.npy` storage |
+| `scipy` | Sparse matrices for TF-IDF, SVD |
+| `scikit-learn` | TruncatedSVD, TfidfTransformer, classifiers |
+| `transformers` | Emotion classifier (Stage 2) |
+| `torch` | Backend for transformers |
+| `tqdm` | Progress bars |
+| `sentence-transformers` | EmbeddingGemma-300M (Stage 1b) |
+
+---
+
+## Memory Requirements
+
+| Stage | Peak RAM |
+|---|---|
+| Feature extraction (keyword TF-IDF) | ~8 GB (sparse matrix) |
+| SVD reduction | ~4 GB |
+| Emotion classifier (batched) | ~2 GB (GPU) or ~4 GB (CPU) |
+| Final .npy arrays in memory | ~3 GB |
 
 ---
 
@@ -103,7 +254,7 @@ Keywords can be: **single** (one mood), **multi** (2-3 moods), or **none** (Unca
 
 ### Stage 1: Initial Labeling (Top 5000 Keywords)
 
-File: `data/input/labeled_keywords.tsv`
+File: `data/source/labeled_keywords.tsv`
 
 The top 5000 keywords (by movie_count) were labeled with mood assignments. Each keyword received:
 - `assigned_moods`: comma-separated mood list (canonical order: Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry)
@@ -122,7 +273,7 @@ All 5000 keywords were reviewed against 3 real film overviews per keyword. The r
 
 The single-label subset (1,049 keywords) trains a classifier
 (EmbeddingGemma-300M sentence embeddings) that infers moods for the
-remaining ~65K unlabeled keywords. See `keyword_mood_classifier.py`.
+remaining ~65K unlabeled keywords. See `classifier.py`.
 
 Training uses single-label only for a methodologically clean 7-class
 problem. Alternatives considered: multi-label with one-vs-rest (more
@@ -254,71 +405,6 @@ When a keyword has multiple moods, list them in this fixed order:
 ```
 Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry
 ```
-
----
-
-## Keyword Categories and Mood Patterns
-
----
-
-### Always Uncategorized
-
-These keyword categories **never** receive a mood label because they describe **how** or **where**, not **what emotion**:
-
-| Category | Examples | Rationale |
-|----------|----------|-----------|
-| Geographic locations | paris, tokyo, berlin, arctic, australia | Setting, no inherent emotion |
-| Time periods | 1920s, 1950s, victorian england, feudal japan | Temporal context, not emotion |
-| Source material | based on novel, based on comic, adaptation | Production metadata |
-| Film format/technique | 3d, stop motion, CGI, arthouse, found footage | Production method |
-| Professions (neutral) | doctor, lawyer, teacher, nurse, photographer | Role descriptor |
-| Animals (neutral) | wolf, lion, snake, crocodile, gorilla, rat | Species, not emotion |
-| Objects/props | car, diamond, ring, telephone, sword | Physical item |
-| Demographics | teenager, young woman, boy, old man | Age/gender descriptor |
-| Nationalities/ethnicities | korean, french, african, indigenous | Cultural identity |
-
----
-
-### Always Happy,Sad (Relationship Keywords)
-
-**Every keyword describing a human relationship** receives Happy,Sad/multi. Relationships in film are inherently bipolar — they evoke both love/joy and loss/pain.
-
-**~50+ keywords follow this rule:**
-
-- **Family:** father, mother, daughter, siblings, brother, sisters, grandparent-grandchild, aunt-niece, in-laws, single mother, single father, family relationships, parent-child
-- **Romantic:** couple, dating, lovers, newlywed, engaged couple, boyfriend, husband, ex-boyfriend, ex-wife, one-night stand, soulmates, friends to lovers, lovesickness
-- **Specific:** interracial romance, gay couple, gay romance, polyamory, open relationship, platonic love, co-workers relationship, man-woman relationship
-
-**Exception — Loss keywords stay Sad/single:** death of husband, death of brother, dead mother, orphan, widow. When the relationship partner is dead, the Happy component is absent.
-
-**Exception — Conflict keywords stay Sad,Angry/multi:** love triangle, infidelity, adultery, divorce, jealousy, betrayal. When the relationship is defined by conflict, Angry replaces or supplements Happy.
-
----
-
-### Direct Emotion Words: Usually Correct
-
-Keywords that **directly name an emotion** are almost always correctly labeled:
-
-| Correctly labeled | Mood |
-|-------------------|------|
-| hilarious, joyous, celebratory, playful | Happy |
-| melancholy, depressing, lonely, hopeless | Sad |
-| disgusting, grotesque, repulsive | Disgusted |
-| terrifying, ominous, paranoid | Afraid |
-| hostile, scathing, oppression | Angry |
-| bewildered, incredulous | Surprised |
-| thoughtful, philosophical | Interested |
-
-**Common valence errors found during review:**
-
-| Keyword | Wrong Label | Correct Label | Why |
-|---------|------------|---------------|-----|
-| embarrassed | Sad | Surprised | Embarrassment = unexpected situation |
-| frantic | Afraid,Angry | Afraid | Panic = fear, not anger |
-| wistful | Happy,Sad | Sad | Wistfulness = pure melancholy |
-| noise | Angry | Afraid | Sounds as threat (A Quiet Place) |
-| hypochondriac | Sad | Afraid | Defined by fear of illness |
-| conceited | Angry | Disgusted | Arrogance = contempt/disgust |
 
 ---
 

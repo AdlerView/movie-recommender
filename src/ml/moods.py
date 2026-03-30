@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mood prediction pipeline (Stage 2): 4 signals combined per movie. See CLASSIFICATION.md and EXTRACTION.md."""
+"""Mood prediction pipeline (Stage 2): 4 signals combined per movie. See PIPELINE.md."""
 from __future__ import annotations
 
 import argparse
@@ -10,7 +10,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-# Fully offline — see CLASSIFICATION.md (Signal 3)
+# Fully offline — see PIPELINE.md (Signal 3)
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
@@ -18,7 +18,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from ml.extraction import load_movie_ids
+from src.constants import MOODS as _MOODS_TITLECASE
+from src.ml.features import load_movie_ids
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,9 +28,9 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# 7 canonical mood columns in fixed order
-MOODS = ["happy", "interested", "surprised", "sad", "disgusted", "afraid", "angry"]
-MOOD_IDX = {m: i for i, m in enumerate(MOODS)}
+# Lowercase mood columns derived from canonical Titlecase MOODS
+MOODS_LOWER = [m.lower() for m in _MOODS_TITLECASE]
+MOOD_IDX = {m: i for i, m in enumerate(MOODS_LOWER)}
 
 # Emotion classifier → our 7 moods (direct 7-to-7 mapping).
 # neutral → interested: factual/informational text = thought-provoking content
@@ -363,16 +364,16 @@ def main() -> int:
         if mid in id_to_row:
             row = id_to_row[mid]
             scores = mood_scores[row]
-            top_mood = MOODS[int(np.argmax(scores))]
+            top_mood = MOODS_LOWER[int(np.argmax(scores))]
             top_score = float(scores.max())
-            moods_str = ", ".join(f"{MOODS[i]}={scores[i]:.2f}" for i in range(7) if scores[i] > 0.1)
+            moods_str = ", ".join(f"{MOODS_LOWER[i]}={scores[i]:.2f}" for i in range(7) if scores[i] > 0.1)
             log.info("  %-35s top=%s (%.2f)  [%s]", title, top_mood, top_score, moods_str)
 
     # --- Summary ---
     log.info("=== Summary ===")
     has_any = (mood_scores.sum(axis=1) > 0).sum()
     log.info("Movies with mood scores: %d / %d (%.1f%%)", has_any, n_movies, has_any / n_movies * 100)
-    for i, mood in enumerate(MOODS):
+    for i, mood in enumerate(MOODS_LOWER):
         mean_val = mood_scores[:, i].mean()
         max_val = mood_scores[:, i].max()
         log.info("  %-12s mean=%.4f  max=%.4f", mood, mean_val, max_val)
