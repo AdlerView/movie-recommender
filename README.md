@@ -12,8 +12,7 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 With thousands of movies available across streaming platforms, users waste time scrolling without finding something they'd enjoy. This app solves that by learning from the user's ratings and mood reactions to deliver personalized recommendations — replacing aimless browsing with targeted discovery.
 
-<!-- TODO: Add app screenshot here -->
-<!-- ![App Screenshot](docs/images/screenshot.png) -->
+![Discover Page](docs/images/landing_page.png)
 
 ---
 
