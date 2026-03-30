@@ -117,7 +117,7 @@ Weights shift dynamically: cold start → quality-heavy (0.60), 50+ ratings → 
 
 ### ML Evaluation — Academic Compliance
 
-Full course-compliant ML evaluation workflow (see `ml/evaluation/ml_evaluation.ipynb`):
+Full course-compliant ML evaluation workflow (see `evaluation.ipynb`):
 
 - **7 classifiers compared:** KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier, 2× DummyClassifier (most_frequent, stratified)
 - **Scaled vs unscaled comparison:** RobustScaler, fit on train only
