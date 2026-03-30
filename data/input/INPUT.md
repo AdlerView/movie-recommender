@@ -208,12 +208,12 @@ keyword_id  keyword_name       movie_count  assigned_moods       assignment_type
 14819       detective          3285         Interested           single           high
 ```
 
-Only the **single-label subset (1,049)** is used for classifier training. See `ml/classification/CLASSIFICATION.md` for the full labeling rules, correction statistics, and class distribution analysis.
+Only the **single-label subset (1,049)** is used for classifier training. See `src/ml/PIPELINE.md` for the full labeling rules, correction statistics, and class distribution analysis.
 
 ---
 
 ## genre_mood_map.json — Hand-Crafted Genre-to-Mood Rules
 
-19 genre-to-mood rules mapping each TMDB genre to mood weights. Weights are independent (not normalized to 1.0) and reflect the emotional connotation of the genre itself. Full mapping and rationale: see `ml/classification/CLASSIFICATION.md` (Signal 1).
+19 genre-to-mood rules mapping each TMDB genre to mood weights. Weights are independent (not normalized to 1.0) and reflect the emotional connotation of the genre itself. Full mapping and rationale: see `src/ml/PIPELINE.md` (Signal 1).
 
 Used by `moods.py` as Signal 1. For multi-genre movies, mood scores are averaged across genres.

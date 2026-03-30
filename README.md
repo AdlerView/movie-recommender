@@ -89,12 +89,12 @@ The offline pipeline processes a 7.7 GB TMDB database (1.17M movies, 30 tables) 
 
 | Stage | Script | Output | Runtime |
 |-------|--------|--------|---------|
-| 1. Feature extraction | `ml/extraction/extract_features.py` | 7 `.npy` arrays (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime) + 3 `.pkl` SVD models | ~3 min |
-| 1b. Keyword classifier | `ml/classification/keyword_mood_classifier.py` | `keyword_mood_map.json` (68,462 keywords → 7 moods) + confusion matrix + results CSV | ~3 min |
-| 2. Mood prediction | `ml/extraction/moods.py` | `mood_scores.npy` (1.17M × 7), 4 signals: genre, keyword, overview emotion, review emotion | ~4h 18min |
-| 3. Quality scores | `ml/extraction/quality_scores.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
-| 4a. Build index | `ml/extraction/index.py` | `movie_id_index.json` (bidirectional ID↔row mapping) | <1s |
-| 4b. Verify | `ml/extraction/verify.py` | Checks all outputs for existence + row-count consistency | <1s |
+| 1. Feature extraction | `src/ml/features.py` | 7 `.npy` arrays (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime) + 3 `.pkl` SVD models | ~3 min |
+| 1b. Keyword classifier | `src/ml/classifier.py` | `keyword_mood_map.json` (68,462 keywords → 7 moods) + confusion matrix + results CSV | ~3 min |
+| 2. Mood prediction | `src/ml/moods.py` | `mood_scores.npy` (1.17M × 7), 4 signals: genre, keyword, overview emotion, review emotion | ~4h 18min |
+| 3. Quality scores | `src/ml/quality.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
+| 4a. Build index | `src/ml/index.py` | `movie_id_index.json` (bidirectional ID↔row mapping) | <1s |
+| 4b. Verify | `src/ml/verify.py` | Checks all outputs for existence + row-count consistency | <1s |
 
 ### ML Pipeline — Online Scoring (10 Signals)
 

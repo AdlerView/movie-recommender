@@ -101,7 +101,7 @@
 - **Course compliance:** train_test_split with stratify, RobustScaler, ConfusionMatrixDisplay, classification_report, KFold cross-validation — all mandatory elements present
 - **Beyond course:** TruncatedSVD, pre-trained transformer, content-based scoring with 11 signals, dynamic weight shifting, Bayesian averaging
 
-**Files:** `ml/extraction/extract_features.py`, `ml/classification/keyword_mood_classifier.py`, `ml/extraction/moods.py`, `ml/extraction/quality_scores.py`, `src/scoring/rank.py`, `src/scoring/loader.py`, `src/scoring/profile.py`, `src/scoring/cache.py`, `src/scoring/mood.py`, `ml/evaluation/ml_eval.py`
+**Files:** `src/ml/features.py`, `src/ml/classifier.py`, `src/ml/moods.py`, `src/ml/quality.py`, `src/scoring/rank.py`, `src/scoring/loader.py`, `src/scoring/profile.py`, `src/scoring/cache.py`, `src/scoring/mood.py`, `ml/evaluation/evaluate.py`
 
 **Estimated Score:** 3/3 — Complete ML pipeline from feature extraction through scoring to evaluation. Multiple techniques beyond course content (SVD, transformers, Bayesian averaging, 11-signal scoring).
 

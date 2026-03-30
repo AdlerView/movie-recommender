@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from src.constants import MOODS as _MOODS_TITLECASE
+from src.constants import MOODS
 from src.ml.features import load_movie_ids
 
 logging.basicConfig(
@@ -28,9 +28,9 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# Lowercase mood columns derived from canonical Titlecase MOODS
-MOODS_LOWER = [m.lower() for m in _MOODS_TITLECASE]
-MOOD_IDX = {m: i for i, m in enumerate(MOODS_LOWER)}
+# Mood column names for .npy arrays and keyword_mood_map.json (lowercase)
+MOOD_COLUMNS = [m.lower() for m in MOODS]
+MOOD_IDX = {m: i for i, m in enumerate(MOOD_COLUMNS)}
 
 # Emotion classifier → our 7 moods (direct 7-to-7 mapping).
 # neutral → interested: factual/informational text = thought-provoking content
@@ -364,16 +364,16 @@ def main() -> int:
         if mid in id_to_row:
             row = id_to_row[mid]
             scores = mood_scores[row]
-            top_mood = MOODS_LOWER[int(np.argmax(scores))]
+            top_mood = MOOD_COLUMNS[int(np.argmax(scores))]
             top_score = float(scores.max())
-            moods_str = ", ".join(f"{MOODS_LOWER[i]}={scores[i]:.2f}" for i in range(7) if scores[i] > 0.1)
+            moods_str = ", ".join(f"{MOOD_COLUMNS[i]}={scores[i]:.2f}" for i in range(7) if scores[i] > 0.1)
             log.info("  %-35s top=%s (%.2f)  [%s]", title, top_mood, top_score, moods_str)
 
     # --- Summary ---
     log.info("=== Summary ===")
     has_any = (mood_scores.sum(axis=1) > 0).sum()
     log.info("Movies with mood scores: %d / %d (%.1f%%)", has_any, n_movies, has_any / n_movies * 100)
-    for i, mood in enumerate(MOODS_LOWER):
+    for i, mood in enumerate(MOOD_COLUMNS):
         mean_val = mood_scores[:, i].mean()
         max_val = mood_scores[:, i].max()
         log.info("  %-12s mean=%.4f  max=%.4f", mood, mean_val, max_val)

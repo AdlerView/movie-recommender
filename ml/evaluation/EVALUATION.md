@@ -76,7 +76,7 @@ Implementation: `ml_eval.py` functions (`evaluate_classifiers`, `best_model_repo
 
 Uses the single-label subset (1,049 keywords) with EmbeddingGemma-300M
 sentence embeddings (768-dim). Same workflow as above. See
-`ml/classification/CLASSIFICATION.md` for full labeling pipeline and
+`src/ml/PIPELINE.md` for full labeling pipeline and
 class distribution details.
 
 ---
