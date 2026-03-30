@@ -129,8 +129,12 @@ movie-recommender/
 │   │   ├── genre_mood_map.json		# 19 genre-to-mood rules
 │   │   └── SOURCE.md			# pipeline source data documentation
 │   ├── models/
-│   │   ├── *_svd_vectors.npy		# SVD feature arrays (3× 939 MB, gitignored)
-│   │   ├── *.pkl			# fitted SVD models (gitignored)
+│   │   ├── keyword_svd_vectors.npy	# keyword SVD features (939 MB, gitignored)
+│   │   ├── director_svd_vectors.npy	# director SVD features (939 MB, gitignored)
+│   │   ├── actor_svd_vectors.npy	# actor SVD features (939 MB, gitignored)
+│   │   ├── keyword_svd.pkl		# fitted keyword SVD model (gitignored)
+│   │   ├── director_svd.pkl		# fitted director SVD model (gitignored)
+│   │   ├── actor_svd.pkl		# fitted actor SVD model (gitignored)
 │   │   ├── genre_vectors.npy		# genre multi-hot (89 MB)
 │   │   ├── decade_vectors.npy		# decade one-hot (70 MB)
 │   │   ├── language_vectors.npy	# language one-hot (94 MB)
@@ -140,6 +144,7 @@ movie-recommender/
 │   │   ├── quality_scores.npy		# Bayesian averages (4.7 MB)
 │   │   ├── movie_id_index.json		# ID ↔ row mapping (19 MB)
 │   │   ├── keyword_mood_map.json	# 68K keyword-to-mood entries (3.1 MB)
+│   │   ├── embeddinggemma-300m/	# EmbeddingGemma-300M model (1.2 GB, gitignored)
 │   │   └── MODELS.md			# pipeline output documentation
 │   └── user.sqlite			# user data (created at runtime, gitignored)
 │
@@ -156,7 +161,12 @@ movie-recommender/
 │       └── wireframe-pages.png		# current UI wireframe (needs update)
 │
 ├── static/
-│   ├── Poppins-*.ttf			# 6 font weight variants
+│   ├── Poppins-Regular.ttf		# Poppins font (regular)
+│   ├── Poppins-Medium.ttf		# Poppins font (medium)
+│   ├── Poppins-SemiBold.ttf		# Poppins font (semi-bold)
+│   ├── Poppins-Bold.ttf		# Poppins font (bold)
+│   ├── Poppins-Light.ttf		# Poppins font (light)
+│   ├── Poppins-Italic.ttf		# Poppins font (italic)
 │   └── OFL.txt				# Open Font License
 │
 └── .streamlit/
