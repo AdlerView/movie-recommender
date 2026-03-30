@@ -104,4 +104,4 @@ All evaluation logic in `ml_eval.py`, re-exported via `ml/evaluation/__init__.py
 With 0 ratings, the classifier cannot run. Scoring falls back to:
 - Quality score (Bayesian average) + mood match (if selected)
 - No personalization signals until >= 1 rating
-- Dynamic weight table shifts from quality-heavy to personalization-heavy as ratings accumulate (see `ml/scoring/SCORING.md`)
+- Dynamic weight table shifts from quality-heavy to personalization-heavy as ratings accumulate (see `src/scoring/SCORING.md`)

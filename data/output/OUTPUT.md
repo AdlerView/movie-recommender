@@ -4,7 +4,7 @@ Pipeline-generated feature arrays, trained models, and mappings. These files are
 
 All 1,174,069-row arrays share the same row ordering: `SELECT id FROM movies ORDER BY id` from `data/input/tmdb.sqlite`. The bidirectional mapping `movie_id_index.json` translates TMDB movie IDs to row indices at runtime.
 
-Loaded once as a lazy singleton by `ml/scoring/arrays.py:_load_model_arrays()` (~3 GB into RAM), then shared across all Streamlit sessions.
+Loaded once as a lazy singleton by `src/scoring/loader.py:_load_model_arrays()` (~3 GB into RAM), then shared across all Streamlit sessions.
 
 ---
 

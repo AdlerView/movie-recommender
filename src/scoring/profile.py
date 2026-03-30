@@ -172,8 +172,6 @@ def compute_user_profile(
         len(contra_row_indices), total_tags,
     )
 
-    # Import here to avoid circular dependency (cache imports profile)
-    from src.scoring.cache import compute_fingerprint
     return UserProfile(
         keyword_vec=keyword_vec,
         genre_vec=genre_vec,
@@ -186,5 +184,4 @@ def compute_user_profile(
         implicit_mood=implicit_mood,
         contra_vec=contra_vec,
         rating_count=len(ratings),
-        fingerprint=compute_fingerprint(ratings, mood_reactions, dismissed),
     )

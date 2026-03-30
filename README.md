@@ -113,7 +113,7 @@ At runtime, candidate movies from the TMDB API are re-ranked using 10 weighted s
 | Language similarity | 0.03 | Cosine similarity of language one-hot vectors |
 | Runtime similarity | 0.02 | 1 - |user_pref - candidate| |
 
-Weights shift dynamically: cold start → quality-heavy (0.60), 50+ ratings → personalization-heavy (see `ml/scoring/SCORING.md`).
+Weights shift dynamically: cold start → quality-heavy (0.60), 50+ ratings → personalization-heavy (see `src/scoring/SCORING.md`).
 
 ### ML Evaluation — Academic Compliance
 

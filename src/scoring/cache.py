@@ -86,7 +86,8 @@ def get_or_compute_profile(
         if cached is not None and cached.fingerprint == current_fp:
             return cached
 
-    # Recompute
+    # Recompute and stamp fingerprint before caching
     profile = compute_user_profile(ratings, mood_reactions, dismissed)
+    profile.fingerprint = current_fp
     save_profile_to_cache(profile)
     return profile
