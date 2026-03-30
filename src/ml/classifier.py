@@ -80,7 +80,7 @@ def get_single_label_subset(df: pd.DataFrame) -> tuple[list[str], list[str]]:
 
 def generate_embeddings(
     texts: list[str],
-    model_name: str = "google/embeddinggemma-300m",
+    model_name: str = "data/models/embeddinggemma-300m",
     batch_size: int = 128,
 ) -> np.ndarray:
     """Generate sentence embeddings via SentenceTransformer."""
@@ -305,7 +305,7 @@ def run(
     db_path: Path = Path("data/source/tmdb.sqlite"),
     output_path: Path = Path("data/models/keyword_mood_map.json"),
     eval_dir: Path = Path("docs"),
-    model_name: str = "google/embeddinggemma-300m",
+    model_name: str = "data/models/embeddinggemma-300m",
     batch_size: int = 128,
 ) -> None:
     """Run the keyword-to-mood classifier pipeline."""

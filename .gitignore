@@ -79,3 +79,4 @@ data/user.sqlite-shm
 data/user.sqlite-wal
 data/models/*_svd_vectors.npy
 data/models/*.pkl
+data/models/embeddinggemma-300m/
