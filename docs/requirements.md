@@ -22,10 +22,10 @@
 
 **Evidence:**
 - `README.md`: "With access to thousands of movies across all streaming platforms, it is easy to waste time searching for one to enjoy."
-- `docs/original-concept.md`: Full problem statement with use cases
+- `docs/concept.md`: Full problem statement with use cases
 - App solves the stated problem: personalized discovery reduces aimless scrolling
 
-**Files:** `README.md`, `docs/original-concept.md`
+**Files:** `README.md`, `docs/concept.md`
 
 **Estimated Score:** 3/3 — Problem is clearly defined, the app directly addresses it with personalized ML-based recommendations that go far beyond simple filtering.
 
@@ -133,11 +133,11 @@
 **Status:** ⚠️ In Progress
 
 **Evidence:**
-- `docs/CONTRIBUTION.md` exists with the matrix structure and legend
+- `docs/contribution.md` exists with the matrix structure and legend
 - Currently only @AdlerView has contributions filled in
 - Other team members' contributions need to be documented before submission
 
-**Files:** `docs/CONTRIBUTION.md`
+**Files:** `docs/contribution.md`
 
 **Estimated Score:** 1/3 (if submitted as-is) → 2-3/3 (if completed with all team members)
 

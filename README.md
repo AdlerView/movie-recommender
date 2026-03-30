@@ -166,7 +166,7 @@ movie-recommender/
 
 | # | Requirement | Status |
 |---|-------------|--------|
-| 1 | Problem clearly stated | ✅ defined (README + original-concept.md) |
+| 1 | Problem clearly stated | ✅ defined (README + concept.md) |
 | 2 | Data via API/database | ✅ implemented (TMDB API v3, 9 endpoints + SQLite, 8 tables + 1.17M movie DB) |
 | 3 | Data visualization | ✅ implemented (4 KPIs, 4 Altair charts, top 5 rankings, sortable table) |
 | 4 | User interaction | ✅ implemented (8 filters, mood pills, ratings, watchlist, settings, 5 pages) |
@@ -175,7 +175,7 @@ movie-recommender/
 | 7 | Contribution matrix | ⚠️ structure ready, needs team input |
 | 8 | 4-min video + demo | ❌ not started |
 
-Detailed mapping: [docs/requirements-mapping.md](docs/requirements-mapping.md)
+Detailed mapping: [docs/requirements.md](docs/requirements.md)
 
 | Points | Grade % | Points | Grade % |
 |--------|---------|--------|---------|
@@ -191,11 +191,10 @@ Detailed mapping: [docs/requirements-mapping.md](docs/requirements-mapping.md)
 
 | Document | Description |
 |----------|-------------|
-| [CONTRIBUTION.md](docs/CONTRIBUTION.md) | Team contribution matrix (Req 7) |
-| [requirements-mapping.md](docs/requirements-mapping.md) | Course requirements → code mapping with score estimates |
-| [wireframe-current.md](docs/wireframe-current.md) | Current UI flow (Mermaid diagram) |
-| [wireframe-comparison.md](docs/wireframe-comparison.md) | Original concept vs final implementation |
-| [original-concept.md](docs/original-concept.md) | Original project concept |
+| [contribution.md](docs/contribution.md) | Team contribution matrix (Req 7) |
+| [requirements.md](docs/requirements.md) | Course requirements → code mapping with score estimates |
+| [wireframes.md](docs/wireframes.md) | UI flow diagram + original vs final comparison |
+| [concept.md](docs/concept.md) | Original project concept |
 
 ---
 
