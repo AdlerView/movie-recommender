@@ -12,6 +12,9 @@ A Streamlit web app that recommends movies based on user preferences and ratings
 
 With thousands of movies available across streaming platforms, users waste time scrolling without finding something they'd enjoy. This app solves that by learning from the user's ratings and mood reactions to deliver personalized recommendations — replacing aimless browsing with targeted discovery.
 
+<!-- TODO: Add app screenshot here -->
+<!-- ![App Screenshot](docs/images/screenshot.png) -->
+
 ---
 
 ## Team
@@ -41,92 +44,35 @@ With thousands of movies available across streaming platforms, users waste time 
 
 ## Features
 
-### Discover — Personalized Movie Discovery
+| Page       | Key Features                                                                                                                  |
+|------------|-------------------------------------------------------------------------------------------------------------------------------|
+| Discover   | 8 sidebar filters, 7 mood pills, 4 sort options (incl. ML-personalized), poster grid, detail dialogs with trailer + actions  |
+| Rate       | TMDB title search, personalized browse grid, 0-100 rating slider with color-coded track + 7 mood reaction pills              |
+| Watchlist  | Poster grid of saved movies, streaming provider logos, trailer, "Watch Now" link, rate-on-watch flow                          |
+| Statistics | 4 KPIs, genre/mood bar charts (Altair), user-vs-TMDB scatter plot with regression, top 5 directors + actors, ratings table   |
+| Settings   | Streaming country, provider subscriptions (logo grid with toggle), preferred language, factory reset                          |
 
-- **8 sidebar filters:** genre (multi-select pills), year range, runtime range, TMDB rating range, minimum vote count, age certification, keyword search (autocomplete with removable chips)
-- **Mood pills:** 7 Ekman emotion categories (Happy, Interested, Surprised, Sad, Disgusted, Afraid, Angry) as multi-select toggle pills, filtering against precomputed mood scores
-- **4 sort options:** Personalized (ML scoring), Popularity, Rating, Release date
-- **Poster grid:** 5-column clickable poster grid with CSS overlay buttons, pagination via "Load more"
-- **Detail dialog:** two-column layout (metadata + cast photos), YouTube trailer embed, genre/rating badges, streaming provider logos, "Add to watchlist" / "Not interested" actions
-- **Fallback:** "You might also like" popular movies when filters return no results
-- **Preferences from Settings:** streaming country, subscriptions, and language applied automatically from SQLite
+---
 
-### Rate — Search and Rate Movies
+## ML Pipeline
 
-- **TMDB text search:** find movies by title with instant results
-- **Personalized browse grid:** "Based on your interests" (ML-scored via `discover/movie` endpoint) or "Discover movies" (popularity order on cold start)
-- **Rating dialog:** 0-100 slider (steps of 10) with color-coded track (gray/red/orange/green), dot tick marks, dynamic sentiment label (Awful → Masterpiece)
-- **Mood reactions:** 7 optional mood pills per rating, saved alongside the numeric score
-- **Re-rating:** rated movies excluded from browse grid but appear in search results for re-rating
-- **Exclusion policy:** rated + dismissed + watchlisted movies filtered from browse grid
+The offline pipeline processes a 7.7 GB TMDB database (1.17M movies) into ~3 GB of precomputed feature arrays:
 
-### Watchlist — Saved Movies with Streaming Info
+| Stage                  | Script                 | Output                                                               | Runtime   |
+|------------------------|------------------------|----------------------------------------------------------------------|-----------|
+| 1. Feature extraction  | `src/ml/features.py`   | 7 `.npy` arrays (SVD 200-dim, genre, decade, language, runtime) + 3 `.pkl` | ~3 min    |
+| 1b. Keyword classifier | `src/ml/classifier.py` | `keyword_mood_map.json` (68K keywords → 7 moods)                     | ~3 min    |
+| 2. Mood prediction     | `src/ml/moods.py`      | `mood_scores.npy` (1.17M × 7 moods, 4 combined signals)              | ~4h       |
+| 3. Quality scores      | `src/ml/quality.py`    | `quality_scores.npy` (Bayesian average, normalized [0,1])             | <1s       |
+| 4. Index + verify      | `src/ml/index.py`      | `movie_id_index.json` + consistency check                             | <1s       |
 
-- **Poster grid:** Netflix-style clickable posters with deduplication guard
-- **Detail dialog:** streaming provider logos for user's country, runtime, YouTube trailer, "Watch Now" link (TMDB)
-- **Actions:** "Remove from watchlist" or "Mark as watched" (opens rating slider + mood pills, then moves to rated)
+At runtime, candidates from the TMDB API are re-ranked using **10 weighted similarity signals** (keyword, mood, genre, director, actor, decade, language, runtime, quality, contra penalty). Weights shift dynamically from quality-heavy (cold start) to personalization-heavy (50+ ratings). See `src/scoring/SCORING.md`.
 
-### Statistics — Personal Taste Dashboard
+### ML Evaluation
 
-- **KPIs:** movies rated, total watch hours, average rating, watchlisted count
-- **Genre preferences:** horizontal bar chart colored by average user rating (Altair)
-- **Mood profile:** horizontal bar chart with emoji labels showing mood reaction distribution
-- **You vs TMDB:** scatter plot with diagonal reference line, color-coded deviation, trend regression
-- **Favorite directors + actors:** top 5 each with profile photos, movie count, average rating
-- **Rated movies table:** sortable with title, TMDB score (1 decimal), user rating (progress bar)
-- **Zero API calls:** all data from local SQLite with `json_each()` aggregations
+Full course-compliant evaluation in `evaluation.ipynb`: 7 classifiers (KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier, 2× Dummy), scaled vs unscaled comparison, 80/10/10 split, confusion matrix, 10-fold cross-validation, KNN k-tuning. Best model: MLPClassifier (89% val accuracy, 0.76 macro F1).
 
-### Settings — Preferences Management
-
-- **Streaming country:** dropdown (245 countries), auto-saved on change, determines provider availability on Discover
-- **Subscriptions:** clickable provider logo grid (6 columns, top 30 providers per country) with green checkmark overlay on selected, auto-saved on toggle
-- **Preferred language:** dropdown, auto-saved on change, applied as default original language filter on Discover
-- **Reset to factory settings:** one-click reset of all three preferences
-
-### ML Pipeline — Offline Feature Extraction
-
-The offline pipeline processes a 7.7 GB TMDB database (1.17M movies, 30 tables) into ~3 GB of precomputed feature arrays:
-
-| Stage                  | Script                | Output                                                                                                     | Runtime   |
-|------------------------|-----------------------|------------------------------------------------------------------------------------------------------------|-----------|
-| 1. Feature extraction  | `src/ml/features.py`  | 7 `.npy` arrays (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime) + 3 `.pkl` SVD models | ~3 min    |
-| 1b. Keyword classifier | `src/ml/classifier.py`| `keyword_mood_map.json` (68,462 keywords → 7 moods) + confusion matrix + results CSV                       | ~3 min    |
-| 2. Mood prediction     | `src/ml/moods.py`     | `mood_scores.npy` (1.17M × 7), 4 signals: genre, keyword, overview emotion, review emotion                 | ~4h 18min |
-| 3. Quality scores      | `src/ml/quality.py`   | `quality_scores.npy` (Bayesian average, normalized [0,1])                                                   | <1s       |
-| 4a. Build index        | `src/ml/index.py`     | `movie_id_index.json` (bidirectional ID↔row mapping)                                                        | <1s       |
-| 4b. Verify             | `src/ml/verify.py`    | Checks all outputs for existence + row-count consistency                                                    | <1s       |
-
-### ML Pipeline — Online Scoring (10 Signals)
-
-At runtime, candidate movies from the TMDB API are re-ranked using 10 weighted similarity signals:
-
-| Signal               | Weight (50+ ratings) | Method                                            |
-|----------------------|----------------------|---------------------------------------------------|
-| Keyword similarity   | 0.20                 | Cosine similarity of keyword SVD vectors          |
-| Mood match           | 0.20                 | Explicit mood selection or implicit mood profile   |
-| Director similarity  | 0.15                 | Cosine similarity of director SVD vectors          |
-| Actor similarity     | 0.10                 | Cosine similarity of actor SVD vectors             |
-| Quality score        | 0.10                 | Precomputed Bayesian average                       |
-| Contra penalty       | 0.10                 | Negative cosine sim against disliked themes        |
-| Genre similarity     | 0.05                 | Cosine similarity of genre multi-hot vectors       |
-| Decade similarity    | 0.05                 | Cosine similarity of decade one-hot vectors        |
-| Language similarity  | 0.03                 | Cosine similarity of language one-hot vectors      |
-| Runtime similarity   | 0.02                 | 1 - |user_pref - candidate|                        |
-
-Weights shift dynamically: cold start → quality-heavy (0.60), 50+ ratings → personalization-heavy (see `src/scoring/SCORING.md`).
-
-### ML Evaluation — Academic Compliance
-
-Full course-compliant ML evaluation workflow (see `evaluation.ipynb`):
-
-- **7 classifiers compared:** KNN, SVC, GaussianNB, LogisticRegression, MLPClassifier, 2× DummyClassifier (most_frequent, stratified)
-- **Scaled vs unscaled comparison:** RobustScaler, fit on train only
-- **80/10/10 split:** train/val/test, stratified, fixed seed
-- **Best model:** MLPClassifier (89% val accuracy, 0.76 macro F1)
-- **Confusion matrix + classification report** on held-out test set
-- **10-fold cross-validation** with mean ± std accuracy
-- **KNN hyperparameter tuning:** k=1..20, train vs validation accuracy plot
-- **Beyond course:** TF-IDF + TruncatedSVD (1.17M movies), pre-trained emotion transformer, EmbeddingGemma-300M embeddings, Bayesian quality scoring, 11-signal content-based scoring with dynamic weights
+**Beyond course:** TF-IDF + TruncatedSVD on 1.17M movies, pre-trained emotion transformer, EmbeddingGemma-300M embeddings, Bayesian quality scoring, 11-signal content-based scoring with dynamic weights.
 
 ---
 
@@ -155,37 +101,20 @@ movie-recommender/
 
 ---
 
-## Grading Criteria
-
-8 requirements, each scored 0-3 points. Project = 20% of final grade.
-
-| Points | Description                                                          |
-|--------|----------------------------------------------------------------------|
-| 0      | Requirement not met / feature does not exist                         |
-| 1      | Basic implementation, formally present but not very relevant         |
-| 2      | Good implementation                                                  |
-| 3      | Outstanding implementation, far beyond the level of this course      |
+## Requirements
 
 | #   | Requirement            | Status                                                                                   |
 |-----|------------------------|------------------------------------------------------------------------------------------|
 | 1   | Problem clearly stated | ✅ defined (README + concept.md)                                                         |
-| 2   | Data via API/database  | ✅ implemented (TMDB API v3, 9 endpoints + SQLite, 8 tables + 1.17M movie DB)            |
-| 3   | Data visualization     | ✅ implemented (4 KPIs, 4 Altair charts, top 5 rankings, sortable table)                 |
-| 4   | User interaction       | ✅ implemented (8 filters, mood pills, ratings, watchlist, settings, 5 pages)             |
-| 5   | Machine learning       | ✅ implemented (TF-IDF/SVD pipeline, 11-signal scoring, 7 classifiers, evaluation)       |
-| 6   | Code documentation     | ✅ implemented (docstrings, inline comments, .md architecture docs)                      |
+| 2   | Data via API/database  | ✅ TMDB API (9 endpoints) + SQLite (8 tables) + offline DB (1.17M movies)                |
+| 3   | Data visualization     | ✅ 4 KPIs, 4 Altair charts, top 5 rankings, sortable table                              |
+| 4   | User interaction       | ✅ 8 filters, mood pills, ratings, watchlist, settings — 5 pages                         |
+| 5   | Machine learning       | ✅ TF-IDF/SVD pipeline, 11-signal scoring, 7 classifiers, evaluation notebook            |
+| 6   | Code documentation     | ✅ Concise docstrings, architecture .md files, DRY (one source of truth per topic)       |
 | 7   | Contribution matrix    | ⚠️ structure ready, needs team input                                                     |
 | 8   | 4-min video + demo     | ❌ not started                                                                           |
 
 Detailed mapping: [docs/requirements.md](docs/requirements.md)
-
-| Points | Grade % | Points | Grade % |
-|--------|---------|--------|---------|
-| ≤8     | ≤50%    | 13     | 81.25%  |
-| 9      | 56.25%  | 14     | 87.5%   |
-| 10     | 62.5%   | 15     | 93.75%  |
-| 11     | 68.75%  | ≥16    | 100%    |
-| 12     | 75%     |        |         |
 
 ---
 
@@ -197,12 +126,6 @@ Detailed mapping: [docs/requirements.md](docs/requirements.md)
 | [requirements.md](docs/requirements.md)        | Course requirements → code mapping with score estimates   |
 | [wireframes.md](docs/wireframes.md)            | UI flow diagram + original vs final comparison            |
 | [concept.md](docs/concept.md)                  | Original project concept                                  |
-
----
-
-## GenAI Citation Policy
-
-Using AI (ChatGPT, Claude, etc.) to **learn concepts** does not require citation. Having AI **write larger code blocks** requires citing the source in a comment. AI-generated code without citation is plagiarism. See [HSG GenAI rules](https://universitaetstgallen.sharepoint.com/sites/PruefungenDE/SitePages/Arbeiten-mit-KI.aspx).
 
 ---
 
@@ -229,12 +152,3 @@ streamlit run app.py
 ## Deployment
 
 Public URL: **https://hsg.adlerscope.com** (Cloudflare Tunnel)
-
-```bash
-# Start Streamlit
-conda activate ./.conda
-streamlit run app.py
-
-# Start tunnel (separate terminal)
-cloudflared tunnel --config ~/Developer/.config/cloudflared/config.yml run movie-recommender
-```
