@@ -27,15 +27,15 @@ With thousands of movies available across streaming platforms, users waste time 
 
 ## Tech Stack
 
-| Component   | Technology |
-|-------------|------------|
-| Frontend    | [Streamlit](https://streamlit.io) (mandatory) |
-| Theme       | "Cinema Gold" — dark base, gold/copper accent, [Poppins](https://fonts.google.com/specimen/Poppins) font (18 weight/style variants via static serving) |
-| Language    | Python 3.11 |
-| Data source | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) — 9 endpoints, cached with TTLs (5m-24h) |
-| User data   | SQLite (WAL mode) — 8 tables: ratings, moods, watchlist, dismissed, subscriptions, preferences, profile cache, movie details (JSON columns) |
-| ML offline  | scikit-learn (TF-IDF, TruncatedSVD, 7 classifiers), transformers (distilroberta emotion classifier), sentence-transformers (EmbeddingGemma-300M) |
-| ML online   | Precomputed `.npy` arrays (~3 GB, 1.17M movies), numpy-vectorized 11-signal cosine similarity scoring (~8ms / 300 candidates) |
+| Component   | Technology                                                                                                                                |
+|-------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| Frontend    | [Streamlit](https://streamlit.io) (mandatory)                                                                                             |
+| Theme       | "Cinema Gold" — dark base, gold/copper accent, [Poppins](https://fonts.google.com/specimen/Poppins) font (18 weight/style variants)       |
+| Language    | Python 3.11                                                                                                                               |
+| Data source | [TMDB API v3](https://developer.themoviedb.org/docs/getting-started) — 9 endpoints, cached with TTLs (5m-24h)                             |
+| User data   | SQLite (WAL mode) — 8 tables: ratings, moods, watchlist, dismissed, subscriptions, preferences, profile cache, movie details (JSON columns)|
+| ML offline  | scikit-learn (TF-IDF, TruncatedSVD, 7 classifiers), transformers (distilroberta), sentence-transformers (EmbeddingGemma-300M)             |
+| ML online   | Precomputed `.npy` arrays (~3 GB, 1.17M movies), numpy-vectorized 11-signal cosine similarity scoring (~8ms / 300 candidates)             |
 
 ---
 
@@ -87,31 +87,31 @@ With thousands of movies available across streaming platforms, users waste time 
 
 The offline pipeline processes a 7.7 GB TMDB database (1.17M movies, 30 tables) into ~3 GB of precomputed feature arrays:
 
-| Stage | Script | Output | Runtime |
-|-------|--------|--------|---------|
-| 1. Feature extraction | `src/ml/features.py` | 7 `.npy` arrays (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime) + 3 `.pkl` SVD models | ~3 min |
-| 1b. Keyword classifier | `src/ml/classifier.py` | `keyword_mood_map.json` (68,462 keywords → 7 moods) + confusion matrix + results CSV | ~3 min |
-| 2. Mood prediction | `src/ml/moods.py` | `mood_scores.npy` (1.17M × 7), 4 signals: genre, keyword, overview emotion, review emotion | ~4h 18min |
-| 3. Quality scores | `src/ml/quality.py` | `quality_scores.npy` (Bayesian average, normalized [0,1]) | <1s |
-| 4a. Build index | `src/ml/index.py` | `movie_id_index.json` (bidirectional ID↔row mapping) | <1s |
-| 4b. Verify | `src/ml/verify.py` | Checks all outputs for existence + row-count consistency | <1s |
+| Stage                  | Script                | Output                                                                                                     | Runtime   |
+|------------------------|-----------------------|------------------------------------------------------------------------------------------------------------|-----------|
+| 1. Feature extraction  | `src/ml/features.py`  | 7 `.npy` arrays (keyword/director/actor SVD 200-dim, genre 19-dim, decade 15-dim, language 20-dim, runtime) + 3 `.pkl` SVD models | ~3 min    |
+| 1b. Keyword classifier | `src/ml/classifier.py`| `keyword_mood_map.json` (68,462 keywords → 7 moods) + confusion matrix + results CSV                       | ~3 min    |
+| 2. Mood prediction     | `src/ml/moods.py`     | `mood_scores.npy` (1.17M × 7), 4 signals: genre, keyword, overview emotion, review emotion                 | ~4h 18min |
+| 3. Quality scores      | `src/ml/quality.py`   | `quality_scores.npy` (Bayesian average, normalized [0,1])                                                   | <1s       |
+| 4a. Build index        | `src/ml/index.py`     | `movie_id_index.json` (bidirectional ID↔row mapping)                                                        | <1s       |
+| 4b. Verify             | `src/ml/verify.py`    | Checks all outputs for existence + row-count consistency                                                    | <1s       |
 
 ### ML Pipeline — Online Scoring (10 Signals)
 
 At runtime, candidate movies from the TMDB API are re-ranked using 10 weighted similarity signals:
 
-| Signal | Weight (50+ ratings) | Method |
-|--------|---------------------|--------|
-| Keyword similarity | 0.20 | Cosine similarity of keyword SVD vectors |
-| Mood match | 0.20 | Explicit mood selection or implicit mood profile |
-| Director similarity | 0.15 | Cosine similarity of director SVD vectors |
-| Actor similarity | 0.10 | Cosine similarity of actor SVD vectors |
-| Quality score | 0.10 | Precomputed Bayesian average |
-| Contra penalty | 0.10 | Negative cosine sim against disliked themes |
-| Genre similarity | 0.05 | Cosine similarity of genre multi-hot vectors |
-| Decade similarity | 0.05 | Cosine similarity of decade one-hot vectors |
-| Language similarity | 0.03 | Cosine similarity of language one-hot vectors |
-| Runtime similarity | 0.02 | 1 - |user_pref - candidate| |
+| Signal               | Weight (50+ ratings) | Method                                            |
+|----------------------|----------------------|---------------------------------------------------|
+| Keyword similarity   | 0.20                 | Cosine similarity of keyword SVD vectors          |
+| Mood match           | 0.20                 | Explicit mood selection or implicit mood profile   |
+| Director similarity  | 0.15                 | Cosine similarity of director SVD vectors          |
+| Actor similarity     | 0.10                 | Cosine similarity of actor SVD vectors             |
+| Quality score        | 0.10                 | Precomputed Bayesian average                       |
+| Contra penalty       | 0.10                 | Negative cosine sim against disliked themes        |
+| Genre similarity     | 0.05                 | Cosine similarity of genre multi-hot vectors       |
+| Decade similarity    | 0.05                 | Cosine similarity of decade one-hot vectors        |
+| Language similarity  | 0.03                 | Cosine similarity of language one-hot vectors      |
+| Runtime similarity   | 0.02                 | 1 - |user_pref - candidate|                        |
 
 Weights shift dynamically: cold start → quality-heavy (0.60), 50+ ratings → personalization-heavy (see `src/scoring/SCORING.md`).
 
@@ -157,46 +157,46 @@ movie-recommender/
 
 ## Grading Criteria
 
-8 requirements, each scored 0-3 points. Project = 20% of final grade. Source: [group-project.pdf](docs/group-project.pdf).
+8 requirements, each scored 0-3 points. Project = 20% of final grade.
 
-| Points | Description |
-|--------|-------------|
-| 0 | Requirement not met / feature does not exist |
-| 1 | Basic implementation, formally present but not very relevant to the problem |
-| 2 | Good implementation |
-| 3 | Outstanding implementation, far beyond the level of this course |
+| Points | Description                                                          |
+|--------|----------------------------------------------------------------------|
+| 0      | Requirement not met / feature does not exist                         |
+| 1      | Basic implementation, formally present but not very relevant         |
+| 2      | Good implementation                                                  |
+| 3      | Outstanding implementation, far beyond the level of this course      |
 
-| # | Requirement | Status |
-|---|-------------|--------|
-| 1 | Problem clearly stated | ✅ defined (README + concept.md) |
-| 2 | Data via API/database | ✅ implemented (TMDB API v3, 9 endpoints + SQLite, 8 tables + 1.17M movie DB) |
-| 3 | Data visualization | ✅ implemented (4 KPIs, 4 Altair charts, top 5 rankings, sortable table) |
-| 4 | User interaction | ✅ implemented (8 filters, mood pills, ratings, watchlist, settings, 5 pages) |
-| 5 | Machine learning | ✅ implemented (TF-IDF/SVD pipeline, 11-signal scoring, 7 classifiers, evaluation) |
-| 6 | Code documentation | ✅ implemented (Google-style docstrings, inline comments, 16 .md files) |
-| 7 | Contribution matrix | ⚠️ structure ready, needs team input |
-| 8 | 4-min video + demo | ❌ not started |
+| #   | Requirement            | Status                                                                                   |
+|-----|------------------------|------------------------------------------------------------------------------------------|
+| 1   | Problem clearly stated | ✅ defined (README + concept.md)                                                         |
+| 2   | Data via API/database  | ✅ implemented (TMDB API v3, 9 endpoints + SQLite, 8 tables + 1.17M movie DB)            |
+| 3   | Data visualization     | ✅ implemented (4 KPIs, 4 Altair charts, top 5 rankings, sortable table)                 |
+| 4   | User interaction       | ✅ implemented (8 filters, mood pills, ratings, watchlist, settings, 5 pages)             |
+| 5   | Machine learning       | ✅ implemented (TF-IDF/SVD pipeline, 11-signal scoring, 7 classifiers, evaluation)       |
+| 6   | Code documentation     | ✅ implemented (docstrings, inline comments, .md architecture docs)                      |
+| 7   | Contribution matrix    | ⚠️ structure ready, needs team input                                                     |
+| 8   | 4-min video + demo     | ❌ not started                                                                           |
 
 Detailed mapping: [docs/requirements.md](docs/requirements.md)
 
 | Points | Grade % | Points | Grade % |
 |--------|---------|--------|---------|
-| ≤8 | ≤50% | 13 | 81.25% |
-| 9 | 56.25% | 14 | 87.5% |
-| 10 | 62.5% | 15 | 93.75% |
-| 11 | 68.75% | ≥16 | 100% |
-| 12 | 75% | | |
+| ≤8     | ≤50%    | 13     | 81.25%  |
+| 9      | 56.25%  | 14     | 87.5%   |
+| 10     | 62.5%   | 15     | 93.75%  |
+| 11     | 68.75%  | ≥16    | 100%    |
+| 12     | 75%     |        |         |
 
 ---
 
 ## Project Docs
 
-| Document | Description |
-|----------|-------------|
-| [contribution.md](docs/contribution.md) | Team contribution matrix (Req 7) |
-| [requirements.md](docs/requirements.md) | Course requirements → code mapping with score estimates |
-| [wireframes.md](docs/wireframes.md) | UI flow diagram + original vs final comparison |
-| [concept.md](docs/concept.md) | Original project concept |
+| Document                                       | Description                                              |
+|------------------------------------------------|----------------------------------------------------------|
+| [contribution.md](docs/contribution.md)        | Team contribution matrix (Req 7)                         |
+| [requirements.md](docs/requirements.md)        | Course requirements → code mapping with score estimates   |
+| [wireframes.md](docs/wireframes.md)            | UI flow diagram + original vs final comparison            |
+| [concept.md](docs/concept.md)                  | Original project concept                                  |
 
 ---
 
