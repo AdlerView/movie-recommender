@@ -135,18 +135,20 @@ Full course-compliant ML evaluation workflow (see `evaluation.ipynb`):
 ```
 movie-recommender/
 ├── app.py                     Entry point (config, DB init, navigation)
+├── evaluation.ipynb           ML evaluation notebook (academic deliverable)
 ├── src/
+│   ├── constants.py           App-wide constants (moods, colors, thresholds)
+│   ├── db.py                  SQLite persistence layer
+│   ├── tmdb.py                TMDB API v3 client
+│   ├── helpers.py             Data helpers (no Streamlit dependency)
+│   ├── components.py          Reusable Streamlit UI renderers
 │   ├── views/                 5 page modules (discover, rate, watchlist, statistics, settings)
-│   └── utils/                 Constants, DB, TMDB API, data helpers, UI renderers
-├── ml/
-│   ├── extraction/            Offline pipeline: features, moods, quality, index, verify
-│   ├── classification/        Offline: keyword-to-mood classifier
-│   ├── scoring/               Online: arrays, profile, cache, scoring, mood filter
-│   └── evaluation/            ML evaluation functions + Jupyter notebook
+│   ├── scoring/               Online: loader, profile, cache, rank, mood filter
+│   └── ml/                    Offline pipeline: features, moods, quality, classifier, index, verify
 ├── data/
-│   ├── input/                 Pipeline sources (tmdb.sqlite, labeled keywords, genre-mood map)
-│   └── output/                Pipeline outputs (.npy arrays, .json mappings, .pkl models)
-├── docs/                      Project documentation + archive
+│   ├── source/                Pipeline sources (tmdb.sqlite, labeled keywords, genre-mood map)
+│   └── models/                Pipeline outputs (.npy arrays, .json mappings, .pkl models)
+├── docs/                      Project documentation
 ├── static/                    Poppins font files (18 TTFs, OFL licensed)
 └── .streamlit/                Theme config (tracked) + secrets (gitignored)
 ```

@@ -209,7 +209,7 @@ Bayesian average correcting for vote count bias. Formula: see SCORING.md (Qualit
 
 ## Classifier Evaluation Artifacts (Phase 1b) — Tracked
 
-Produced by `keyword_mood_classifier.py` during the 7-classifier comparison.
+Produced by `src/ml/classifier.py` during the 7-classifier comparison.
 
 ### keyword_classifier_results.csv
 
