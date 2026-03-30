@@ -23,12 +23,12 @@ def main() -> int:
         description="Build movie_id_index.json from tmdb.sqlite.",
     )
     parser.add_argument(
-        "--db", type=Path, default=Path("data/input/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
+        "--db", type=Path, default=Path("data/source/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("data/output"),
-        help="Output directory (default: data/output/)",
+        "--output", type=Path, default=Path("data/models"),
+        help="Output directory (default: data/models/)",
     )
     args = parser.parse_args()
 

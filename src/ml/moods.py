@@ -274,20 +274,20 @@ def main() -> int:
         description="Predict mood scores for all movies from 4 signals.",
     )
     parser.add_argument(
-        "--db", type=Path, default=Path("data/input/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
+        "--db", type=Path, default=Path("data/source/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("data/output"),
-        help="Output directory for mood_scores.npy (default: data/output/)",
+        "--output", type=Path, default=Path("data/models"),
+        help="Output directory for mood_scores.npy (default: data/models/)",
     )
     parser.add_argument(
-        "--genre-map", type=Path, default=Path("data/input/genre_mood_map.json"),
-        help="Path to genre mood map JSON (default: data/input/genre_mood_map.json)",
+        "--genre-map", type=Path, default=Path("data/source/genre_mood_map.json"),
+        help="Path to genre mood map JSON (default: data/source/genre_mood_map.json)",
     )
     parser.add_argument(
-        "--keyword-map", type=Path, default=Path("data/output/keyword_mood_map.json"),
-        help="Path to keyword mood map JSON (default: data/output/keyword_mood_map.json)",
+        "--keyword-map", type=Path, default=Path("data/models/keyword_mood_map.json"),
+        help="Path to keyword mood map JSON (default: data/models/keyword_mood_map.json)",
     )
     parser.add_argument(
         "--batch-size", type=int, default=64,

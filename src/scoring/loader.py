@@ -12,7 +12,7 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 # Default output directory for pipeline arrays
-_DEFAULT_OUTPUT_DIR: Final[Path] = Path("data/output")
+_DEFAULT_OUTPUT_DIR: Final[Path] = Path("data/models")
 
 
 # ---------------------------------------------------------------------------
@@ -40,7 +40,7 @@ _model: _ModelArrays | None = None
 
 
 def _load_model_arrays(output_dir: Path = _DEFAULT_OUTPUT_DIR) -> _ModelArrays:
-    """Load all arrays from data/output/."""
+    """Load all arrays from data/models/."""
     index_path = output_dir / "movie_id_index.json"
     if not index_path.exists():
         raise FileNotFoundError(

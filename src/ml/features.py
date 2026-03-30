@@ -327,14 +327,14 @@ def main() -> int:
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("data/input/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
+        default=Path("data/source/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/output"),
-        help="Output directory for .npy and .pkl files (default: data/output/)",
+        default=Path("data/models"),
+        help="Output directory for .npy and .pkl files (default: data/models/)",
     )
     parser.add_argument(
         "--svd-components",

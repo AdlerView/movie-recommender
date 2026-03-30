@@ -1,8 +1,8 @@
-# OUTPUT
+# MODELS
 
-Pipeline-generated feature arrays, trained models, and mappings. These files are the product of the offline ML pipeline and the input to the online scoring system. Most large files are gitignored — this document provides the detailed specification of every output file including shapes, value ranges, sample data, and production statistics.
+Pipeline-generated feature arrays, trained models, and mappings. These files are the product of the offline ML pipeline (`src/ml/`) and the input to the online scoring system (`src/scoring/`). Most large files are gitignored — this document provides the detailed specification of every output file including shapes, value ranges, sample data, and production statistics.
 
-All 1,174,069-row arrays share the same row ordering: `SELECT id FROM movies ORDER BY id` from `data/input/tmdb.sqlite`. The bidirectional mapping `movie_id_index.json` translates TMDB movie IDs to row indices at runtime.
+All 1,174,069-row arrays share the same row ordering: `SELECT id FROM movies ORDER BY id` from `data/source/tmdb.sqlite`. The bidirectional mapping `movie_id_index.json` translates TMDB movie IDs to row indices at runtime.
 
 Loaded once as a lazy singleton by `src/scoring/loader.py:_load_model_arrays()` (~3 GB into RAM), then shared across all Streamlit sessions.
 
@@ -10,7 +10,7 @@ Loaded once as a lazy singleton by `src/scoring/loader.py:_load_model_arrays()` 
 
 ## Pipeline Phases
 
-Pipeline overview and run order: see EXTRACTION.md.
+Pipeline overview and run order: see `src/ml/PIPELINE.md`.
 
 ---
 
@@ -36,7 +36,7 @@ High-dimensional sparse relational data (movie has keyword X, director Y) compre
 | Fight Club (550) | The Notebook (11036) | 0.12 | Completely different thematic space |
 | Inception (27205) | Interstellar (157336) | 0.78 | Same director (Nolan), sci-fi themes |
 
-**Reproducible** from `tmdb.sqlite` via `extract_features.py --db data/input/tmdb.sqlite --output data/output/`.
+**Reproducible** from `tmdb.sqlite` via `src/ml/features.py --db data/source/tmdb.sqlite --output data/models/`.
 
 ---
 
@@ -50,13 +50,13 @@ Fitted `TruncatedSVD` instances saved as pickled scikit-learn objects. These can
 | `director_svd.pkl` | 345 MB | ~170K-dim binary sparse → | 200-dim dense |
 | `actor_svd.pkl` | 909 MB | ~4M-dim binary sparse → | 200-dim dense |
 
-**Reproducible** via `extract_features.py`.
+**Reproducible** via `src/ml/features.py`.
 
 ---
 
 ## Categorical Feature Vectors (Phase 1a) — Tracked
 
-Low-dimensional one-hot/multi-hot vectors. No SVD reduction needed (already compact). Used by `scoring.py` for cosine similarity.
+Low-dimensional one-hot/multi-hot vectors. No SVD reduction needed (already compact). Used by `src/scoring/rank.py` for cosine similarity.
 
 ### genre_vectors.npy
 
@@ -125,7 +125,7 @@ Per-movie mood probabilities computed from 4 combined signals. Each value repres
 | **Value range** | [0.0, ~0.85] per cell (not normalized to sum=1.0) |
 | **Coverage** | 94.6% of movies (1.11M / 1.17M have at least one score > 0) |
 
-Signal weights: see CLASSIFICATION.md (Signal Combination).
+Signal weights: see `src/ml/PIPELINE.md` (Signal Combination).
 
 **Example mood profiles:**
 
@@ -135,7 +135,7 @@ Signal weights: see CLASSIFICATION.md (Signal Combination).
 | The Notebook | 0.35 | 0.10 | 0.05 | 0.38 | 0.02 | 0.03 | 0.07 |
 | The Shining | 0.02 | 0.12 | 0.10 | 0.08 | 0.15 | 0.42 | 0.11 |
 
-Consumed by `mood_filter.py` (threshold filter on Discover page) and `scoring.py` (mood_match signal).
+Consumed by `src/scoring/mood.py` (threshold filter on Discover page) and `src/scoring/rank.py` (mood_match signal).
 
 ---
 
@@ -235,7 +235,7 @@ Produced by `keyword_mood_classifier.py` during the 7-classifier comparison.
 
 ## Runtime Loading
 
-Loaded by `arrays.py:_load_model_arrays()` as lazy singleton (~3 GB into RAM, first call only).
+Loaded by `src/scoring/loader.py:_load_model_arrays()` as lazy singleton (~3 GB into RAM, first call only).
 
 ---
 

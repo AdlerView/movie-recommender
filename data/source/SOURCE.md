@@ -1,6 +1,6 @@
-# INPUT
+# SOURCE
 
-Pipeline source data. These files are consumed by the offline ML pipeline scripts to produce the `.npy` feature arrays in `data/output/`. The largest file (`tmdb.sqlite`, 7.7 GB) is gitignored — this document serves as the authoritative reference for its schema and contents.
+Pipeline source data. These files are consumed by the offline ML pipeline scripts (`src/ml/`) to produce the `.npy` feature arrays in `data/models/`. The largest file (`tmdb.sqlite`, 7.7 GB) is gitignored — this document serves as the authoritative reference for its schema and contents.
 
 ---
 
@@ -8,8 +8,8 @@ Pipeline source data. These files are consumed by the offline ML pipeline script
 
 | File | Size | Tracked | Consumed by |
 |---|---|---|---|
-| `tmdb.sqlite` | 7.7 GB | Gitignored | `extract_features.py`, `moods.py`, `quality_scores.py` |
-| `labeled_keywords.tsv` | 355 KB | Tracked | `keyword_mood_classifier.py` |
+| `tmdb.sqlite` | 7.7 GB | Gitignored | `features.py`, `moods.py`, `quality.py` |
+| `labeled_keywords.tsv` | 355 KB | Tracked | `classifier.py` |
 | `genre_mood_map.json` | 1.3 KB | Tracked | `moods.py` |
 
 ---
@@ -87,7 +87,7 @@ CREATE TABLE movie_keywords (
 - **Average keywords per movie:** 3.5 (movies with ≥1 keyword: ~830K)
 - **Top keywords by movie count:** "woman director" (62K), "independent film" (37K), "based on novel" (15K)
 
-Used by: `extract_features.py` → TF-IDF sparse matrix → TruncatedSVD → `keyword_svd_vectors.npy` (1.17M × 200)
+Used by: `features.py` → TF-IDF sparse matrix → TruncatedSVD → `keyword_svd_vectors.npy` (1.17M × 200)
 
 #### `movie_genres` + `genres`
 
@@ -110,7 +110,7 @@ CREATE TABLE movie_genres (
 - **Average genres per movie:** 1.8
 - **Most common:** Drama (412K), Comedy (213K), Thriller (143K)
 
-Used by: `extract_features.py` → multi-hot matrix → `genre_vectors.npy` (1.17M × 19)
+Used by: `features.py` → multi-hot matrix → `genre_vectors.npy` (1.17M × 19)
 
 #### `movie_crew`
 
@@ -130,7 +130,7 @@ CREATE TABLE movie_crew (
 - **Unique directors:** ~170K (filtered via `WHERE job = 'Director'`)
 - **Director-movie pairs:** ~1.2M
 
-Used by: `extract_features.py` → binary sparse matrix (Director only) → SVD → `director_svd_vectors.npy` (1.17M × 200)
+Used by: `features.py` → binary sparse matrix (Director only) → SVD → `director_svd_vectors.npy` (1.17M × 200)
 
 #### `movie_cast`
 
@@ -151,7 +151,7 @@ CREATE TABLE movie_cast (
 - **Unique actors:** ~4M
 - **Filtered pairs (cast_order < 5):** ~4.2M (top 5 billed per film)
 
-Used by: `extract_features.py` → binary sparse matrix (top-5 cast only) → SVD → `actor_svd_vectors.npy` (1.17M × 200)
+Used by: `features.py` → binary sparse matrix (top-5 cast only) → SVD → `actor_svd_vectors.npy` (1.17M × 200)
 
 #### `movie_reviews`
 
@@ -176,7 +176,7 @@ Used by: `moods.py` → emotion classifier (distilroberta) → Signal 4 (review 
 
 ## labeled_keywords.tsv — Training Data for Mood Classifier
 
-Top 5,000 TMDB keywords by movie_count, each manually labeled with one or more of 7 Ekman moods. This is the training data for the keyword-to-mood classifier (`keyword_mood_classifier.py`).
+Top 5,000 TMDB keywords by movie_count, each manually labeled with one or more of 7 Ekman moods. This is the training data for the keyword-to-mood classifier (`classifier.py`).
 
 **Columns:**
 

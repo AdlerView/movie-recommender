@@ -37,8 +37,8 @@ def main() -> int:
         description="Verify pipeline output files for existence and row-count consistency.",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("data/output"),
-        help="Output directory (default: data/output/)",
+        "--output", type=Path, default=Path("data/models"),
+        help="Output directory (default: data/models/)",
     )
     args = parser.parse_args()
 
@@ -73,7 +73,7 @@ def main() -> int:
     # Check JSON maps
     for fname, fdir in [
         ("keyword_mood_map.json", args.output),
-        ("genre_mood_map.json", args.output.parent / "input"),
+        ("genre_mood_map.json", args.output.parent / "source"),
     ]:
         fpath = fdir / fname
         if fpath.exists():

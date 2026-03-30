@@ -316,20 +316,20 @@ def main() -> int:
     parser.add_argument(
         "--tsv",
         type=Path,
-        default=Path("data/input/labeled_keywords.tsv"),
-        help="Path to labeled keyword TSV (default: data/input/...labeled_top5000.tsv)",
+        default=Path("data/source/labeled_keywords.tsv"),
+        help="Path to labeled keyword TSV (default: data/source/labeled_keywords.tsv)",
     )
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("data/input/tmdb.sqlite"),
-        help="Path to TMDB SQLite database (default: data/input/tmdb.sqlite)",
+        default=Path("data/source/tmdb.sqlite"),
+        help="Path to TMDB SQLite database (default: data/source/tmdb.sqlite)",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("data/output/keyword_mood_map.json"),
-        help="Output path for keyword mood map JSON (default: data/output/keyword_mood_map.json)",
+        default=Path("data/models/keyword_mood_map.json"),
+        help="Output path for keyword mood map JSON (default: data/models/keyword_mood_map.json)",
     )
     parser.add_argument(
         "--model",
@@ -340,8 +340,8 @@ def main() -> int:
     parser.add_argument(
         "--eval-dir",
         type=Path,
-        default=Path("data/output"),
-        help="Directory for evaluation outputs (default: data/output/)",
+        default=Path("docs"),
+        help="Directory for evaluation outputs (default: docs/)",
     )
     parser.add_argument(
         "--batch-size",
